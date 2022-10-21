@@ -1,0 +1,31 @@
+{
+  "name": "arguebuf-typescript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/recap-utr/arguebuf-typescript.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/recap-utr/arguebuf-typescript/issues"
+  },
+  "homepage": "https://github.com/recap-utr/arguebuf-typescript#readme",
+  "dependencies": {
+    "arg-services": "^0.3.10",
+    "date-fns": "^2.29.3",
+    "elkjs": "^0.8.2",
+    "html-to-image": "^1.10.8",
+    "immer": "^9.0.15",
+    "reactflow": "^11.1.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.4"
+  }
+}
