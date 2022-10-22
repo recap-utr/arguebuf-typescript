@@ -5,7 +5,7 @@ import { startCase } from "lodash";
 import { Node as FlowNode, NodeProps, XYPosition } from "reactflow";
 import { v1 as uuid } from "uuid";
 import * as date from "../services/date";
-import * as aif from "./aif";
+import * as aif from "../schema/aif";
 import * as meta from "./metadata";
 import * as ref from "./reference";
 

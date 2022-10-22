@@ -3,7 +3,7 @@ import * as arguebuf from "arg-services/arg_services/graph/v1/graph_pb";
 import { Struct } from "arg-services/google/protobuf/struct_pb";
 import { Edge as FlowEdge } from "reactflow";
 import { v1 as uuid } from "uuid";
-import * as aif from "./aif";
+import * as aif from "../schema/aif";
 import * as meta from "./metadata";
 
 export type Edge = FlowEdge<EdgeData>;
