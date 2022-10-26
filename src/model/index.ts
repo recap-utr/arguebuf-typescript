@@ -1,5 +1,5 @@
 import * as arguebuf from "arg-services/arg_services/graph/v1/graph_pb";
-import * as aif from "../schema/aif";
+// import * as aif from "../schema/aif";
 import type { Edge } from "./edge";
 import * as edge from "./edge";
 import type { Graph } from "./graph";
@@ -73,6 +73,7 @@ export function initWrapper({
   };
 }
 
+/*
 export function toAif(obj: Wrapper): aif.Graph {
   return {
     nodes: obj.nodes.map((n) => node.toAif(n)),
@@ -80,7 +81,9 @@ export function toAif(obj: Wrapper): aif.Graph {
     locutions: [],
   };
 }
+*/
 
+/*
 export function fromAif(obj: aif.Graph): Wrapper {
   const nodes = obj.nodes
     .map((n) => node.fromAif(n))
@@ -96,6 +99,7 @@ export function fromAif(obj: aif.Graph): Wrapper {
     edges,
   });
 }
+*/
 
 export function toProtobuf(obj: Wrapper): arguebuf.Graph {
   return arguebuf.Graph.create({

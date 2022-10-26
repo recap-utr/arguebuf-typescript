@@ -5,7 +5,7 @@ import { startCase } from "lodash";
 import { Node as FlowNode, NodeProps, XYPosition } from "reactflow";
 import { v1 as uuid } from "uuid";
 import * as date from "../services/date";
-import * as aif from "../schema/aif";
+// import * as aif from "../schema/aif";
 import * as meta from "./metadata";
 import * as ref from "./reference";
 
@@ -171,13 +171,16 @@ const protobuf2preference = Object.fromEntries(
   Object.entries(preference2protobuf).map(([key, value]) => [value, key])
 ) as { [k in arguebuf.Preference]: Preference };
 
+/*
 const scheme2aif: { [key in SchemeType]: aif.SchemeType } = {
   support: "RA",
   attack: "CA",
   rephrase: "MA",
   preference: "PA",
 };
+*/
 
+/*
 const aif2scheme: { [key in aif.SchemeType]: SchemeType | undefined } = {
   RA: SchemeType.SUPPORT,
   CA: SchemeType.ATTACK,
@@ -185,8 +188,9 @@ const aif2scheme: { [key in aif.SchemeType]: SchemeType | undefined } = {
   PA: SchemeType.PREFERENCE,
   "": undefined,
 };
+*/
 
-const text2support: { [k: string]: Support } = {
+export const text2support: { [k: string]: Support } = {
   Alternatives: Support.ALTERNATIVES,
   Analogy: Support.ANALOGY,
   "Arbitrary Verbal Classification": Support.VERBAL_CLASSIFICATION,
@@ -284,9 +288,9 @@ const text2support: { [k: string]: Support } = {
   "Witness Testimony": Support.WITNESS_TESTIMONY,
 };
 
-const text2attack: { [k: string]: Attack } = {};
-const text2rephrase: { [k: string]: Rephrase } = {};
-const text2preference: { [k: string]: Preference } = {};
+export const text2attack: { [k: string]: Attack } = {};
+export const text2rephrase: { [k: string]: Rephrase } = {};
+export const text2preference: { [k: string]: Preference } = {};
 
 export interface NodeData {
   metadata: meta.Metadata;
@@ -466,6 +470,7 @@ export function toProtobuf(node: Node): arguebuf.Node {
   throw new Error("Node type not supported.");
 }
 
+/*
 export function toAif(node: Node): aif.Node {
   if (isAtom(node)) {
     return {
@@ -485,7 +490,9 @@ export function toAif(node: Node): aif.Node {
 
   throw new Error("Node type not supported");
 }
+*/
 
+/*
 export function fromAif(obj: aif.Node): Node | undefined {
   const timestamp = date.parse(obj.timestamp, aif.DATE_FORMAT);
   const metadata: meta.Metadata = { created: timestamp, updated: timestamp };
@@ -553,6 +560,7 @@ export function fromAif(obj: aif.Node): Node | undefined {
 
   return undefined;
 }
+*/
 
 export function fromProtobuf(id: string, obj: arguebuf.Node): Node {
   const metadata = obj.metadata

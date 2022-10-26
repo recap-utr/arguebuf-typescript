@@ -3,7 +3,7 @@ import * as arguebuf from "arg-services/arg_services/graph/v1/graph_pb";
 import { Struct } from "arg-services/google/protobuf/struct_pb";
 import { Edge as FlowEdge } from "reactflow";
 import { v1 as uuid } from "uuid";
-import * as aif from "../schema/aif";
+// import * as aif from "../schema/aif";
 import * as meta from "./metadata";
 
 export type Edge = FlowEdge<EdgeData>;
@@ -42,6 +42,7 @@ export function toProtobuf(edge: Edge): arguebuf.Edge {
   };
 }
 
+/*
 export function toAif(edge: Edge): aif.Edge {
   return {
     edgeID: edge.id,
@@ -50,7 +51,9 @@ export function toAif(edge: Edge): aif.Edge {
     formEdgeID: null,
   };
 }
+*/
 
+/*
 export function fromAif(obj: aif.Edge): Edge {
   return {
     id: obj.edgeID,
@@ -62,6 +65,7 @@ export function fromAif(obj: aif.Edge): Edge {
     },
   };
 }
+*/
 
 export function fromProtobuf(id: string, obj: arguebuf.Edge): Edge {
   return {
