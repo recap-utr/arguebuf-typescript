@@ -10,6 +10,8 @@ import * as participant from "./participant";
 import * as resource from "./resource";
 
 export interface Graph {
+  nodes: Array<Node>;
+  edges: Array<Edge>;
   resources: { [x: string]: resource.Resource };
   participants: { [x: string]: participant.Participant };
   majorClaim?: string;
@@ -34,6 +36,8 @@ export interface Props {
 }
 
 export function init({
+  nodes,
+  edges,
   resources,
   participants,
   majorClaim,
@@ -42,6 +46,8 @@ export function init({
   userdata,
 }: Props): Graph {
   return {
+    nodes: nodes ?? [],
+    edges: edges ?? [],
     metadata: metadata ?? meta.init({}),
     userdata: userdata ?? {},
     resources: resources ?? {},
@@ -53,9 +59,7 @@ export function init({
   };
 }
 
-export function toProtobuf(
-  obj: Graph
-): Omit<arguebuf.Graph, "nodes" | "edges"> {
+export function toProtobuf(obj: Graph): arguebuf.Graph {
   return arguebuf.Graph.create({
     resources: Object.fromEntries(
       Object.entries(obj.resources).map(([k, v]) => [k, resource.toProtobuf(v)])
@@ -77,9 +81,7 @@ export function toProtobuf(
   });
 }
 
-export function fromProtobuf(
-  obj: arguebuf.Graph
-): Omit<Graph, "nodes" | "edges"> {
+export function fromProtobuf(obj: arguebuf.Graph): Graph {
   return {
     resources: Object.fromEntries(
       Object.entries(obj.resources).map(([k, v]) => [
