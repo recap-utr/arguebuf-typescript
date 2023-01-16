@@ -1,30 +1,26 @@
-import { Timestamp } from "arg-services/google/protobuf/timestamp_pb";
-import * as dateHelper from "date-fns";
+import { Timestamp } from "@bufbuild/protobuf";
+import dayjs from "dayjs";
 
 export function now(): string {
-  return new Date().toJSON();
+  return dayjs().toJSON();
 }
 
 export function parse(dateString: string, format: string): string {
-  return dateHelper.parse(dateString, format, new Date()).toJSON();
+  return dayjs(dateString, format).toJSON();
 }
 
-export function instance(dateJSON: string): Date {
-  return dateHelper.parseJSON(dateJSON);
-}
-
-export function format(dateJSON: string, format: string): string {
-  return dateHelper.format(instance(dateJSON), format);
+export function format(dateJson: string, format: string): string {
+  return dayjs(dateJson).format(format);
 }
 
 export function fromProtobuf(timestamp: Timestamp | undefined): string {
-  if (timestamp) {
-    return Timestamp.toDate(timestamp).toJSON();
+  if (timestamp !== undefined) {
+    return dayjs(timestamp.toDate()).toJSON();
   }
 
   return now();
 }
 
-export function toProtobuf(dateJSON: string): Timestamp {
-  return Timestamp.fromDate(instance(dateJSON));
+export function toProtobuf(dateJson: string): Timestamp {
+  return Timestamp.fromDate(dayjs(dateJson).toDate());
 }

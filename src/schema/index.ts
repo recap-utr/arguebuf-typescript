@@ -1,4 +1,4 @@
-export * from "./aif";
+export * from "./aif.js";
 
 // export * from "./aml";
 // export * from "./argdown";
