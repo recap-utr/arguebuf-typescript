@@ -110,6 +110,7 @@ export function fromAif(obj: Graph): model.Graph {
     analysts: {},
     schemaVersion: 1,
     libraryVersion: jsonPackage.default.dependencies["arg-services"],
+    metadata: {},
   });
 }
 
@@ -162,7 +163,7 @@ export function nodeFromAif(obj: Node): model.Node {
         break;
       }
     }
-    // --------------
+    
     const schemeNode = new model.Node({
       type: {
         case: "scheme",
