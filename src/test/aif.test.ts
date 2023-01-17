@@ -23,7 +23,8 @@ test("edge: aif2arguebuf", () => {
   expect(arguebufEdge.userdata).toBe(undefined);
 });
 
-const aifNodeStr =
+
+const aifAtomNodeStr =
 '{\
   "nodeID": "119935",\
   "text": "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",\
@@ -31,8 +32,8 @@ const aifNodeStr =
   "timestamp": "2015-12-14 12:09:15"\
 }';
 
-test("node: aif2arguebuf", () => {
-  let aifNode = JSON.parse(aifNodeStr);
+test("atom node: aif2arguebuf", () => {
+  let aifNode = JSON.parse(aifAtomNodeStr);
   let arguebufNode: model.Node = aif.nodeFromAif(aifNode);
 
   if (arguebufNode.type.case === "atom") {
@@ -50,6 +51,39 @@ test("node: aif2arguebuf", () => {
     );
   }
 });
+
+
+const aifSchemeNodeStr = 
+'{\
+  "nodeID": "119935",\
+  "text": "One can hardly move in Friedrichshain or Neuk\u00f6lln these days without permanently scanning the ground for dog dirt.",\
+  "type": "RA",\
+  "timestamp": "2015-12-14 12:09:15"\
+}';
+
+test("scheme node: aif2arguebuf", () => {
+  let aifNode = JSON.parse(aifSchemeNodeStr);
+  let arguebufNode: model.Node = aif.nodeFromAif(aifNode);
+
+  if (arguebufNode.type.case === "scheme") {
+    let arguebufScheme: model.Scheme = arguebufNode.type.value;
+    assertType<model.Node>(arguebufNode);
+    expect(arguebufNode.type.case).toBe("scheme");
+    expect(arguebufScheme.type.value).toBe(
+      model.Support.DEFAULT
+    );
+    expect(arguebufScheme.type.case).toBe(
+      "support"
+    );
+    expect(arguebufNode.metadata?.created?.seconds).toBe(
+      date.toProtobuf("2015-12-14 12:09:15").seconds
+    );
+    expect(arguebufNode.metadata?.updated?.seconds).toBe(
+      date.toProtobuf("2015-12-14 12:09:15").seconds
+    );
+  }
+});
+
 
 const aifGraphStr = 
 '{\
