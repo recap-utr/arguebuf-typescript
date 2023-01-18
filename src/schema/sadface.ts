@@ -1,4 +1,6 @@
+import { Struct, PartialMessage } from "@bufbuild/protobuf";
 import * as model from "arg-services/graph/v1/graph_pb";
+import * as jsonPackage from "../../package.json";
 import * as date from "../services/date.js";
 
 export interface Graph {
@@ -134,3 +136,47 @@ export function nodeFromSadface(obj: Node): model.Node {
       return schemeNode;
     }
   }
+
+  export function fromSadface(obj: Graph): model.Graph {
+    var nodeDict: { [key: string]: model.Node } = {};
+    obj.nodes.forEach( (node) => (nodeDict[node.id] = nodeFromSadface(node)));
+    var edgeDict: { [key: string]: model.Edge } = {};
+    obj.edges.forEach( (edge) => (edgeDict[edge.id] = edgeFromSadface(edge)));
+    
+    let metadata = {
+      created: date.toProtobuf(obj.metadata.core.created),
+      updated: date.toProtobuf(obj.metadata.core.edited),
+    };
+    let analyst = {
+      name: obj.metadata.core.analyst_name,
+      email: obj.metadata.core.analyst_email,
+    }
+    /*
+    const userdata: PartialMessage<Struct> = {
+      "notes": obj.metadata.core.notes,
+      "description": obj.metadata.core.description,
+      "title": obj.metadata.core.title,
+      "sadfaceVersion": obj.metadata.core.version,
+    };
+    */
+   const userdata = {
+
+   };
+    return new model.Graph({
+      nodes: nodeDict,
+      edges: edgeDict,
+      resources: {},  // x
+      participants: {},
+      userdata: userdata,
+      analysts: {"todo: wich id?": analyst},
+      schemaVersion: 1,
+      libraryVersion: jsonPackage.default.dependencies["arg-services"],
+      metadata: metadata,
+    });
+  }
+
+  /*
+  export function toSadface(obj: model.Graph): Graph {
+    
+  }
+  */
