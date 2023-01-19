@@ -13,9 +13,11 @@
   "dependencies": {
     "@argdown/core": "^1.7.5",
     "arg-services": "^2.0.0-beta.1",
-    "dayjs": "^1.11.7"
+    "dayjs": "^1.11.7",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/uuid": "^9.0.0",
     "typescript": "^4.9.4",
     "vite": "^4.0.4",
     "vitest": "^0.27.1"

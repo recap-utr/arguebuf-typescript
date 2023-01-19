@@ -2,6 +2,7 @@ import { Struct, PartialMessage } from "@bufbuild/protobuf";
 import * as model from "arg-services/graph/v1/graph_pb";
 import * as jsonPackage from "../../package.json";
 import * as date from "../services/date.js";
+import { v1 as uuidv1 } from 'uuid';
 
 export interface Graph {
     nodes: Array<Node>;
@@ -137,6 +138,12 @@ export function nodeFromSadface(obj: Node): model.Node {
     }
   }
 
+  /*
+  export function toSadface(obj: model.Graph): Graph {
+
+  }
+  */
+
   export function fromSadface(obj: Graph): model.Graph {
     var nodeDict: { [key: string]: model.Node } = {};
     obj.nodes.forEach( (node) => (nodeDict[node.id] = nodeFromSadface(node)));
@@ -147,12 +154,14 @@ export function nodeFromSadface(obj: Node): model.Node {
       created: date.toProtobuf(obj.metadata.core.created),
       updated: date.toProtobuf(obj.metadata.core.edited),
     };
-    let analyst = {
+    let analystId: string = uuidv1();
+    let analysts: any = {};
+    analysts[analystId] = {
       name: obj.metadata.core.analyst_name,
       email: obj.metadata.core.analyst_email,
-    }
+    };
     /*
-    const userdata: PartialMessage<Struct> = {
+    const userdata = {
       "notes": obj.metadata.core.notes,
       "description": obj.metadata.core.description,
       "title": obj.metadata.core.title,
@@ -168,15 +177,9 @@ export function nodeFromSadface(obj: Node): model.Node {
       resources: {},  // x
       participants: {},
       userdata: userdata,
-      analysts: {"todo: wich id?": analyst},
+      analysts: analysts,
       schemaVersion: 1,
       libraryVersion: jsonPackage.default.dependencies["arg-services"],
       metadata: metadata,
     });
   }
-
-  /*
-  export function toSadface(obj: model.Graph): Graph {
-    
-  }
-  */
