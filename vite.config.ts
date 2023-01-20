@@ -3,15 +3,20 @@ import path from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
+const external = (id: string) =>
+  !id.startsWith("\0") && !id.startsWith(".") && !id.startsWith("/");
+
 export default defineConfig({
-  plugins: [dts()],
-  test: {},
   build: {
+    rollupOptions: {
+      external,
+    },
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
-      name: "arguebuf",
-      fileName: "arguebuf",
+      fileName: "index",
       formats: ["es"],
     },
   },
+  test: {},
+  plugins: [dts()],
 });
