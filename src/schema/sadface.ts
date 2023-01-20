@@ -140,7 +140,6 @@ export function nodeFromSadface(obj: Node): model.Node {
   }
 }
 
-
 export function toSadface(obj: model.Graph): Graph {
   let g: Graph = {
     nodes: [],
@@ -160,20 +159,19 @@ export function toSadface(obj: model.Graph): Graph {
     },
   };
   // Add nodes
-  Object.entries(obj.nodes).forEach(entry => {
+  Object.entries(obj.nodes).forEach((entry) => {
     const key: string = entry[0];
     const node: model.Node = entry[1];
     g.nodes.push(nodeToSadface(node, key));
   });
   // Add edges
-  Object.entries(obj.edges).forEach(entry => {
+  Object.entries(obj.edges).forEach((entry) => {
     const key: string = entry[0];
     const edge: model.Edge = entry[1];
     g.edges.push(edgeToSadface(edge, key));
   });
   return g;
 }
-
 
 export function fromSadface(obj: Graph): model.Graph {
   var nodeDict: { [key: string]: model.Node } = {};
@@ -182,8 +180,14 @@ export function fromSadface(obj: Graph): model.Graph {
   obj.edges.forEach((edge) => (edgeDict[edge.id] = edgeFromSadface(edge)));
 
   let metadata = {
-    created: obj.metadata.core.created === undefined? undefined: date.toProtobuf(obj.metadata.core.created),
-    updated: obj.metadata.core.edited === undefined? undefined: date.toProtobuf(obj.metadata.core.edited),
+    created:
+      obj.metadata.core.created === undefined
+        ? undefined
+        : date.toProtobuf(obj.metadata.core.created),
+    updated:
+      obj.metadata.core.edited === undefined
+        ? undefined
+        : date.toProtobuf(obj.metadata.core.edited),
   };
   let analystId: string = uuid();
   let analysts: { [key: string]: model.Analyst } = {};
@@ -193,10 +197,14 @@ export function fromSadface(obj: Graph): model.Graph {
   });
 
   const userdata = {
-    "notes": obj.metadata.core.notes === undefined? "": obj.metadata.core.notes,
-    "description": obj.metadata.core.description === undefined? "": obj.metadata.core.description,
-    "title": obj.metadata.core.title === undefined? "": obj.metadata.core.title,
-    "version": obj.metadata.core.version === undefined? "": obj.metadata.core.version,
+    notes: obj.metadata.core.notes === undefined ? "" : obj.metadata.core.notes,
+    description:
+      obj.metadata.core.description === undefined
+        ? ""
+        : obj.metadata.core.description,
+    title: obj.metadata.core.title === undefined ? "" : obj.metadata.core.title,
+    version:
+      obj.metadata.core.version === undefined ? "" : obj.metadata.core.version,
   };
 
   return new model.Graph({
