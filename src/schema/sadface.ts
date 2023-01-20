@@ -1,6 +1,7 @@
 import { Struct } from "@bufbuild/protobuf";
-import { uuid, version as argServicesVersion } from "arg-services";
+import { version as argServicesVersion } from "arg-services";
 import * as model from "arg-services/graph/v1/graph_pb";
+import { v1 as uuid } from "uuid";
 import * as date from "../services/date.js";
 
 export interface Graph {
@@ -184,7 +185,7 @@ export function fromSadface(obj: Graph): model.Graph {
     created: obj.metadata.core.created === undefined? undefined: date.toProtobuf(obj.metadata.core.created),
     updated: obj.metadata.core.edited === undefined? undefined: date.toProtobuf(obj.metadata.core.edited),
   };
-  let analystId: string = "öakjföajf"; //uuid();
+  let analystId: string = uuid();
   let analysts: { [key: string]: model.Analyst } = {};
   analysts[analystId] = new model.Analyst({
     name: obj.metadata.core.analyst_name,
