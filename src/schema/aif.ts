@@ -1,5 +1,5 @@
+import { version as argServicesVersion } from "arg-services";
 import * as model from "arg-services/graph/v1/graph_pb";
-import * as jsonPackage from "../../package.json";
 import * as date from "../services/date.js";
 
 export type NodeType = "I" | "L" | "RA" | "CA" | "MA" | "TA" | "PA" | "YA" | "";
@@ -109,7 +109,7 @@ export function fromAif(obj: Graph): model.Graph {
     participants: {},
     analysts: {},
     schemaVersion: 1,
-    libraryVersion: jsonPackage.default.dependencies["arg-services"],
+    libraryVersion: argServicesVersion,
     metadata: {},
   });
 }
@@ -163,7 +163,7 @@ export function nodeFromAif(obj: Node): model.Node {
         break;
       }
     }
-    
+
     const schemeNode = new model.Node({
       type: {
         case: "scheme",

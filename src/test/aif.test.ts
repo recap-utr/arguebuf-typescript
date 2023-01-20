@@ -1,12 +1,11 @@
+import { version as argServicesVersion } from "arg-services";
 import * as model from "arg-services/graph/v1/graph_pb";
 import { assertType, expect, test } from "vitest";
 import * as aif from "../schema/aif.js";
 import * as date from "../services/date.js";
-import * as jsonPackage from "../../package.json";
-
 
 const aifEdgeStr =
-'{\
+  '{\
   "edgeID": "160913",\
   "fromID": "119935",\
   "toID": "119940",\
@@ -23,9 +22,8 @@ test("edge: aif2arguebuf", () => {
   expect(arguebufEdge.userdata).toBe(undefined);
 });
 
-
 const aifAtomNodeStr =
-'{\
+  '{\
   "nodeID": "119935",\
   "text": "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",\
   "type": "I",\
@@ -52,9 +50,8 @@ test("atom node: aif2arguebuf", () => {
   }
 });
 
-
-const aifSchemeNodeStr = 
-'{\
+const aifSchemeNodeStr =
+  '{\
   "nodeID": "119935",\
   "text": "One can hardly move in Friedrichshain or Neuk\u00f6lln these days without permanently scanning the ground for dog dirt.",\
   "type": "RA",\
@@ -69,12 +66,8 @@ test("scheme node: aif2arguebuf", () => {
     let arguebufScheme: model.Scheme = arguebufNode.type.value;
     assertType<model.Node>(arguebufNode);
     expect(arguebufNode.type.case).toBe("scheme");
-    expect(arguebufScheme.type.value).toBe(
-      model.Support.DEFAULT
-    );
-    expect(arguebufScheme.type.case).toBe(
-      "support"
-    );
+    expect(arguebufScheme.type.value).toBe(model.Support.DEFAULT);
+    expect(arguebufScheme.type.case).toBe("support");
     expect(arguebufNode.metadata?.created?.seconds).toBe(
       date.toProtobuf("2015-12-14 12:09:15").seconds
     );
@@ -84,10 +77,9 @@ test("scheme node: aif2arguebuf", () => {
   }
 });
 
-
-const aifGraphStr = 
-'{\
-  "nodes": [{"nodeID":"119927","text":"Yes, it\'s annoying and cumbersome to separate your rubbish properly all the time.","type":"I","timestamp":"2015-12-14 12:09:13"},\{"nodeID":"119928","text":"Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins.","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119929","text":"But still Germany produces way too much rubbish","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119930","text":"and too many resources are lost when what actually should be separated and recycled is burnt.","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119931","text":"We Berliners should take the chance and become pioneers in waste separation!","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119932","text":"Default Conflict","type":"CA","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119933","text":"Default Inference","type":"RA","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119934","text":"Default Conflict","type":"CA","timestamp":"2015-12-14 12:09:14"}],\
+const aifGraphStr =
+  '{\
+  "nodes": [{"nodeID":"119927","text":"Yes, it\'s annoying and cumbersome to separate your rubbish properly all the time.","type":"I","timestamp":"2015-12-14 12:09:13"},{"nodeID":"119928","text":"Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins.","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119929","text":"But still Germany produces way too much rubbish","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119930","text":"and too many resources are lost when what actually should be separated and recycled is burnt.","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119931","text":"We Berliners should take the chance and become pioneers in waste separation!","type":"I","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119932","text":"Default Conflict","type":"CA","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119933","text":"Default Inference","type":"RA","timestamp":"2015-12-14 12:09:14"},{"nodeID":"119934","text":"Default Conflict","type":"CA","timestamp":"2015-12-14 12:09:14"}],\
   "edges": [{"edgeID":"160906","fromID":"119927","toID":"119932","formEdgeID":null},{"edgeID":"160907","fromID":"119932","toID":"119931","formEdgeID":null},{"edgeID":"160908","fromID":"119928","toID":"119933","formEdgeID":null},{"edgeID":"160909","fromID":"119933","toID":"119927","formEdgeID":null},{"edgeID":"160910","fromID":"119929","toID":"119934","formEdgeID":null},{"edgeID":"160911","fromID":"119934","toID":"119932","formEdgeID":null},{"edgeID":"160912","fromID":"119930","toID":"119934","formEdgeID":null}],\
   "locutions":[]\
 }';
@@ -98,27 +90,15 @@ test("graph: aif2arguebuf", () => {
 
   // Test some graph properties
   assertType<model.Graph>(arguebufGraph);
-  expect(arguebufGraph.resources).toEqual(
-    {}
-  );
-  expect(arguebufGraph.analysts).toEqual(
-    {}
-  );
-  expect(arguebufGraph.metadata).toEqual(
-    {}
-  );
-  expect(arguebufGraph.schemaVersion).toBe(
-    1
-  );
-  expect(arguebufGraph.libraryVersion).toBe(
-    jsonPackage.default.dependencies["arg-services"]
-  );
-  
+  expect(arguebufGraph.resources).toEqual({});
+  expect(arguebufGraph.analysts).toEqual({});
+  expect(arguebufGraph.metadata).toEqual({});
+  expect(arguebufGraph.schemaVersion).toBe(1);
+  expect(arguebufGraph.libraryVersion).toBe(argServicesVersion);
+
   // Test a specific node in the graph
   let n1: model.Node = arguebufGraph.nodes["119928"];
-  expect(n1.type.case).toBe(
-    "atom"
-  );
+  expect(n1.type.case).toBe("atom");
   if (n1.type.case === "atom") {
     expect(n1.type.value.text).toBe(
       "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins."
@@ -126,20 +106,14 @@ test("graph: aif2arguebuf", () => {
   }
   expect(n1.metadata?.created?.seconds).toBe(
     date.toProtobuf("2015-12-14 12:09:14").seconds
-  )
+  );
   expect(n1.metadata?.updated?.seconds).toBe(
     date.toProtobuf("2015-12-14 12:09:14").seconds
-  )
+  );
 
   // Test a specific Edge in the graph
   let e1: model.Edge = arguebufGraph.edges["160911"];
-  expect(e1.source).toBe(
-    "119934"
-  );
-  expect(e1.target).toBe(
-    "119932"
-  );
-  expect(e1.metadata).toEqual(
-    {}
-  )
+  expect(e1.source).toBe("119934");
+  expect(e1.target).toBe("119932");
+  expect(e1.metadata).toEqual({});
 });

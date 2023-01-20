@@ -1,7 +1,6 @@
 import { Struct } from "@bufbuild/protobuf";
-import { uuid } from "arg-services";
+import { uuid, version as argServicesVersion } from "arg-services";
 import * as model from "arg-services/graph/v1/graph_pb";
-import * as jsonPackage from "../../package.json";
 import * as date from "../services/date.js";
 
 export interface Graph {
@@ -179,7 +178,7 @@ export function fromSadface(obj: Graph): model.Graph {
     userdata: Struct.fromJson(userdata),
     analysts: analysts,
     schemaVersion: 1,
-    libraryVersion: jsonPackage.default.dependencies["arg-services"],
+    libraryVersion: argServicesVersion,
     metadata: metadata,
   });
 }
