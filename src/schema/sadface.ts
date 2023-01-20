@@ -32,15 +32,15 @@ export interface SchemeNode {
 }
 
 export interface Core {
-  analyst_email: string;
-  analyst_name: string;
-  created: string;
-  description: string;
-  edited: string;
-  id: string;
-  notes: string;
-  title: string;
-  version: string;
+  analyst_email?: string;
+  analyst_name?: string;
+  created?: string;
+  description?: string;
+  edited?: string;
+  id?: string;
+  notes?: string;
+  title?: string;
+  version?: string;
 }
 
 export interface Metadata {
@@ -140,40 +140,40 @@ export function nodeFromSadface(obj: Node): model.Node {
   }
 }
 
-/*
-  export function toSadface(obj: model.Graph): Graph {
-    let g: Graph = {
-      nodes: [],
-      edges: [],
-      metadata: {
-        core: {
-          analyst_email: obj.analysts[0].email === undefined? "": obj.analysts[0].email,
-          analyst_name: obj.analysts[0].name === undefined? "": obj.analysts[0].name,
-          created: "",
-          edited: "",
-          description: "",
-          id: "",
-          notes: "",
-          title: "",
-          version: "",
-        },
+
+export function toSadface(obj: model.Graph): Graph {
+  let g: Graph = {
+    nodes: [],
+    edges: [],
+    metadata: {
+      core: {
+        analyst_email: obj.analysts[0]?.email,
+        analyst_name: obj.analysts[0]?.name,
+        created: obj.metadata?.created?.toDate().toString(),
+        edited: obj.metadata?.updated?.toDate().toString(),
+        description: "",
+        id: "",
+        notes: "",
+        title: "",
+        version: "",
       },
-    };
-    // Add nodes
-    Object.entries(obj.nodes).forEach(entry => {
-      const key: string = entry[0];
-      const node: model.Node = entry[1];
-      g.nodes.push(nodeToSadface(node, key));
-    });
-    // Add edges
-    Object.entries(obj.edges).forEach(entry => {
-      const key: string = entry[0];
-      const edge: model.Edge = entry[1];
-      g.edges.push(edgeToSadface(edge, key));
-    });
-    return g;
-  }
-  
+    },
+  };
+  // Add nodes
+  Object.entries(obj.nodes).forEach(entry => {
+    const key: string = entry[0];
+    const node: model.Node = entry[1];
+    g.nodes.push(nodeToSadface(node, key));
+  });
+  // Add edges
+  Object.entries(obj.edges).forEach(entry => {
+    const key: string = entry[0];
+    const edge: model.Edge = entry[1];
+    g.edges.push(edgeToSadface(edge, key));
+  });
+  return g;
+}
+
 
 export function fromSadface(obj: Graph): model.Graph {
   var nodeDict: { [key: string]: model.Node } = {};
@@ -182,8 +182,8 @@ export function fromSadface(obj: Graph): model.Graph {
   obj.edges.forEach((edge) => (edgeDict[edge.id] = edgeFromSadface(edge)));
 
   let metadata = {
-    created: date.toProtobuf(obj.metadata.core.created),
-    updated: date.toProtobuf(obj.metadata.core.edited),
+    created: obj.metadata.core.created === undefined? undefined: date.toProtobuf(obj.metadata.core.created),
+    updated: obj.metadata.core.edited === undefined? undefined: date.toProtobuf(obj.metadata.core.edited),
   };
   let analystId: string = uuid();
   let analysts: { [key: string]: model.Analyst } = {};
@@ -193,10 +193,10 @@ export function fromSadface(obj: Graph): model.Graph {
   });
 
   const userdata = {
-    notes: obj.metadata.core.notes,
-    description: obj.metadata.core.description,
-    title: obj.metadata.core.title,
-    sadfaceVersion: obj.metadata.core.version,
+    "notes": obj.metadata.core.notes === undefined? "": obj.metadata.core.notes,
+    "description": obj.metadata.core.description === undefined? "": obj.metadata.core.description,
+    "title": obj.metadata.core.title === undefined? "": obj.metadata.core.title,
+    "sadfaceVersion": obj.metadata.core.version === undefined? "": obj.metadata.core.version,
   };
 
   return new model.Graph({
@@ -211,4 +211,3 @@ export function fromSadface(obj: Graph): model.Graph {
     metadata: metadata,
   });
 }
-*/
