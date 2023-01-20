@@ -25,5 +25,9 @@
   },
   "optionalDependencies": {
     "@argdown/core": "^1.7.5"
-  }
+  },
+  "files": [
+    "./dist"
+  ],
+  "exports": "./dist/index.js"
 }
