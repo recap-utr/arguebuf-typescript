@@ -1,5 +1,6 @@
 import { version as argServicesVersion } from "arg-services";
 import { assertType, expect, test } from "vitest";
+import { edgeFromAif, fromAif, nodeFromAif } from "../converter/aif.js";
 import * as model from "../index.js";
 import * as aif from "../schema/aif.js";
 import * as date from "../services/date.js";
@@ -13,7 +14,7 @@ const aifEdge: aif.Edge = {
 };
 
 test("edge: aif2arguebuf", () => {
-  let arguebufEdge = aif.edgeFromAif(aifEdge);
+  let arguebufEdge = edgeFromAif(aifEdge);
 
   assertType<model.Edge>(arguebufEdge);
   expect(arguebufEdge.source).toBe("119935");
@@ -30,7 +31,7 @@ const aifAtomNode: aif.Node = {
 };
 
 test("atom node: aif2arguebuf", () => {
-  let arguebufNode: model.Node = aif.nodeFromAif(aifAtomNode);
+  let arguebufNode: model.Node = nodeFromAif(aifAtomNode);
 
   if (arguebufNode.type.case === "atom") {
     let arguebufAtom: model.Atom = arguebufNode.type.value;
@@ -57,7 +58,7 @@ const aifSchemeNode: aif.Node = {
 };
 
 test("scheme node: aif2arguebuf", () => {
-  let arguebufNode: model.Node = aif.nodeFromAif(aifSchemeNode);
+  let arguebufNode: model.Node = nodeFromAif(aifSchemeNode);
 
   if (arguebufNode.type.case === "scheme") {
     let arguebufScheme: model.Scheme = arguebufNode.type.value;
@@ -139,7 +140,7 @@ const aifGraph: aif.Graph = {
 };
 
 test("graph: aif2arguebuf", () => {
-  let arguebufGraph: model.Graph = aif.fromAif(aifGraph);
+  let arguebufGraph: model.Graph = fromAif(aifGraph);
 
   // Test some graph properties
   assertType<model.Graph>(arguebufGraph);

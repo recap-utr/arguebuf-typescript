@@ -1,6 +1,11 @@
 import { Struct } from "@bufbuild/protobuf";
 import { version as argServicesVersion } from "arg-services";
 import { assertType, expect, test } from "vitest";
+import {
+  edgeFromSadface,
+  fromSadface,
+  nodeFromSadface,
+} from "../converter/sadface.js";
 import * as model from "../index.js";
 import * as sadface from "../schema/sadface.js";
 import * as date from "../services/date.js";
@@ -13,7 +18,7 @@ const sadfaceEdge: sadface.Edge = {
 };
 
 test("edge: sadface2arguebuf", () => {
-  let arguebufEdge = sadface.edgeFromSadface(sadfaceEdge);
+  let arguebufEdge = edgeFromSadface(sadfaceEdge);
 
   assertType<model.Edge>(arguebufEdge);
   expect(arguebufEdge.source).toBe("70447169-9264-41dc-b8e9-50523f8368c1");
@@ -30,7 +35,7 @@ const sadfaceAtomNode: sadface.AtomNode = {
 };
 
 test("atom node: sadface2arguebuf", () => {
-  let arguebufNode: model.Node = sadface.nodeFromSadface(sadfaceAtomNode);
+  let arguebufNode: model.Node = nodeFromSadface(sadfaceAtomNode);
 
   if (arguebufNode.type.case === "atom") {
     let arguebufAtom: model.Atom = arguebufNode.type.value;
@@ -53,7 +58,7 @@ const sadfaceSchemeNode: sadface.SchemeNode = {
 };
 
 test("scheme node: sadface2arguebuf", () => {
-  let arguebufNode: model.Node = sadface.nodeFromSadface(sadfaceSchemeNode);
+  let arguebufNode: model.Node = nodeFromSadface(sadfaceSchemeNode);
 
   if (arguebufNode.type.case === "scheme") {
     let arguebufScheme: model.Scheme = arguebufNode.type.value;
@@ -156,7 +161,7 @@ const sadfaceGraph: sadface.Graph = {
 };
 
 test("graph: sadface2arguebuf", () => {
-  let arguebufGraph: model.Graph = sadface.fromSadface(sadfaceGraph);
+  let arguebufGraph: model.Graph = fromSadface(sadfaceGraph);
 
   // Test some graph properties
   assertType<model.Graph>(arguebufGraph);
