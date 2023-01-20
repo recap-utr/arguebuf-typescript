@@ -88,7 +88,6 @@ export function nodeToSadface(n: model.Node, id: string): Node {
 }
 
 export function nodeFromSadface(obj: Node): model.Node {
-  let timestamp = date.toProtobuf(date.now());
   if (obj.type === "atom") {
     const atomNode = new model.Node({
       type: {
@@ -98,8 +97,8 @@ export function nodeFromSadface(obj: Node): model.Node {
         },
       },
       metadata: {
-        created: timestamp,
-        updated: timestamp,
+        created: undefined,
+        updated: undefined,
       },
       userdata: obj.metadata,
     });
@@ -131,8 +130,8 @@ export function nodeFromSadface(obj: Node): model.Node {
         },
       },
       metadata: {
-        created: timestamp,
-        updated: timestamp,
+        created: undefined,
+        updated: undefined,
       },
       userdata: obj.metadata,
     });
@@ -185,7 +184,7 @@ export function fromSadface(obj: Graph): model.Graph {
     created: obj.metadata.core.created === undefined? undefined: date.toProtobuf(obj.metadata.core.created),
     updated: obj.metadata.core.edited === undefined? undefined: date.toProtobuf(obj.metadata.core.edited),
   };
-  let analystId: string = uuid();
+  let analystId: string = "öakjföajf"; //uuid();
   let analysts: { [key: string]: model.Analyst } = {};
   analysts[analystId] = new model.Analyst({
     name: obj.metadata.core.analyst_name,
@@ -196,7 +195,7 @@ export function fromSadface(obj: Graph): model.Graph {
     "notes": obj.metadata.core.notes === undefined? "": obj.metadata.core.notes,
     "description": obj.metadata.core.description === undefined? "": obj.metadata.core.description,
     "title": obj.metadata.core.title === undefined? "": obj.metadata.core.title,
-    "sadfaceVersion": obj.metadata.core.version === undefined? "": obj.metadata.core.version,
+    "version": obj.metadata.core.version === undefined? "": obj.metadata.core.version,
   };
 
   return new model.Graph({
