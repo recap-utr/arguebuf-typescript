@@ -8,6 +8,7 @@ export interface Graph {
   nodes: Array<Node>;
   edges: Array<Edge>;
   metadata: Metadata;
+  resources?: Array<any>;
 }
 export interface Edge {
   id: string;
