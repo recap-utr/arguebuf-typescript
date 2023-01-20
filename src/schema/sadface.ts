@@ -142,7 +142,53 @@ export function nodeFromSadface(obj: Node): model.Node {
 
 /*
   export function toSadface(obj: model.Graph): Graph {
-
+    let g: Graph = {
+      nodes: [],
+      edges: [],
+      metadata: {
+        core: {
+          analyst_email: obj.analysts[0].email === undefined? "": obj.analysts[0].email,
+          analyst_name: obj.analysts[0].name === undefined? "": obj.analysts[0].name,
+        },
+      },
+    };
+    // Add nodes
+    Object.entries(obj.nodes).forEach(entry => {
+      const key: string = entry[0];
+      const node: model.Node = entry[1];
+      if (node.type.case === "atom") {
+        let n: AtomNode = {
+          id: key,
+          sources: [],
+          text: node.type.value.text,
+          metadata: {},
+          type: "atom",
+        }
+        g.nodes.push(n);
+      } else if (node.type.case === "scheme") {  
+        let schemeName: string = node.type.value.type.case === undefined? "undefined" : node.type.value.type.case;
+        let n: SchemeNode = {
+          id: key,
+          metadata: {},
+          name: schemeName,
+          type: "scheme",
+        }
+        g.nodes.push(n);
+      }
+    });
+    // Add edges
+    Object.entries(obj.edges).forEach(entry => {
+      const key: string = entry[0];
+      const edge: model.Edge = entry[1];
+      let e: Edge = {
+        id: key,
+        source_id: edge.source,
+        target_id: edge.target,
+      };
+      g.edges.push(e);
+    });
+    // Add metadata
+    return g;
   }
   */
 
