@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.3...v1.0.4) (2023-01-21)
+
+
+### Bug Fixes
+
+* include all files in dist ([59d676b](https://github.com/recap-utr/arguebuf-typescript/commit/59d676b3ccf526bf39b968806812f7d3f964d07b))
+
 ## [1.0.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.2...v1.0.3) (2023-01-21)
 
 
