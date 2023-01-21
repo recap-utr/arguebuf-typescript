@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.2...v1.0.3) (2023-01-21)
+
+
+### Bug Fixes
+
+* add prepack script ([82460ae](https://github.com/recap-utr/arguebuf-typescript/commit/82460ae0eb0cd862bbd97356ff9e97810e88970b))
+
 ## [1.0.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.1...v1.0.2) (2023-01-20)
 
 
