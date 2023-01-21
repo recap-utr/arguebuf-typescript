@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.4...v1.0.5) (2023-01-21)
+
+
+### Bug Fixes
+
+* update included files ([5d1f0df](https://github.com/recap-utr/arguebuf-typescript/commit/5d1f0df050b6a7fa2ac41b33328e661a1c0c65b0))
+
 ## [1.0.4](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.3...v1.0.4) (2023-01-21)
 
 
