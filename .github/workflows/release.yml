@@ -22,4 +22,4 @@ jobs:
         with:
           node-version: lts/hydrogen
           npm-token: ${{ secrets.NPM_TOKEN }}
-          npm-prepare-script: build
+          npm-install: true
