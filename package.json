@@ -27,7 +27,7 @@
     "@argdown/core": "^1.7.5"
   },
   "files": [
-    "./dist"
+    "./dist/**/*"
   ],
   "exports": "./dist/index.js"
 }
