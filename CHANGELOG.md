@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.5...v1.0.6) (2023-01-21)
+
+
+### Bug Fixes
+
+* export uuid from arg-services ([e303f10](https://github.com/recap-utr/arguebuf-typescript/commit/e303f1081758d092f399c21f84b8280c43593281))
+
 ## [1.0.5](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.4...v1.0.5) (2023-01-21)
 
 
