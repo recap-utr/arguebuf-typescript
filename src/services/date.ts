@@ -1,14 +1,14 @@
 import { Timestamp } from "@bufbuild/protobuf";
 import dayjs from "dayjs";
 
-export type DateType = dayjs.Dayjs;
+export type DateType = Date;
 
 export function now(): DateType {
-  return dayjs();
+  return new Date();
 }
 
 export function parse(dateString: string, format: string): DateType {
-  return dayjs(dateString, format);
+  return dayjs(dateString, format).toDate();
 }
 
 export function format(data: DateType, format: string): string {
@@ -17,12 +17,12 @@ export function format(data: DateType, format: string): string {
 
 export function fromProtobuf(timestamp: Timestamp | undefined): DateType {
   if (timestamp !== undefined) {
-    return dayjs(timestamp.toDate());
+    return timestamp.toDate();
   }
 
   return now();
 }
 
 export function toProtobuf(date: DateType): Timestamp {
-  return Timestamp.fromDate(date.toDate());
+  return Timestamp.fromDate(date);
 }

@@ -38,8 +38,8 @@ test("atom node: sadface2arguebuf", () => {
     expect(arguebufNode.text).toBe(
       "The 'Hang Back' advert does not clearly express the intended message"
     );
-    // expect(arguebufNode.metadata?.created?.seconds).toBe(undefined);
-    // expect(arguebufNode.metadata?.updated?.seconds).toBe(undefined);
+    expect(arguebufNode.metadata.created).not.toStrictEqual(undefined);
+    expect(arguebufNode.metadata.updated).not.toStrictEqual(undefined);
   }
 });
 
@@ -59,8 +59,8 @@ test("scheme node: sadface2arguebuf", () => {
     expect(arguebufNode.type).toBe("scheme");
     expect(arguebufNode.scheme.value).toBe(model.Attack.DEFAULT);
     expect(arguebufNode.scheme.case).toBe("attack");
-    // expect(arguebufNode.metadata?.created?.seconds).toBe(undefined);
-    // expect(arguebufNode.metadata?.updated?.seconds).toBe(undefined);
+    expect(arguebufNode.metadata.created).not.toStrictEqual(undefined);
+    expect(arguebufNode.metadata.updated).not.toStrictEqual(undefined);
   }
 });
 
@@ -163,14 +163,11 @@ test("graph: sadface2arguebuf", () => {
   expect(Object.entries(arguebufGraph.analysts)[0][1].email).toBe(
     "siwells@gmail.com"
   );
-  // expect(arguebufGraph.metadata?.created).toEqual(
-  //   date.toProtobuf("2019-04-22T23:52:30")
-  // );
-  // expect(arguebufGraph.metadata?.updated).toEqual(
-  //   date.toProtobuf("2019-04-22T23:52:30")
-  // );
   expect(arguebufGraph.schemaVersion).toBe(1);
   expect(arguebufGraph.libraryVersion).toBe(argServicesVersion);
+  const comparisonDate = new Date(2019, 3, 22, 23, 52, 30);
+  expect(arguebufGraph.metadata.created).toStrictEqual(comparisonDate);
+  expect(arguebufGraph.metadata.updated).toStrictEqual(comparisonDate);
   const userdata = {
     notes:
       "This is incomplete because the analysis in Pangbourne & Wells (2018) has much more argumenative content.",
@@ -190,8 +187,8 @@ test("graph: sadface2arguebuf", () => {
       "Road users have a responsibility to make our roads safer by being more vigilant."
     );
   }
-  // expect(n1.metadata?.created?.seconds).toBe(undefined);
-  // expect(n1.metadata?.updated?.seconds).toBe(undefined);
+  expect(n1.metadata.created).not.toStrictEqual(undefined);
+  expect(n1.metadata.updated).not.toStrictEqual(undefined);
 
   // Test a specific scheme node in the graph
   let n2: model.Node =
@@ -200,8 +197,8 @@ test("graph: sadface2arguebuf", () => {
   if (n2.type === "scheme") {
     expect(n2.scheme.case).toBe("attack");
   }
-  // expect(n2.metadata?.created?.seconds).toBe(undefined);
-  // expect(n2.metadata?.updated?.seconds).toBe(undefined);
+  expect(n2.metadata.created).not.toStrictEqual(undefined);
+  expect(n2.metadata.updated).not.toStrictEqual(undefined);
 
   // Test a specific Edge in the graph
   let e1: model.Edge =

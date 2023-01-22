@@ -33,7 +33,7 @@ const aifAtomNode: aif.Node = {
 
 test("atom node: aif2arguebuf", () => {
   const arguebufNode: model.Node = nodeFromAif(aifAtomNode);
-  const comparisonDate = dayjs(new Date(2015, 12, 14, 12, 9, 15));
+  const comparisonDate = new Date(2015, 11, 14, 12, 9, 15);
 
   if (arguebufNode.type === "atom") {
     assertType<model.Node>(arguebufNode);
@@ -41,12 +41,8 @@ test("atom node: aif2arguebuf", () => {
     expect(arguebufNode.text).toBe(
       "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt."
     );
-    // expect(arguebufNode.metadata.created.unix()).toBe(
-    //   date.toProtobuf(comparisonDate).seconds
-    // );
-    // expect(arguebufNode.metadata.updated.unix()).toBe(
-    //   date.toProtobuf(comparisonDate).seconds
-    // );
+    expect(arguebufNode.metadata.created).toStrictEqual(comparisonDate);
+    expect(arguebufNode.metadata.updated).toStrictEqual(comparisonDate);
   }
 });
 
@@ -60,18 +56,15 @@ const aifSchemeNode: aif.Node = {
 
 test("scheme node: aif2arguebuf", () => {
   let arguebufNode: model.Node = nodeFromAif(aifSchemeNode);
+  const comparisonDate = new Date(2015, 11, 14, 12, 9, 15);
 
   if (arguebufNode.type === "scheme") {
     assertType<model.Node>(arguebufNode);
     expect(arguebufNode.type).toBe("scheme");
     expect(arguebufNode.scheme.value).toBe(model.Support.DEFAULT);
     expect(arguebufNode.scheme.case).toBe("support");
-    // expect(arguebufNode.metadata.created.second).toBe(
-    //   date.toProtobuf("2015-12-14 12:09:15").seconds
-    // );
-    // expect(arguebufNode.metadata.updated.seconds).toBe(
-    //   date.toProtobuf("2015-12-14 12:09:15").seconds
-    // );
+    expect(arguebufNode.metadata.created).toStrictEqual(comparisonDate);
+    expect(arguebufNode.metadata.updated).toStrictEqual(comparisonDate);
   }
 });
 
@@ -158,12 +151,9 @@ test("graph: aif2arguebuf", () => {
       "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins."
     );
   }
-  // expect(n1.metadata?.created?.seconds).toBe(
-  //   date.toProtobuf("2015-12-14 12:09:14").seconds
-  // );
-  // expect(n1.metadata?.updated?.seconds).toBe(
-  //   date.toProtobuf("2015-12-14 12:09:14").seconds
-  // );
+  const comparisonDate = new Date(2015, 11, 14, 12, 9, 14);
+  expect(n1.metadata.created).toStrictEqual(comparisonDate);
+  expect(n1.metadata.updated).toStrictEqual(comparisonDate);
 
   // Test a specific Edge in the graph
   let e1: model.Edge = arguebufGraph.edges["160911"];
