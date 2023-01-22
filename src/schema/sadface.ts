@@ -20,6 +20,8 @@ export interface AtomNode {
   type: "atom";
 }
 
+export const DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss";
+
 export interface SchemeNode {
   id: string;
   metadata: object;

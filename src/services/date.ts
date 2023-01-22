@@ -1,26 +1,28 @@
 import { Timestamp } from "@bufbuild/protobuf";
 import dayjs from "dayjs";
 
-export function now(): string {
-  return dayjs().toJSON();
+export type DateType = dayjs.Dayjs;
+
+export function now(): DateType {
+  return dayjs();
 }
 
-export function parse(dateString: string, format: string): string {
-  return dayjs(dateString, format).toJSON();
+export function parse(dateString: string, format: string): DateType {
+  return dayjs(dateString, format);
 }
 
-export function format(dateJson: string, format: string): string {
-  return dayjs(dateJson).format(format);
+export function format(data: DateType, format: string): string {
+  return dayjs(data).format(format);
 }
 
-export function fromProtobuf(timestamp: Timestamp | undefined): string {
+export function fromProtobuf(timestamp: Timestamp | undefined): DateType {
   if (timestamp !== undefined) {
-    return dayjs(timestamp.toDate()).toJSON();
+    return dayjs(timestamp.toDate());
   }
 
   return now();
 }
 
-export function toProtobuf(dateJson: string): Timestamp {
-  return Timestamp.fromDate(dayjs(dateJson).toDate());
+export function toProtobuf(date: DateType): Timestamp {
+  return Timestamp.fromDate(date.toDate());
 }

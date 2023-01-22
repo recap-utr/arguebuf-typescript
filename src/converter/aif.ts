@@ -1,127 +1,110 @@
-import { version as argServicesVersion } from "arg-services";
-import * as model from "arg-services/graph/v1/graph_pb";
-import { Edge, Graph, Node, SchemeType } from "../schema/aif.js";
+import * as model from "../model/index.js";
+import * as aif from "../schema/aif.js";
 import * as date from "../services/date.js";
 
-const NO_SCHEME_LABEL = "Unknown Inference";
-
-export type ArguebufSchemeType =
-  | "support"
-  | "attack"
-  | "rephrase"
-  | "preference";
-
-const scheme2aif: { [key in ArguebufSchemeType]: SchemeType } = {
+const scheme2aif: { [key in model.SchemeType]: aif.SchemeType } = {
   support: "RA",
   attack: "CA",
   rephrase: "MA",
   preference: "PA",
 };
 
-export function toAif(obj: model.Graph): Graph {
+export function toAif(obj: model.Graph): aif.Graph {
   return {
-    nodes: Object.entries(obj.nodes).map((entry) =>
-      nodeToAif(entry[1], entry[0])
-    ),
-    // nodes: obj.nodes.map((n) => nodeToAif(n)),
-    edges: Object.entries(obj.edges).map((entry) =>
-      edgeToAif(entry[1], entry[0])
-    ),
-    // edges: obj.edges.map((e) => edgeToAif(e)),
+    nodes: Object.values(obj.nodes).map((entry) => nodeToAif(entry)),
+    edges: Object.values(obj.edges).map((entry) => edgeToAif(entry)),
     locutions: [],
   };
 }
 
-export function nodeToAif(n: model.Node, id: string): Node {
-  if (n.type.case === "atom") {
+export function nodeToAif(n: model.Node): aif.Node {
+  if (n.type === "atom") {
     return {
-      nodeID: id,
-      text: n.type.value.text,
+      nodeID: n.id,
+      text: n.text,
       type: "I",
-      timestamp: date.fromProtobuf(n.metadata?.updated),
+      timestamp: date.format(n.metadata.updated, aif.DATE_FORMAT),
     };
-  } else if (n.type.case === "scheme") {
+  } else if (n.type === "scheme") {
     return {
-      nodeID: id,
-      text: n.type.value.type.case ? n.type.value.type.case : NO_SCHEME_LABEL,
-      type: n.type.value.type.case ? scheme2aif[n.type.value.type.case] : "",
-      timestamp: date.fromProtobuf(n.metadata?.updated),
+      nodeID: n.id,
+      text: n.label(),
+      type: n.scheme.case ? scheme2aif[n.scheme.case] : "",
+      timestamp: date.format(n.metadata.updated, aif.DATE_FORMAT),
     };
   }
 
   throw new Error("Node type not supported");
 }
 
-export function edgeToAif(e: model.Edge, id: string): Edge {
+export function edgeToAif(e: model.Edge): aif.Edge {
   return {
-    edgeID: id,
-    fromID: e.source,
-    toID: e.target,
+    edgeID: e.id,
+    fromID: e.source.id,
+    toID: e.target.id,
     formEdgeID: null,
   };
 }
 
-export function fromAif(obj: Graph): model.Graph {
-  var nodeDict: { [key: string]: model.Node } = {};
-  obj.nodes.forEach((node) => (nodeDict[node.nodeID] = nodeFromAif(node)));
-  var edgeDict: { [key: string]: model.Edge } = {};
-  obj.edges.forEach((edge) => (edgeDict[edge.edgeID] = edgeFromAif(edge)));
+export function fromAif(obj: aif.Graph): model.Graph {
+  const nodes = Object.fromEntries(
+    obj.nodes.map((node) => [node.nodeID, nodeFromAif(node)])
+  );
+  const edges = Object.fromEntries(
+    obj.edges.map((edge) => [edge.edgeID, edgeFromAif(edge, nodes)])
+  );
 
   return new model.Graph({
-    nodes: nodeDict,
-    edges: edgeDict,
-    resources: {},
-    participants: {},
-    analysts: {},
-    schemaVersion: 1,
-    libraryVersion: argServicesVersion,
-    metadata: {},
+    nodes,
+    edges,
+    metadata: new model.Metadata(),
   });
 }
 
-export function nodeFromAif(obj: Node): model.Node {
+export function nodeFromAif(obj: aif.Node): model.Node {
   if (obj.type === "I") {
-    const atomNode = new model.Node({
-      type: {
-        case: "atom",
-        value: {
-          text: obj.text,
-        },
-      },
-      metadata: {
-        created: date.toProtobuf(obj.timestamp),
-        updated: date.toProtobuf(obj.timestamp),
-      },
+    return new model.AtomNode({
+      id: obj.nodeID,
+      text: obj.text,
+      metadata: new model.Metadata({
+        created: date.parse(obj.timestamp, aif.DATE_FORMAT),
+        updated: date.parse(obj.timestamp, aif.DATE_FORMAT),
+      }),
     });
-    return atomNode;
   } else {
-    const aifType = obj.type as SchemeType;
-    const scheme = new model.Scheme({ premiseDescriptors: [] });
+    const aifType = obj.type as aif.SchemeType;
+    const schemeNode = new model.SchemeNode({
+      id: obj.nodeID,
+      metadata: new model.Metadata({
+        created: date.parse(obj.timestamp, aif.DATE_FORMAT),
+        updated: date.parse(obj.timestamp, aif.DATE_FORMAT),
+      }),
+    });
 
     switch (aifType) {
       case "RA": {
-        scheme.type = {
+        schemeNode.scheme = {
           case: "support",
           value: model.Support.DEFAULT,
         };
         break;
       }
       case "CA": {
-        scheme.type = {
+        schemeNode.scheme = {
           case: "attack",
           value: model.Attack.DEFAULT,
         };
         break;
       }
       case "MA": {
-        scheme.type = {
+        schemeNode.scheme = {
           case: "rephrase",
           value: model.Rephrase.DEFAULT,
         };
         break;
       }
       case "PA": {
-        scheme.type = {
+        schemeNode.scheme = {
           case: "preference",
           value: model.Preference.DEFAULT,
         };
@@ -129,24 +112,17 @@ export function nodeFromAif(obj: Node): model.Node {
       }
     }
 
-    const schemeNode = new model.Node({
-      type: {
-        case: "scheme",
-        value: scheme,
-      },
-      metadata: {
-        created: date.toProtobuf(obj.timestamp),
-        updated: date.toProtobuf(obj.timestamp),
-      },
-    });
     return schemeNode;
   }
 }
 
-export function edgeFromAif(obj: Edge): model.Edge {
+export function edgeFromAif(
+  obj: aif.Edge,
+  nodes: { [key: string]: model.Node }
+): model.Edge {
   return new model.Edge({
-    source: obj.fromID,
-    target: obj.toID,
-    metadata: {},
+    id: obj.edgeID,
+    source: nodes[obj.fromID],
+    target: nodes[obj.toID],
   });
 }

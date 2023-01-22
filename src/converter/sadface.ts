@@ -1,42 +1,42 @@
-import { Struct } from "@bufbuild/protobuf";
-import { uuid, version as argServicesVersion } from "arg-services";
-import * as model from "arg-services/graph/v1/graph_pb";
-import { Edge, Graph, Node } from "../schema/sadface.js";
+import { uuid } from "arg-services";
+import * as model from "../model/index.js";
+import * as sadface from "../schema/sadface.js";
 import * as date from "../services/date.js";
 
-export function edgeFromSadface(obj: Edge): model.Edge {
+export function edgeFromSadface(
+  obj: sadface.Edge,
+  nodes: { [key: string]: model.Node }
+): model.Edge {
   return new model.Edge({
-    source: obj.source_id,
-    target: obj.target_id,
-    metadata: {},
+    id: obj.id,
+    source: nodes[obj.source_id],
+    target: nodes[obj.target_id],
+    metadata: new model.Metadata(),
   });
 }
 
-export function edgeToSadface(e: model.Edge, id: string): Edge {
+export function edgeToSadface(e: model.Edge): sadface.Edge {
   return {
-    id: id,
-    source_id: e.source,
-    target_id: e.target,
+    id: e.id,
+    source_id: e.source.id,
+    target_id: e.target.id,
   };
 }
 
-export function nodeToSadface(n: model.Node, id: string): Node {
-  if (n.type.case === "atom") {
+export function nodeToSadface(n: model.Node): sadface.Node {
+  if (n.type === "atom") {
     return {
-      id: id,
-      metadata: {},
+      id: n.id,
+      metadata: n.userdata,
       sources: [],
-      text: n.type.value.text,
+      text: n.text,
       type: "atom",
     };
-  } else if (n.type.case === "scheme") {
+  } else if (n.type === "scheme") {
     return {
-      id: id,
+      id: n.id,
       metadata: {},
-      name:
-        n.type.value.type.case === undefined
-          ? "undefined"
-          : n.type.value.type.case,
+      name: n.scheme.case === undefined ? "undefined" : n.scheme.case,
       type: "scheme",
     };
   }
@@ -44,68 +44,47 @@ export function nodeToSadface(n: model.Node, id: string): Node {
   throw new Error("Node type not supported");
 }
 
-export function nodeFromSadface(obj: Node): model.Node {
+export function nodeFromSadface(obj: sadface.Node): model.Node {
   if (obj.type === "atom") {
-    const atomNode = new model.Node({
-      type: {
-        case: "atom",
-        value: {
-          text: obj.text,
-        },
-      },
-      metadata: {
-        created: undefined,
-        updated: undefined,
-      },
+    return new model.AtomNode({
+      id: obj.id,
+      text: obj.text,
       userdata: obj.metadata,
     });
-    return atomNode;
   } else {
-    var schemeType: any = {
-      value: undefined,
-      case: undefined,
-    };
-    if (obj.name === "conflict" || obj.name === "attack") {
-      schemeType.value = model.Attack.DEFAULT;
-      schemeType.case = "attack";
-    } else if (obj.name === "support") {
-      schemeType.value = model.Support.DEFAULT;
-      schemeType.case = "support";
-    } else if (obj.name === "rephrase") {
-      schemeType.value = model.Rephrase.DEFAULT;
-      schemeType.case = "rephrase";
-    } else if (obj.name === "preference") {
-      schemeType.value = model.Preference.DEFAULT;
-      schemeType.case = "preference";
-    }
-    const schemeNode = new model.Node({
-      type: {
-        case: "scheme",
-        value: {
-          premiseDescriptors: [],
-          type: schemeType,
-        },
-      },
-      metadata: {
-        created: undefined,
-        updated: undefined,
-      },
+    const node = new model.SchemeNode({
+      id: obj.id,
       userdata: obj.metadata,
     });
-    return schemeNode;
+
+    if (obj.name === "conflict" || obj.name === "attack") {
+      node.scheme.value = model.Attack.DEFAULT;
+      node.scheme.case = "attack";
+    } else if (obj.name === "support") {
+      node.scheme.value = model.Support.DEFAULT;
+      node.scheme.case = "support";
+    } else if (obj.name === "rephrase") {
+      node.scheme.value = model.Rephrase.DEFAULT;
+      node.scheme.case = "rephrase";
+    } else if (obj.name === "preference") {
+      node.scheme.value = model.Preference.DEFAULT;
+      node.scheme.case = "preference";
+    }
+
+    return node;
   }
 }
 
-export function toSadface(obj: model.Graph): Graph {
-  let g: Graph = {
-    nodes: [],
-    edges: [],
+export function toSadface(obj: model.Graph): sadface.Graph {
+  return {
+    nodes: Object.values(obj.nodes).map((node) => nodeToSadface(node)),
+    edges: Object.values(obj.edges).map((edge) => edgeToSadface(edge)),
     metadata: {
       core: {
         analyst_email: obj.analysts[0]?.email,
         analyst_name: obj.analysts[0]?.name,
-        created: obj.metadata?.created?.toDate().toString(),
-        edited: obj.metadata?.updated?.toDate().toString(),
+        created: obj.metadata?.created?.toString(),
+        edited: obj.metadata?.updated?.toString(),
         description: "",
         id: "",
         notes: "",
@@ -114,39 +93,28 @@ export function toSadface(obj: model.Graph): Graph {
       },
     },
   };
-  // Add nodes
-  Object.entries(obj.nodes).forEach((entry) => {
-    const key: string = entry[0];
-    const node: model.Node = entry[1];
-    g.nodes.push(nodeToSadface(node, key));
-  });
-  // Add edges
-  Object.entries(obj.edges).forEach((entry) => {
-    const key: string = entry[0];
-    const edge: model.Edge = entry[1];
-    g.edges.push(edgeToSadface(edge, key));
-  });
-  return g;
 }
 
-export function fromSadface(obj: Graph): model.Graph {
-  var nodeDict: { [key: string]: model.Node } = {};
-  obj.nodes.forEach((node) => (nodeDict[node.id] = nodeFromSadface(node)));
-  var edgeDict: { [key: string]: model.Edge } = {};
-  obj.edges.forEach((edge) => (edgeDict[edge.id] = edgeFromSadface(edge)));
+export function fromSadface(obj: sadface.Graph): model.Graph {
+  const nodes = Object.fromEntries(
+    obj.nodes.map((node) => [node.id, nodeFromSadface(node)])
+  );
+  const edges = Object.fromEntries(
+    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge, nodes)])
+  );
 
-  let metadata = {
+  const metadata = new model.Metadata({
     created:
-      obj.metadata.core.created === undefined
-        ? undefined
-        : date.toProtobuf(obj.metadata.core.created),
+      obj.metadata.core.created !== undefined
+        ? date.parse(obj.metadata.core.created, sadface.DATE_FORMAT)
+        : undefined,
     updated:
-      obj.metadata.core.edited === undefined
-        ? undefined
-        : date.toProtobuf(obj.metadata.core.edited),
-  };
-  let analystId: string = uuid();
-  let analysts: { [key: string]: model.Analyst } = {};
+      obj.metadata.core.edited !== undefined
+        ? date.parse(obj.metadata.core.edited, sadface.DATE_FORMAT)
+        : undefined,
+  });
+  const analystId: string = uuid();
+  const analysts: { [key: string]: model.Analyst } = {};
   analysts[analystId] = new model.Analyst({
     name: obj.metadata.core.analyst_name,
     email: obj.metadata.core.analyst_email,
@@ -164,14 +132,10 @@ export function fromSadface(obj: Graph): model.Graph {
   };
 
   return new model.Graph({
-    nodes: nodeDict,
-    edges: edgeDict,
-    resources: {},
-    participants: {},
-    userdata: Struct.fromJson(userdata),
+    nodes,
+    edges,
+    userdata,
     analysts: analysts,
-    schemaVersion: 1,
-    libraryVersion: argServicesVersion,
-    metadata: metadata,
+    metadata,
   });
 }
