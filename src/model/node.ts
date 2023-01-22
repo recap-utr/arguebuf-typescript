@@ -94,6 +94,8 @@ export class SchemeNode extends AbstractNode {
 
     if (this.scheme.case !== undefined) {
       const schemeType = this.scheme.case;
+      label = schemeType;
+
       const schemeValue = scheme2string(this.scheme);
 
       if (schemeValue !== "DEFAULT") {
