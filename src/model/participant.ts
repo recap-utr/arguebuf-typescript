@@ -1,9 +1,32 @@
 import { uuid } from "arg-services";
-import { Metadata } from "./metadata.js";
+import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata } from "./userdata.js";
-import { Mutable } from "./utils.js";
 
-export interface Participant {
+export interface ParticipantConstructor {
+  id?: string;
+  name?: string;
+  username?: string;
+  email?: string;
+  url?: string;
+  location?: string;
+  description?: string;
+  metadata?: Metadata;
+  userdata?: Userdata;
+}
+
+export interface ParticipantInterface {
+  readonly id: string;
+  name?: string;
+  username?: string;
+  email?: string;
+  url?: string;
+  location?: string;
+  description?: string;
+  metadata: MetadataInterface;
+  userdata: Userdata;
+}
+
+export class Participant {
   readonly id: string;
   name?: string;
   username?: string;
@@ -13,11 +36,9 @@ export interface Participant {
   description?: string;
   metadata: Metadata;
   userdata: Userdata;
-}
 
-export class Participant {
-  constructor(data?: Partial<Participant>) {
-    (this as Mutable<Participant>).id = data?.id ?? uuid();
+  constructor(data?: ParticipantConstructor) {
+    this.id = data?.id ?? uuid();
     this.name = data?.name;
     this.username = data?.username;
     this.email = data?.email;

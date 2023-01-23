@@ -6,11 +6,8 @@ import {
   Scheme as RawScheme,
   Support,
 } from "arg-services/graph/v1/graph_pb";
-import { Metadata } from "./metadata.js";
-import { Participant } from "./participant.js";
-import { Reference } from "./reference.js";
+import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata } from "./userdata.js";
-import { Mutable, PartiallyRequired } from "./utils.js";
 
 export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
@@ -31,18 +28,29 @@ const scheme2string = (scheme: Scheme) => {
   }
 };
 
-interface AbstractNode {
+export interface AbstractNodeConstructor {
+  id?: string;
+  metadata?: Metadata;
+  userdata?: Userdata;
+}
+
+interface AbstractNodeInterface {
+  readonly id: string;
+  readonly type: "atom" | "scheme";
+  metadata: MetadataInterface;
+  userdata: Userdata;
+}
+
+abstract class AbstractNode implements AbstractNodeInterface {
   readonly id: string;
   readonly type: "atom" | "scheme";
   metadata: Metadata;
   userdata: Userdata;
-}
 
-abstract class AbstractNode {
-  constructor(data: Partial<AbstractNode>) {
-    (this as Mutable<AbstractNode>).id = data.id ?? uuid();
-    // (this as Mutable<AbstractNode>).type = data.type;
-    this.metadata = data.metadata ?? new Metadata();
+  constructor(type: "atom" | "scheme", data: AbstractNodeConstructor) {
+    this.id = data.id ?? uuid();
+    this.type = type;
+    this.metadata = data?.metadata ?? new Metadata();
     this.userdata = data.userdata ?? {};
   }
 
@@ -53,21 +61,31 @@ abstract class AbstractNode {
   abstract label(): string;
 }
 
-export interface AtomNode extends AbstractNode {
-  readonly type: "atom";
+export interface AtomNodeConstructor extends AbstractNodeConstructor {
   text: string;
-  readonly reference?: Reference;
-  readonly participant?: Participant;
+  // reference?: ReferenceConstructor;
+  // participant?: ParticipantConstructor;
 }
 
-export class AtomNode extends AbstractNode {
-  constructor(data: PartiallyRequired<AtomNode, "text">) {
-    super(data);
-    (this as Mutable<AtomNode>).type = "atom";
+export interface AtomNodeInterface extends AbstractNodeInterface {
+  readonly type: "atom";
+  text: string;
+  // readonly reference?: ReferenceConstructor;
+  // readonly participant?: ParticipantConstructor;
+}
+
+export class AtomNode extends AbstractNode implements AtomNodeInterface {
+  declare readonly type: "atom";
+  text: string;
+  // readonly reference?: Reference;
+  // readonly participant?: Participant;
+
+  constructor(data: AtomNodeConstructor) {
+    super("atom", data);
+
     this.text = data.text;
-    (this as Mutable<AtomNode>).reference = data?.reference;
-    (this as Mutable<AtomNode>).participant =
-      data?.participant ?? new Participant();
+    // this.reference = new Reference(data?.reference);
+    // this.participant = new Participant(data?.participant);
   }
 
   label(): string {
@@ -75,17 +93,25 @@ export class AtomNode extends AbstractNode {
   }
 }
 
-export interface SchemeNode extends AbstractNode {
+export interface SchemeNodeConstructor extends AbstractNodeConstructor {
+  scheme?: Scheme;
+  premise_descriptors?: Array<string>;
+}
+
+export interface SchemeNodeInterface extends AbstractNodeInterface {
   readonly type: "scheme";
   scheme: Scheme;
   premise_descriptors?: Array<string>;
 }
 
-export class SchemeNode extends AbstractNode {
-  constructor(data: Partial<SchemeNode>) {
-    super(data);
-    (this as Mutable<SchemeNode>).type = "scheme";
-    this.scheme = data.scheme ?? { case: undefined };
+export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
+  declare readonly type: "scheme";
+  scheme: Scheme;
+  premise_descriptors?: Array<string>;
+
+  constructor(data: SchemeNodeConstructor) {
+    super("scheme", data);
+    this.scheme = data.scheme ?? { case: undefined, value: undefined };
     this.premise_descriptors = data?.premise_descriptors;
   }
 
@@ -108,3 +134,5 @@ export class SchemeNode extends AbstractNode {
 }
 
 export type Node = AtomNode | SchemeNode;
+export type NodeInterface = AtomNodeInterface | SchemeNodeInterface;
+export type NodeConstructor = AtomNodeConstructor | SchemeNodeConstructor;

@@ -1,4 +1,3 @@
-import { version as argServicesVersion } from "arg-services";
 import { assertType, expect, test } from "vitest";
 import { fromAif, nodeFromAif } from "../converter/aif.js";
 import * as model from "../model/index.js";
@@ -139,8 +138,6 @@ test("graph: aif2arguebuf", () => {
   expect(arguebufGraph.resources).toStrictEqual({});
   expect(arguebufGraph.analysts).toStrictEqual({});
   expect(arguebufGraph.metadata).not.toStrictEqual({});
-  expect(arguebufGraph.schemaVersion).toStrictEqual(1);
-  expect(arguebufGraph.libraryVersion).toStrictEqual(argServicesVersion);
 
   // Test a specific node in the graph
   const n1: model.Node = arguebufGraph.nodes["119928"];

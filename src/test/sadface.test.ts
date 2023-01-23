@@ -1,4 +1,3 @@
-import { version as argServicesVersion } from "arg-services";
 import { assertType, expect, test } from "vitest";
 import { fromSadface, nodeFromSadface } from "../converter/sadface.js";
 import * as model from "../model/index.js";
@@ -159,17 +158,15 @@ test("graph: sadface2arguebuf", () => {
   // Test some graph properties
   assertType<model.Graph>(arguebufGraph);
   expect(arguebufGraph.resources).toStrictEqual({});
-  expect(Object.entries(arguebufGraph.analysts)[0][1].name).toStrictEqual(
+  expect(Object.values(arguebufGraph.analysts)[0].name).toStrictEqual(
     "Simon Wells"
   );
-  expect(Object.entries(arguebufGraph.analysts)[0][1].email).toStrictEqual(
+  expect(Object.values(arguebufGraph.analysts)[0].email).toStrictEqual(
     "siwells@gmail.com"
   );
   const comparisonDate = new Date(2019, 3, 22, 23, 52, 30);
   expect(arguebufGraph.metadata.created).toStrictEqual(comparisonDate);
   expect(arguebufGraph.metadata.updated).toStrictEqual(comparisonDate);
-  expect(arguebufGraph.schemaVersion).toStrictEqual(1);
-  expect(arguebufGraph.libraryVersion).toStrictEqual(argServicesVersion);
   const userdata = {
     notes:
       "This is incomplete because the analysis in Pangbourne & Wells (2018) has much more argumenative content.",

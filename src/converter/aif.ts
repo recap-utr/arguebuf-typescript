@@ -57,7 +57,6 @@ export function fromAif(obj: aif.Graph): model.Graph {
   return new model.Graph({
     nodes,
     edges,
-    metadata: new model.Metadata(),
   });
 }
 
