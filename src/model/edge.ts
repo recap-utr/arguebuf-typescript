@@ -39,16 +39,4 @@ export class Edge implements EdgeInterface {
     this.metadata = data?.metadata ?? new Metadata();
     this.userdata = data?.userdata ?? {};
   }
-
-  toProtobuf(): protobuf.Edge {
-    return new protobuf.Edge({
-      source: this.source.id,
-      target: this.target.id,
-      metadata: new protobuf.Metadata({
-        created: date.toProtobuf(this.metadata.created),
-        updated: date.toProtobuf(this.metadata.updated),
-      }),
-      userdata: this.userdata,
-    });
-  }
 }

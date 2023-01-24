@@ -7,8 +7,6 @@ import { Participant, ParticipantInterface } from "./participant.js";
 import { Resource, ResourceInterface } from "./resource.js";
 import { Userdata } from "./userdata.js";
 import { Mapping } from "./utils.js";
-import * as protobuf from "arg-services/graph/v1/graph_pb";
-import * as date from "../services/date.js";
 
 export interface GraphConstructor {
   nodes?: Array<Node> | Mapping<string, Node>;
@@ -49,8 +47,8 @@ export class Graph implements GraphInterface {
   protected readonly _participants: Mapping<string, Participant> = {};
   protected readonly _analysts: Mapping<string, Analyst> = {};
   majorClaim?: string;
-  protected readonly libraryVersion: string = arguebufVersion;
-  protected readonly schemaVersion: number = 1;
+  protected readonly _libraryVersion: string = arguebufVersion;
+  protected readonly _schemaVersion: number = 1;
   metadata: Metadata;
   userdata: Userdata;
 
@@ -90,6 +88,12 @@ export class Graph implements GraphInterface {
   get analysts() {
     return this._analysts;
   }
+  get libraryVersion() {
+    return this._libraryVersion;
+  }
+  get schemaVersion() {
+    return this._schemaVersion;
+  }
 
   setMajorClaim(atom: string | AtomNode | undefined) {
     if (typeof atom === "string" || atom === undefined) {
@@ -101,67 +105,6 @@ export class Graph implements GraphInterface {
         throw new Error("Only atom nodes can be used as the major claim");
       }
     }
-  }
-
-  toProtobuf(): protobuf.Graph {
-    let edges: { [key: string]: protobuf.Edge } = {};
-    Object.entries(this.edges).forEach(
-      (entry) => (edges[entry[0]] = entry[1].toProtobuf())
-    );
-    let nodes: { [key: string]: protobuf.Node } = {};
-    Object.entries(this.nodes).forEach(
-      (entry) => (nodes[entry[0]] = entry[1].toProtobuf())
-    );
-    let participants: { [key: string]: protobuf.Participant } = {};
-    Object.entries(this.participants).forEach(
-      (entry) =>
-        (participants[entry[0]] = new protobuf.Participant({
-          name: entry[1].name,
-          description: entry[1].description,
-          email: entry[1].email,
-          location: entry[1].location,
-          metadata: new protobuf.Metadata({
-            created: date.toProtobuf(entry[1].metadata.created),
-            updated: date.toProtobuf(entry[1].metadata.updated),
-          }),
-          url: entry[1].url,
-          userdata: entry[1].userdata,
-          username: entry[1].username,
-        }))
-    );
-    let resources: { [key: string]: protobuf.Resource } = {};
-    Object.entries(this.resources).forEach(
-      (entry) =>
-        (resources[entry[0]] = new protobuf.Resource({
-          source: entry[1].source,
-          text: entry[1].text,
-          timestamp:
-            entry[1].timestamp === undefined
-              ? undefined
-              : date.toProtobuf(entry[1].timestamp),
-          title: entry[1].title,
-          metadata: new protobuf.Metadata({
-            created: date.toProtobuf(entry[1].metadata.created),
-            updated: date.toProtobuf(entry[1].metadata.updated),
-          }),
-          userdata: entry[1].userdata,
-        }))
-    );
-    return new protobuf.Graph({
-      nodes: nodes,
-      edges: edges,
-      schemaVersion: this.schemaVersion,
-      analysts: this.analysts,
-      libraryVersion: this.libraryVersion,
-      majorClaim: this.majorClaim,
-      metadata: new protobuf.Metadata({
-        created: date.toProtobuf(this.metadata.created),
-        updated: date.toProtobuf(this.metadata.updated),
-      }),
-      userdata: this.userdata,
-      participants: participants,
-      resources: resources,
-    });
   }
 
   toJSON() {}
