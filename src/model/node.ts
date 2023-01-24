@@ -108,7 +108,7 @@ export class AtomNode extends AbstractNode implements AtomNodeInterface {
           text: this.text,
         }),
         case: "atom",
-      }
+      },
     });
   }
 }
@@ -165,7 +165,7 @@ export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
           type: this.scheme,
         }),
         case: "scheme",
-      }
+      },
     });
   }
 }
