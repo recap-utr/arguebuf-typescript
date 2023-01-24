@@ -5,7 +5,7 @@ import * as date from "../services/date.js";
 
 export function edgeFromSadface(
   obj: sadface.Edge,
-  nodes: { [key: string]: model.Node }
+  nodes: { [key: string]: model.Node },
 ): model.Edge {
   return new model.Edge({
     id: obj.id,
@@ -97,10 +97,10 @@ export function toSadface(obj: model.Graph): sadface.Graph {
 
 export function fromSadface(obj: sadface.Graph): model.Graph {
   const nodes = Object.fromEntries(
-    obj.nodes.map((node) => [node.id, nodeFromSadface(node)])
+    obj.nodes.map((node) => [node.id, nodeFromSadface(node)]),
   );
   const edges = Object.fromEntries(
-    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge, nodes)])
+    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge, nodes)]),
   );
 
   const metadata = new model.Metadata({

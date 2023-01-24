@@ -35,7 +35,7 @@ test("atom node: sadface2arguebuf", () => {
     assertType<model.Node>(arguebufNode);
     expect(arguebufNode.type).toStrictEqual("atom");
     expect(arguebufNode.text).toStrictEqual(
-      "The 'Hang Back' advert does not clearly express the intended message"
+      "The 'Hang Back' advert does not clearly express the intended message",
     );
     expect(arguebufNode.metadata.created).not.toStrictEqual(undefined);
     expect(arguebufNode.metadata.updated).not.toStrictEqual(undefined);
@@ -159,10 +159,10 @@ test("graph: sadface2arguebuf", () => {
   assertType<model.Graph>(arguebufGraph);
   expect(arguebufGraph.resources).toStrictEqual({});
   expect(Object.values(arguebufGraph.analysts)[0].name).toStrictEqual(
-    "Simon Wells"
+    "Simon Wells",
   );
   expect(Object.values(arguebufGraph.analysts)[0].email).toStrictEqual(
-    "siwells@gmail.com"
+    "siwells@gmail.com",
   );
   const comparisonDate = new Date(2019, 3, 22, 23, 52, 30);
   expect(arguebufGraph.metadata.created).toStrictEqual(comparisonDate);
@@ -183,7 +183,7 @@ test("graph: sadface2arguebuf", () => {
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
     expect(n1.text).toStrictEqual(
-      "Road users have a responsibility to make our roads safer by being more vigilant."
+      "Road users have a responsibility to make our roads safer by being more vigilant.",
     );
   }
   expect(n1.metadata.created).not.toStrictEqual(undefined);

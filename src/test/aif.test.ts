@@ -37,7 +37,7 @@ test("atom node: aif2arguebuf", () => {
     assertType<model.Node>(arguebufNode);
     expect(arguebufNode.type).toStrictEqual("atom");
     expect(arguebufNode.text).toStrictEqual(
-      "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt."
+      "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
     );
     expect(arguebufNode.metadata.created).toStrictEqual(comparisonDate);
     expect(arguebufNode.metadata.updated).toStrictEqual(comparisonDate);
@@ -144,7 +144,7 @@ test("graph: aif2arguebuf", () => {
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
     expect(n1.text).toStrictEqual(
-      "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins."
+      "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins.",
     );
   }
   const comparisonDate = new Date(2015, 11, 14, 12, 9, 14);

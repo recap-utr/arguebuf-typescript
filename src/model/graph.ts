@@ -31,7 +31,7 @@ export interface GraphInterface {
 }
 
 function assign<T extends Node | Edge | Resource | Participant | Analyst>(
-  data: Array<T> | Mapping<string, T>
+  data: Array<T> | Mapping<string, T>,
 ) {
   if (Array.isArray(data)) {
     return Object.fromEntries(data.map((elem) => [elem.id, elem]));
