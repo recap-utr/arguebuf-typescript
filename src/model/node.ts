@@ -8,6 +8,8 @@ import {
 } from "arg-services/graph/v1/graph_pb";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata } from "./userdata.js";
+import * as protobuf from "arg-services/graph/v1/graph_pb";
+import * as date from "../services/date.js";
 
 export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
@@ -59,6 +61,8 @@ abstract class AbstractNode implements AbstractNodeInterface {
   // }
 
   abstract label(): string;
+
+  abstract toProtobuf(): protobuf.Node;
 }
 
 export interface AtomNodeConstructor extends AbstractNodeConstructor {
@@ -90,6 +94,22 @@ export class AtomNode extends AbstractNode implements AtomNodeInterface {
 
   label(): string {
     return this.text;
+  }
+
+  toProtobuf(): protobuf.Node {
+    return new protobuf.Node({
+      metadata: new protobuf.Metadata({
+        created: date.toProtobuf(this.metadata.created),
+        updated: date.toProtobuf(this.metadata.updated),
+      }),
+      userdata: this.userdata,
+      type: {
+        value: new protobuf.Atom({
+          text: this.text,
+        }),
+        case: "atom",
+      }
+    });
   }
 }
 
@@ -130,6 +150,23 @@ export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
     }
 
     return label;
+  }
+
+  toProtobuf(): protobuf.Node {
+    return new protobuf.Node({
+      metadata: new protobuf.Metadata({
+        created: date.toProtobuf(this.metadata.created),
+        updated: date.toProtobuf(this.metadata.updated),
+      }),
+      userdata: this.userdata,
+      type: {
+        value: new protobuf.Scheme({
+          premiseDescriptors: this.premise_descriptors,
+          type: this.scheme,
+        }),
+        case: "scheme",
+      }
+    });
   }
 }
 
