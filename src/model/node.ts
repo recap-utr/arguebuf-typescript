@@ -59,7 +59,6 @@ abstract class AbstractNode implements AbstractNodeInterface {
   // }
 
   abstract label(): string;
-
 }
 
 export interface AtomNodeConstructor extends AbstractNodeConstructor {
