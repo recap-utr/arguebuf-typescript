@@ -3,7 +3,6 @@ import { fromAif, nodeFromAif } from "../converter/aif.js";
 import * as model from "../model/index.js";
 import * as aif from "../schema/aif.js";
 
-
 // Test atom node
 const aifAtomNode: aif.Node = {
   nodeID: "119935",
