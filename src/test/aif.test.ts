@@ -3,23 +3,6 @@ import { fromAif, nodeFromAif } from "../converter/aif.js";
 import * as model from "../model/index.js";
 import * as aif from "../schema/aif.js";
 
-// TODO: Currently not working as edgeFromAif needs a node object
-// Test edge
-// const aifEdge: aif.Edge = {
-//   edgeID: "160913",
-//   fromID: "119935",
-//   toID: "119940",
-//   formEdgeID: null,
-// };
-
-// test("edge: aif2arguebuf", () => {
-//   let arguebufEdge = edgeFromAif(aifEdge);
-
-//   assertType<model.Edge>(arguebufEdge);
-//   expect(arguebufEdge.source).toStrictEqual("119935");
-//   expect(arguebufEdge.target).toStrictEqual("119940");
-//   expect(arguebufEdge.userdata).toStrictEqual(undefined);
-// });
 
 // Test atom node
 const aifAtomNode: aif.Node = {
