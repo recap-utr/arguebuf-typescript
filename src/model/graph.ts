@@ -47,8 +47,8 @@ export class Graph implements GraphInterface {
   protected readonly _participants: Mapping<string, Participant> = {};
   protected readonly _analysts: Mapping<string, Analyst> = {};
   majorClaim?: string;
-  protected readonly _libraryVersion: string = arguebufVersion;
-  protected readonly _schemaVersion: number = 1;
+  readonly _libraryVersion: string = arguebufVersion;
+  readonly _schemaVersion: number = 1;
   metadata: Metadata;
   userdata: Userdata;
 
@@ -87,12 +87,6 @@ export class Graph implements GraphInterface {
   }
   get analysts() {
     return this._analysts;
-  }
-  get libraryVersion() {
-    return this._libraryVersion;
-  }
-  get schemaVersion() {
-    return this._schemaVersion;
   }
 
   setMajorClaim(atom: string | AtomNode | undefined) {
