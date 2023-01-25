@@ -47,8 +47,8 @@ export class Graph implements GraphInterface {
   protected readonly _participants: Mapping<string, Participant> = {};
   protected readonly _analysts: Mapping<string, Analyst> = {};
   majorClaim?: string;
-  protected readonly libraryVersion: string = arguebufVersion;
-  protected readonly schemaVersion: number = 1;
+  readonly _libraryVersion: string = arguebufVersion;
+  readonly _schemaVersion: number = 1;
   metadata: Metadata;
   userdata: Userdata;
 
