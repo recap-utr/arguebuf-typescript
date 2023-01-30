@@ -1,9 +1,8 @@
 on:
-  workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
-  #     - beta
+  push:
+    branches:
+      - main
+      - beta
 jobs:
   test:
     runs-on: ubuntu-latest
