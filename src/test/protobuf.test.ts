@@ -23,7 +23,7 @@ const protobufAtomNode: protobufModel.Node = new protobufModel.Node({
     case: "atom",
     value: new protobufModel.Atom({
       text: "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-    })
+    }),
   },
   metadata: new protobufModel.Metadata({
     created: date.toProtobuf(timestamp),
@@ -47,7 +47,10 @@ test("atom node: model2protobuf", () => {
 });
 
 test("atom node: protobuf2model", () => {
-  const modelNode: model.Node = protobuf.nodeFromProtobuf("119935", protobufAtomNode);
+  const modelNode: model.Node = protobuf.nodeFromProtobuf(
+    "119935",
+    protobufAtomNode
+  );
   expect(modelNode.type).toBe("atom");
   if (modelNode.type === "atom") {
     assertType<model.Node>(modelNode);
@@ -59,7 +62,6 @@ test("atom node: protobuf2model", () => {
     expect(modelNode.userdata).toMatchObject({});
   }
 });
-
 
 /*
   Test scheme node
@@ -83,8 +85,8 @@ const protobufSchemeNode: protobufModel.Node = new protobufModel.Node({
       type: {
         case: "support",
         value: protobufModel.Support.DEFAULT,
-      }
-    })
+      },
+    }),
   },
   metadata: new protobufModel.Metadata({
     created: date.toProtobuf(timestamp),
@@ -110,14 +112,15 @@ test("scheme node: model2protobuf", () => {
 });
 
 test("scheme node: protobuf2model", () => {
-  const modelNode: model.Node = protobuf.nodeFromProtobuf("119935", protobufSchemeNode);
+  const modelNode: model.Node = protobuf.nodeFromProtobuf(
+    "119935",
+    protobufSchemeNode
+  );
   expect(modelNode.type).toBe("scheme");
   if (modelNode.type === "scheme") {
     assertType<model.Node>(modelNode);
     expect(modelNode.scheme.case).toBe("support");
-    expect(modelNode.scheme.value).toBe(
-      protobufModel.Support.DEFAULT
-    );
+    expect(modelNode.scheme.value).toBe(protobufModel.Support.DEFAULT);
     expect(modelNode.metadata!.created).toEqual(timestamp);
     expect(modelNode.metadata!.updated).toEqual(timestamp);
     expect(modelNode.userdata).toMatchObject({});

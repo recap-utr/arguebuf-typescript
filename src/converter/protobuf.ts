@@ -116,7 +116,7 @@ export function toProtobuf(graph: Graph): protobuf.Graph {
 export function edgeFromProtobuf(
   id: string,
   obj: protobuf.Edge,
-  nodes: { [key: string]: Node },
+  nodes: { [key: string]: Node }
 ): Edge {
   return new Edge({
     id: id,
@@ -129,8 +129,14 @@ export function edgeFromProtobuf(
 export function nodeFromProtobuf(id: string, obj: protobuf.Node): Node {
   const timestamp = date.now();
   const metadata = new Metadata({
-    created: obj.metadata?.created === undefined ? timestamp : date.fromProtobuf(obj.metadata?.created),
-    updated: obj.metadata?.updated === undefined ? timestamp : date.fromProtobuf(obj.metadata?.updated),
+    created:
+      obj.metadata?.created === undefined
+        ? timestamp
+        : date.fromProtobuf(obj.metadata?.created),
+    updated:
+      obj.metadata?.updated === undefined
+        ? timestamp
+        : date.fromProtobuf(obj.metadata?.updated),
   });
   if (obj.type.case === "atom") {
     return new AtomNode({
@@ -153,48 +159,74 @@ export function nodeFromProtobuf(id: string, obj: protobuf.Node): Node {
 export function fromProtobuf(obj: protobuf.Graph): Graph {
   const timestamp = date.now();
   const nodes = Object.fromEntries(
-    Object.entries(obj.nodes).map(([key, value]) => [key, nodeFromProtobuf(key, value)])
+    Object.entries(obj.nodes).map(([key, value]) => [
+      key,
+      nodeFromProtobuf(key, value),
+    ])
   );
   const edges = Object.fromEntries(
-    Object.entries(obj.edges).map(([key, value]) => [edgeFromProtobuf(key, value, nodes)])
+    Object.entries(obj.edges).map(([key, value]) => [
+      edgeFromProtobuf(key, value, nodes),
+    ])
   );
   const analysts: { [key: string]: Analyst } = Object.fromEntries(
-    Object.entries(obj.analysts).map(([key, value]) => [key, new Analyst({
-      id: key,
-      email: value.email,
-      name: value.name,
-      userdata: value.userdata,
-    })])
+    Object.entries(obj.analysts).map(([key, value]) => [
+      key,
+      new Analyst({
+        id: key,
+        email: value.email,
+        name: value.name,
+        userdata: value.userdata,
+      }),
+    ])
   );
   const resources: { [key: string]: Resource } = Object.fromEntries(
-    Object.entries(obj.resources).map(([key, value]) => [key, new Resource({
-      text: value.text,
-      id: key,
-      source: value.source,
-      metadata: new Metadata({
-        created: value.metadata?.created === undefined ? timestamp : date.fromProtobuf(value.metadata?.created),
-        updated: value.metadata?.updated === undefined ? timestamp : date.fromProtobuf(value.metadata?.updated),
+    Object.entries(obj.resources).map(([key, value]) => [
+      key,
+      new Resource({
+        text: value.text,
+        id: key,
+        source: value.source,
+        metadata: new Metadata({
+          created:
+            value.metadata?.created === undefined
+              ? timestamp
+              : date.fromProtobuf(value.metadata?.created),
+          updated:
+            value.metadata?.updated === undefined
+              ? timestamp
+              : date.fromProtobuf(value.metadata?.updated),
+        }),
+        timestamp: date.fromProtobuf(value.timestamp),
+        title: value.title,
+        userdata: value.userdata,
       }),
-      timestamp: date.fromProtobuf(value.timestamp),
-      title: value.title,
-      userdata: value.userdata,
-    })])
+    ])
   );
   const participants: { [key: string]: Participant } = Object.fromEntries(
-    Object.entries(obj.participants).map(([key, value]) => [key, new Participant({
-      id: key,
-      description: value.description,
-      email: value.email,
-      location: value.location,
-      name: value.name,
-      url: value.url,
-      username: value.username,
-      metadata: new Metadata({
-        created: value.metadata?.created === undefined ? timestamp : date.fromProtobuf(value.metadata?.created),
-        updated: value.metadata?.updated === undefined ? timestamp : date.fromProtobuf(value.metadata?.updated),
+    Object.entries(obj.participants).map(([key, value]) => [
+      key,
+      new Participant({
+        id: key,
+        description: value.description,
+        email: value.email,
+        location: value.location,
+        name: value.name,
+        url: value.url,
+        username: value.username,
+        metadata: new Metadata({
+          created:
+            value.metadata?.created === undefined
+              ? timestamp
+              : date.fromProtobuf(value.metadata?.created),
+          updated:
+            value.metadata?.updated === undefined
+              ? timestamp
+              : date.fromProtobuf(value.metadata?.updated),
+        }),
+        userdata: value.userdata,
       }),
-      userdata: value.userdata,
-    })])
+    ])
   );
   return new Graph({
     nodes: nodes,
@@ -204,8 +236,14 @@ export function fromProtobuf(obj: protobuf.Graph): Graph {
     userdata: obj.userdata,
     resources: resources,
     metadata: new Metadata({
-      created: obj.metadata?.created === undefined ? timestamp : date.fromProtobuf(obj.metadata?.created),
-      updated: obj.metadata?.updated === undefined ? timestamp : date.fromProtobuf(obj.metadata?.updated),
+      created:
+        obj.metadata?.created === undefined
+          ? timestamp
+          : date.fromProtobuf(obj.metadata?.created),
+      updated:
+        obj.metadata?.updated === undefined
+          ? timestamp
+          : date.fromProtobuf(obj.metadata?.updated),
     }),
     participants: participants,
   });
