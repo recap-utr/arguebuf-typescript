@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.6...v1.1.0) (2023-01-30)
+
+
+### Features
+
+* add fromProtobuf converter ([#11](https://github.com/recap-utr/arguebuf-typescript/issues/11)) ([d407f6b](https://github.com/recap-utr/arguebuf-typescript/commit/d407f6b9117ada8ef58cb7c5c296c315ca4e9fd9))
+* add toProtobuf export feature ([#9](https://github.com/recap-utr/arguebuf-typescript/issues/9)) ([a421670](https://github.com/recap-utr/arguebuf-typescript/commit/a421670933c40590139a5a87370976924454240c))
+* use custom model for handling the graph ([84f676f](https://github.com/recap-utr/arguebuf-typescript/commit/84f676f86c219df282b2bc9faf9d2352f00167b5))
+
+
+### Bug Fixes
+
+* use explicit types for interface/constructor ([025501e](https://github.com/recap-utr/arguebuf-typescript/commit/025501ea3fc3c6fe763003f189041539e5c436c9))
+* use scheme type as node label ([9e48016](https://github.com/recap-utr/arguebuf-typescript/commit/9e480168724e8c231d92eaf0020bbc7dcb377763))
+
 ## [1.0.6](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.5...v1.0.6) (2023-01-21)
 
 
