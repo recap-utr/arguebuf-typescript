@@ -7,3 +7,4 @@ export * from "./participant.js";
 export * from "./reference.js";
 export * from "./resource.js";
 export * from "./userdata.js";
+export { uuid } from "./utils.js";

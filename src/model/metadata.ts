@@ -1,4 +1,4 @@
-import { DateType, now } from "../services/date.js";
+import { DateType, now } from "../date.js";
 import { JSONObject } from "./utils.js";
 
 export interface MetadataConstructor {

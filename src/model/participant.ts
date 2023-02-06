@@ -1,6 +1,6 @@
-import { uuid } from "arg-services";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata } from "./userdata.js";
+import { uuid } from "./utils.js";
 
 export interface ParticipantConstructor {
   id?: string;

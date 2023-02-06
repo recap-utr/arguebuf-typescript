@@ -1,5 +1,5 @@
-import { uuid } from "arg-services";
 import { Resource } from "./resource.js";
+import { uuid } from "./utils.js";
 
 export interface ReferenceConstructor {
   id?: string;

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.1.0...v1.2.0) (2023-02-06)
+
+
+### Features
+
+* restructure package ([3f47ca8](https://github.com/recap-utr/arguebuf-typescript/commit/3f47ca8bb1874b5092308f2671155c0f107a25bf))
+
+
+### Bug Fixes
+
+* update deps ([a4f0ac7](https://github.com/recap-utr/arguebuf-typescript/commit/a4f0ac722b3968b8f9122ff50ab5d68cc1aa2ded))
+
 ## [1.1.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.0.6...v1.1.0) (2023-01-30)
 
 

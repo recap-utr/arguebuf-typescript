@@ -1,4 +1,3 @@
-import { uuid } from "arg-services";
 import {
   Attack,
   Preference,
@@ -8,6 +7,7 @@ import {
 } from "arg-services/graph/v1/graph_pb";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata } from "./userdata.js";
+import { uuid } from "./utils.js";
 
 export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;

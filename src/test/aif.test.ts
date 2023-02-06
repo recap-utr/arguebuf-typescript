@@ -1,55 +1,7 @@
 import { assertType, expect, test } from "vitest";
-import { fromAif, nodeFromAif } from "../converter/aif.js";
-import * as model from "../model/index.js";
-import * as aif from "../schema/aif.js";
+import * as arguebuf from "../index.js";
 
-// Test atom node
-const aifAtomNode: aif.Node = {
-  nodeID: "119935",
-  text: "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-  type: "I",
-  timestamp: "2015-12-14 12:09:15",
-};
-
-test("atom node: aif2arguebuf", () => {
-  const arguebufNode: model.Node = nodeFromAif(aifAtomNode);
-  const comparisonDate = new Date(2015, 11, 14, 12, 9, 15);
-
-  if (arguebufNode.type === "atom") {
-    assertType<model.Node>(arguebufNode);
-    expect(arguebufNode.type).toStrictEqual("atom");
-    expect(arguebufNode.text).toStrictEqual(
-      "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt."
-    );
-    expect(arguebufNode.metadata.created).toStrictEqual(comparisonDate);
-    expect(arguebufNode.metadata.updated).toStrictEqual(comparisonDate);
-  }
-});
-
-// Test scheme node
-const aifSchemeNode: aif.Node = {
-  nodeID: "119935",
-  text: "One can hardly move in Friedrichshain or Neuk\u00f6lln these days without permanently scanning the ground for dog dirt.",
-  type: "RA",
-  timestamp: "2015-12-14 12:09:15",
-};
-
-test("scheme node: aif2arguebuf", () => {
-  const arguebufNode: model.Node = nodeFromAif(aifSchemeNode);
-  const comparisonDate = new Date(2015, 11, 14, 12, 9, 15);
-
-  if (arguebufNode.type === "scheme") {
-    assertType<model.Node>(arguebufNode);
-    expect(arguebufNode.type).toStrictEqual("scheme");
-    expect(arguebufNode.scheme.value).toStrictEqual(model.Support.DEFAULT);
-    expect(arguebufNode.scheme.case).toStrictEqual("support");
-    expect(arguebufNode.metadata.created).toStrictEqual(comparisonDate);
-    expect(arguebufNode.metadata.updated).toStrictEqual(comparisonDate);
-  }
-});
-
-// test graph
-const aifGraph: aif.Graph = {
+const aifGraph: arguebuf.schemas.aif.Graph = {
   nodes: [
     {
       nodeID: "119927",
@@ -113,16 +65,16 @@ const aifGraph: aif.Graph = {
 };
 
 test("graph: aif2arguebuf", () => {
-  const arguebufGraph: model.Graph = fromAif(aifGraph);
+  const arguebufGraph: arguebuf.Graph = arguebuf.load.aif(aifGraph);
 
   // Test some graph properties
-  assertType<model.Graph>(arguebufGraph);
+  assertType<arguebuf.Graph>(arguebufGraph);
   expect(arguebufGraph.resources).toStrictEqual({});
   expect(arguebufGraph.analysts).toStrictEqual({});
   expect(arguebufGraph.metadata).not.toStrictEqual({});
 
   // Test a specific node in the graph
-  const n1: model.Node = arguebufGraph.nodes["119928"];
+  const n1: arguebuf.Node = arguebufGraph.nodes["119928"];
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
     expect(n1.text).toStrictEqual(
@@ -134,7 +86,7 @@ test("graph: aif2arguebuf", () => {
   expect(n1.metadata.updated).toStrictEqual(comparisonDate);
 
   // Test a specific Edge in the graph
-  const e1: model.Edge = arguebufGraph.edges["160911"];
+  const e1: arguebuf.Edge = arguebufGraph.edges["160911"];
   expect(e1.source.id).toStrictEqual("119934");
   expect(e1.target.id).toStrictEqual("119932");
   expect(e1.metadata).not.toStrictEqual({});
