@@ -1,7 +1,7 @@
-import { uuid } from "arg-services";
-import { DateType } from "../services/date.js";
+import { DateType } from "../date.js";
 import { Metadata } from "./metadata.js";
 import { Userdata } from "./userdata.js";
+import { uuid } from "./utils.js";
 
 export interface ResourceConstructor {
   id?: string;

@@ -1,70 +1,8 @@
 import { assertType, expect, test } from "vitest";
-import { fromSadface, nodeFromSadface } from "../converter/sadface.js";
-import * as model from "../model/index.js";
-import * as sadface from "../schema/sadface.js";
-
-// Currently not working because edgeFromSadface needs the node object
-// // Test edge
-// const sadfaceEdge: sadface.Edge = {
-//   id: "3df54ae1-fa41-4ac7-85d5-4badee39215b",
-//   source_id: "70447169-9264-41dc-b8e9-50523f8368c1",
-//   target_id: "ae3f0c7f-9f69-4cab-9db3-3b9c46f56e09",
-// };
-
-// test("edge: sadface2arguebuf", () => {
-//   let arguebufEdge = edgeFromSadface(sadfaceEdge);
-
-//   assertType<model.Edge>(arguebufEdge);
-//   expect(arguebufEdge.source).toStrictEqual("70447169-9264-41dc-b8e9-50523f8368c1");
-//   expect(arguebufEdge.target).toStrictEqual("ae3f0c7f-9f69-4cab-9db3-3b9c46f56e09");
-// });
-
-// Test atom node
-const sadfaceAtomNode: sadface.AtomNode = {
-  id: "6cd219cc-3203-4602-88bd-d3639f86fb37",
-  metadata: {},
-  sources: [],
-  text: "The 'Hang Back' advert does not clearly express the intended message",
-  type: "atom",
-};
-
-test("atom node: sadface2arguebuf", () => {
-  const arguebufNode = nodeFromSadface(sadfaceAtomNode);
-
-  if (arguebufNode.type === "atom") {
-    assertType<model.Node>(arguebufNode);
-    expect(arguebufNode.type).toStrictEqual("atom");
-    expect(arguebufNode.text).toStrictEqual(
-      "The 'Hang Back' advert does not clearly express the intended message"
-    );
-    expect(arguebufNode.metadata.created).not.toStrictEqual(undefined);
-    expect(arguebufNode.metadata.updated).not.toStrictEqual(undefined);
-  }
-});
-
-// Test scheme node
-const sadfaceSchemeNode: sadface.SchemeNode = {
-  id: "45199aa0-1556-4b94-8940-3ba30aa08e38",
-  metadata: {},
-  name: "conflict",
-  type: "scheme",
-};
-
-test("scheme node: sadface2arguebuf", () => {
-  let arguebufNode: model.Node = nodeFromSadface(sadfaceSchemeNode);
-
-  if (arguebufNode.type === "scheme") {
-    assertType<model.Node>(arguebufNode);
-    expect(arguebufNode.type).toStrictEqual("scheme");
-    expect(arguebufNode.scheme.value).toStrictEqual(model.Attack.DEFAULT);
-    expect(arguebufNode.scheme.case).toStrictEqual("attack");
-    expect(arguebufNode.metadata.created).not.toStrictEqual(undefined);
-    expect(arguebufNode.metadata.updated).not.toStrictEqual(undefined);
-  }
-});
+import * as arguebuf from "../index.js";
 
 // test graph
-const sadfaceGraph: sadface.Graph = {
+const sadfaceGraph: arguebuf.schemas.sadface.Graph = {
   edges: [
     {
       id: "3df54ae1-fa41-4ac7-85d5-4badee39215b",
@@ -153,10 +91,10 @@ const sadfaceGraph: sadface.Graph = {
 };
 
 test("graph: sadface2arguebuf", () => {
-  let arguebufGraph: model.Graph = fromSadface(sadfaceGraph);
+  let arguebufGraph: arguebuf.Graph = arguebuf.load.sadface(sadfaceGraph);
 
   // Test some graph properties
-  assertType<model.Graph>(arguebufGraph);
+  assertType<arguebuf.Graph>(arguebufGraph);
   expect(arguebufGraph.resources).toStrictEqual({});
   expect(Object.values(arguebufGraph.analysts)[0].name).toStrictEqual(
     "Simon Wells"
@@ -178,7 +116,7 @@ test("graph: sadface2arguebuf", () => {
   expect(arguebufGraph.userdata).toStrictEqual(userdata);
 
   // Test a specific atom node in the graph
-  let n1: model.Node =
+  let n1: arguebuf.Node =
     arguebufGraph.nodes["51775eb3-70c0-4d8e-95a5-b34ffba8a280"];
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
@@ -190,7 +128,7 @@ test("graph: sadface2arguebuf", () => {
   expect(n1.metadata.updated).not.toStrictEqual(undefined);
 
   // Test a specific scheme node in the graph
-  let n2: model.Node =
+  let n2: arguebuf.Node =
     arguebufGraph.nodes["45199aa0-1556-4b94-8940-3ba30aa08e38"];
   expect(n2.type).toStrictEqual("scheme");
   if (n2.type === "scheme") {
@@ -200,7 +138,7 @@ test("graph: sadface2arguebuf", () => {
   expect(n2.metadata.updated).not.toStrictEqual(undefined);
 
   // Test a specific Edge in the graph
-  let e1: model.Edge =
+  let e1: arguebuf.Edge =
     arguebufGraph.edges["bfe3db02-f93f-4d91-bd78-beccee980175"];
   expect(e1.source.id).toStrictEqual("45199aa0-1556-4b94-8940-3ba30aa08e38");
   expect(e1.target.id).toStrictEqual("f129934f-53d2-49f6-8feb-9afaff9aabcf");

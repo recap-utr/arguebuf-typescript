@@ -1,10 +1,9 @@
-import { uuid } from "arg-services";
+import * as date from "../date.js";
 import * as model from "../model/index.js";
-import * as sadface from "../schema/sadface.js";
-import * as date from "../services/date.js";
+import * as sadfaceSchema from "../schemas/sadface.js";
 
 export function edgeFromSadface(
-  obj: sadface.Edge,
+  obj: sadfaceSchema.Edge,
   nodes: { [key: string]: model.Node }
 ): model.Edge {
   return new model.Edge({
@@ -15,36 +14,7 @@ export function edgeFromSadface(
   });
 }
 
-export function edgeToSadface(e: model.Edge): sadface.Edge {
-  return {
-    id: e.id,
-    source_id: e.source.id,
-    target_id: e.target.id,
-  };
-}
-
-export function nodeToSadface(n: model.Node): sadface.Node {
-  if (n.type === "atom") {
-    return {
-      id: n.id,
-      metadata: n.userdata,
-      sources: [],
-      text: n.text,
-      type: "atom",
-    };
-  } else if (n.type === "scheme") {
-    return {
-      id: n.id,
-      metadata: {},
-      name: n.scheme.case === undefined ? "undefined" : n.scheme.case,
-      type: "scheme",
-    };
-  }
-
-  throw new Error("Node type not supported");
-}
-
-export function nodeFromSadface(obj: sadface.Node): model.Node {
+function nodeFromSadface(obj: sadfaceSchema.Node): model.Node {
   if (obj.type === "atom") {
     return new model.AtomNode({
       id: obj.id,
@@ -75,27 +45,7 @@ export function nodeFromSadface(obj: sadface.Node): model.Node {
   }
 }
 
-export function toSadface(obj: model.Graph): sadface.Graph {
-  return {
-    nodes: Object.values(obj.nodes).map((node) => nodeToSadface(node)),
-    edges: Object.values(obj.edges).map((edge) => edgeToSadface(edge)),
-    metadata: {
-      core: {
-        analyst_email: obj.analysts[0]?.email,
-        analyst_name: obj.analysts[0]?.name,
-        created: obj.metadata?.created?.toString(),
-        edited: obj.metadata?.updated?.toString(),
-        description: "",
-        id: "",
-        notes: "",
-        title: "",
-        version: "",
-      },
-    },
-  };
-}
-
-export function fromSadface(obj: sadface.Graph): model.Graph {
+export function sadface(obj: sadfaceSchema.Graph): model.Graph {
   const nodes = Object.fromEntries(
     obj.nodes.map((node) => [node.id, nodeFromSadface(node)])
   );
@@ -106,14 +56,14 @@ export function fromSadface(obj: sadface.Graph): model.Graph {
   const metadata = new model.Metadata({
     created:
       obj.metadata.core.created !== undefined
-        ? date.parse(obj.metadata.core.created, sadface.DATE_FORMAT)
+        ? date.parse(obj.metadata.core.created, sadfaceSchema.DATE_FORMAT)
         : undefined,
     updated:
       obj.metadata.core.edited !== undefined
-        ? date.parse(obj.metadata.core.edited, sadface.DATE_FORMAT)
+        ? date.parse(obj.metadata.core.edited, sadfaceSchema.DATE_FORMAT)
         : undefined,
   });
-  const analystId: string = uuid();
+  const analystId: string = model.uuid();
   const analysts: { [key: string]: model.Analyst } = {};
   analysts[analystId] = new model.Analyst({
     name: obj.metadata.core.analyst_name,

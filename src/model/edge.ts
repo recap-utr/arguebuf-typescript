@@ -1,7 +1,7 @@
-import { uuid } from "arg-services";
 import { Metadata } from "./metadata.js";
 import { Node } from "./node.js";
 import { Userdata } from "./userdata.js";
+import { uuid } from "./utils.js";
 
 export interface EdgeConstructor {
   id?: string;
