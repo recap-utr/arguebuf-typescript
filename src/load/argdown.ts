@@ -40,9 +40,10 @@ export function argdown(obj: string) {
 
   if (response.map !== undefined) {
     const map: IMap = response.map;
-      // Create and add the atom nodes
+    // Create and add the atom nodes
     var nodes: { [key: string]: model.Node } = Object.fromEntries(
-      map.nodes.filter((value) => inEdges(value, map.edges))
+      map.nodes
+        .filter((value) => inEdges(value, map.edges))
         .map((n) => {
           const argdownNode = nodefromArgdown(n);
           return [argdownNode.id, argdownNode];
@@ -75,7 +76,8 @@ export function argdown(obj: string) {
       nodes: nodes,
       edges: edges,
     });
-  } else {  // Empty graph
+  } else {
+    // Empty graph
     return new model.Graph({
       metadata: new model.Metadata(),
     });
@@ -119,7 +121,7 @@ function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {
       value: model.Attack.DEFAULT,
       case: "support",
     };
-  } 
+  }
   return new model.SchemeNode({
     scheme: scheme,
     metadata: new model.Metadata(),
