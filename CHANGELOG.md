@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.2.0...v1.3.0) (2023-02-07)
+
+
+### Features
+
+* add loader for argdown files ([#12](https://github.com/recap-utr/arguebuf-typescript/issues/12)) ([c9ed073](https://github.com/recap-utr/arguebuf-typescript/commit/c9ed0735912296d49539e772313d2b58be24b050))
+
 ## [1.2.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.1.0...v1.2.0) (2023-02-06)
 
 
