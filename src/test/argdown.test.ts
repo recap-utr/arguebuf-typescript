@@ -1,13 +1,6 @@
 import { assertType, expect, test } from "vitest";
 import * as arguebuf from "../index.js";
-import {
-    ArgdownApplication,
-    IArgdownRequest,
-    ParserPlugin,
-    ModelPlugin,
-    PreselectionPlugin,
-    MapPlugin
-} from "@argdown/core";
+
 
 const graph = `
 ===
@@ -172,25 +165,6 @@ disposition for criminal behaviour.
 
 
 test("graph: aif2arguebuf", () => {
-    const app = new ArgdownApplication();
-
-    const parserPlugin = new ParserPlugin();
-    app.addPlugin(parserPlugin, "parse-input");
-
-    const modelPlugin = new ModelPlugin();
-    app.addPlugin(modelPlugin, "build-model");
-
-    const preselectionPlugin = new PreselectionPlugin();
-    app.addPlugin(preselectionPlugin, "preselection-plugin");
-
-    const mapPlugin = new MapPlugin();
-    app.addPlugin(mapPlugin, "map-plugin");
-
-    const request: IArgdownRequest = {
-        input: graph,
-        process: ["parse-input", "build-model", "preselection-plugin", "map-plugin"],
-        logLevel: "verbose"
-    }
-    const response = app.run(request);
-    console.log(response.map);
+    const g = arguebuf.load.argdown(graph);
+    console.log(g);
 });
