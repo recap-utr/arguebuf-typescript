@@ -1,7 +1,6 @@
 import { assertType, expect, test } from "vitest";
 import * as arguebuf from "../index.js";
 
-
 const graph = `
 ===
 title: Censorship from the State 
@@ -163,8 +162,7 @@ disposition for criminal behaviour.
 
 `;
 
-
 test("graph: aif2arguebuf", () => {
-    const g = arguebuf.load.argdown(graph);
-    console.log(g);
+  const g = arguebuf.load.argdown(graph);
+  console.log(g);
 });
