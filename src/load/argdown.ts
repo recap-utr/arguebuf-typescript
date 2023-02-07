@@ -1,6 +1,4 @@
-import * as date from "../date.js";
 import * as model from "../model/index.js";
-import * as argdownSchema from "../schemas/argdown.js";
 import {
   ArgdownApplication,
   IArgdownRequest,
@@ -10,6 +8,7 @@ import {
   MapPlugin,
   IMapNode,
   IMapEdge,
+  IMap,
 } from "@argdown/core";
 
 export function argdown(obj: string) {
@@ -39,41 +38,48 @@ export function argdown(obj: string) {
   };
   const response = app.run(request);
 
-  // Create and add the atom nodes
-  var nodes: { [key: string]: model.Node } = Object.fromEntries(
-    response
-      .map!.nodes.filter((value) => inEdges(value, response.map!.edges))
-      .map((n) => {
-        const argdownNode = nodefromArgdown(n);
-        return [argdownNode.id, argdownNode];
-      })
-  );
+  if (response.map !== undefined) {
+    const map: IMap = response.map;
+      // Create and add the atom nodes
+    var nodes: { [key: string]: model.Node } = Object.fromEntries(
+      map.nodes.filter((value) => inEdges(value, map.edges))
+        .map((n) => {
+          const argdownNode = nodefromArgdown(n);
+          return [argdownNode.id, argdownNode];
+        })
+    );
 
-  var edges: { [key: string]: model.Edge } = {};
-  response.map!.edges.forEach((e) => {
-    // Create new scheme node and add it
-    const schemeNode = schemeNodeFromEdge(e);
-    nodes[schemeNode.id] = schemeNode;
-    // Create the two edges to and from the schemeNode
-    const e1 = new model.Edge({
-      source: nodes[e.from.id],
-      target: schemeNode,
+    var edges: { [key: string]: model.Edge } = {};
+    map.edges.forEach((e) => {
+      // Create new scheme node and add it
+      const schemeNode = schemeNodeFromEdge(e);
+      nodes[schemeNode.id] = schemeNode;
+
+      // Create the two edges to and from the schemeNode
+      const e1 = new model.Edge({
+        source: nodes[e.from.id],
+        target: schemeNode,
+        metadata: new model.Metadata(),
+      });
+      edges[e1.id] = e1;
+      const e2 = new model.Edge({
+        source: schemeNode,
+        target: nodes[e.to.id],
+        metadata: new model.Metadata(),
+      });
+      edges[e2.id] = e2;
+    });
+
+    return new model.Graph({
+      metadata: new model.Metadata(),
+      nodes: nodes,
+      edges: edges,
+    });
+  } else {  // Empty graph
+    return new model.Graph({
       metadata: new model.Metadata(),
     });
-    edges[e1.id] = e1;
-    const e2 = new model.Edge({
-      source: schemeNode,
-      target: nodes[e.to.id],
-      metadata: new model.Metadata(),
-    });
-    edges[e2.id] = e2;
-  });
-
-  return new model.Graph({
-    metadata: new model.Metadata(),
-    nodes: nodes,
-    edges: edges,
-  });
+  }
 }
 
 function nodefromArgdown(obj: IMapNode): model.Node {
@@ -93,9 +99,6 @@ function inEdges(node: IMapNode, edges: Array<IMapEdge>): boolean {
 
 function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {
   var scheme: any = undefined;
-  /*
-    ################ todo: other cases
-    */
   if (obj.relationType === "attack") {
     scheme = {
       value: model.Attack.DEFAULT,
@@ -106,7 +109,17 @@ function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {
       value: model.Support.DEFAULT,
       case: "support",
     };
-  }
+  } else if (obj.relationType == "contradictory") {
+    scheme = {
+      value: model.Attack.DEFAULT,
+      case: "support",
+    };
+  } else if (obj.relationType == "undercut") {
+    scheme = {
+      value: model.Attack.DEFAULT,
+      case: "support",
+    };
+  } 
   return new model.SchemeNode({
     scheme: scheme,
     metadata: new model.Metadata(),

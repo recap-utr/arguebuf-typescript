@@ -1,4 +1,4 @@
-import { assertType, expect, test } from "vitest";
+import { test } from "vitest";
 import * as arguebuf from "../index.js";
 
 const graph = `
@@ -163,6 +163,6 @@ disposition for criminal behaviour.
 `;
 
 test("graph: aif2arguebuf", () => {
-  const g = arguebuf.load.argdown(graph);
-  console.log(g);
+    const g = arguebuf.load.argdown(graph);
+    console.log(g);
 });
