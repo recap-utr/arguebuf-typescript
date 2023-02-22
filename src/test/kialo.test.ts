@@ -1,7 +1,7 @@
 import { assertType, expect, test } from "vitest";
 import * as arguebuf from "../index.js";
 import * as model from "../model/index.js";
-import file from './kialoTestFile.txt?raw';
+import file from "./kialoTestFile.txt?raw";
 
 test("graph: kialo2arguebuf", () => {
   const g: model.Graph = arguebuf.load.kialo(file);
