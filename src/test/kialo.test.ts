@@ -3,7 +3,6 @@ import * as arguebuf from "../index.js";
 import * as model from "../model/index.js";
 import { readFileSync } from "fs";
 
-
 test("graph: kialo2arguebuf", () => {
   const kialoFile: string = readFileSync("src/test/kialoTestFile.txt", "utf-8");
   const g: model.Graph = arguebuf.load.kialo(kialoFile);
