@@ -1,5 +1,4 @@
 import * as model from "../model/index.js";
-import assert from "assert";
 
 export function kialo(input: string): model.Graph {
   var nodes: model.Node[] = [];
@@ -63,8 +62,12 @@ export function kialo(input: string): model.Graph {
         next_line = iter.next().value;
       }
 
-      assert(source_id !== undefined);
-      assert(text !== undefined);
+      if (source_id === undefined) {
+        throw new Error("source_id should not be undefined!");
+      }
+      if (text === undefined) {
+        throw new Error("text should not be undefined!");
+      }
 
       var source;
       const id_ref_match = text.match(/^-> See ((?:\d+\.)+)/);

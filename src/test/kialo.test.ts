@@ -1,14 +1,12 @@
 import { assertType, expect, test } from "vitest";
 import * as arguebuf from "../index.js";
 import * as model from "../model/index.js";
-import * as fs from "fs";
+import { readFileSync } from "fs";
 
-const file_path = "src/test/kialoTestFile.txt";
 
 test("graph: kialo2arguebuf", () => {
-  const file: string = fs.readFileSync(file_path, "utf-8");
-  const g: model.Graph = arguebuf.load.kialo(file);
-  // console.log(g);
+  const kialoFile: string = readFileSync("src/test/kialoTestFile.txt", "utf-8");
+  const g: model.Graph = arguebuf.load.kialo(kialoFile);
 
   // Test some graph properties
   assertType<arguebuf.Graph>(g);

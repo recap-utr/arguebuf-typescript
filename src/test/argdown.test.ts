@@ -164,5 +164,4 @@ disposition for criminal behaviour.
 
 test("graph: aif2arguebuf", () => {
   const g = arguebuf.load.argdown(graph);
-  // console.log(g);
 });
