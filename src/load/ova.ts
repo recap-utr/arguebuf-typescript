@@ -7,13 +7,13 @@ import { NodeType } from "../schemas/aif.js";
 const aif2scheme = (scheme: NodeType) => {
     switch (scheme) {
         case "RA":
-            return model.Support.DEFAULT;
+            return "support";
         case "CA":
-            return model.Attack.DEFAULT;
+            return "attack";
         case "MA":
-            return model.Rephrase.DEFAULT;
+            return "rephrase";
         case "PA":
-            return model.Preference.DEFAULT;
+            return "preference";
         case "":
             return undefined;
     }
@@ -120,7 +120,61 @@ const text2support = (text: string) => {
 }
 
 export function ova(obj: ovaSchema.Graph): model.Graph {
+    var nodes: { [k: string]: model.Node } = {};
+    var edges: { [k: string]: model.Edge } = {};
 
+    const participants = Object.entries(obj.participants).map(
+        ([_, p]) => new model.Participant({
+            name: p.firstname + p.surname,
+            id: p.id.toString(),
+        })
+    );
+
+    var majorClaim;
+    obj.nodes.forEach(
+        (n) => {
+            var node;
+            if (n.type === "I") {
+                node = atomFromOva(n);
+            } else {
+                node = schemeFromOva(n);
+            }
+
+            if (node !== undefined) {
+                nodes[node.id] = node;
+
+                if (n.majorClaim && node.type === "atom") {
+                    majorClaim = node.text;
+                }
+            }
+        }
+    );
+
+    obj.edges.forEach(
+        (e) => {
+            const edge = edgeFromOva(e, nodes);
+            if (edge !== undefined) {
+                edges[edge.id] = edge;
+            }
+        }
+    )
+
+    return new model.Graph({
+        nodes: nodes,
+        edges: edges,
+        resources: [resourceFromOva(obj.analysis)],
+        participants: participants,
+        analysts: obj.analysis.annotatorName !== undefined ? [new model.Analyst({ name: obj.analysis.annotatorName })] : [],
+        majorClaim: majorClaim,
+    });
+}
+
+function resourceFromOva(obj: ovaSchema.Analysis): model.Resource {
+    return new model.Resource({
+        text: obj.plain_txt === undefined ? "" : obj.plain_txt,
+        title: obj.documentTitle === undefined ? "" : obj.documentTitle,
+        source: obj.documentSource === undefined ? "" : obj.documentSource,
+    });
 }
 
 function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
@@ -132,25 +186,25 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
         var scheme: model.Scheme;
 
         switch (schemeType) {
-            case model.Attack.DEFAULT:
+            case "attack":
                 scheme = {
                     case: "attack",
                     value: model.Attack.DEFAULT,
                 };
                 break;
-            case model.Preference.DEFAULT:
+            case "preference":
                 scheme = {
                     case: "preference",
                     value: model.Preference.DEFAULT,
                 };
                 break;
-            case model.Rephrase.DEFAULT:
+            case "rephrase":
                 scheme = {
                     case: "rephrase",
                     value: model.Rephrase.DEFAULT,
                 };
                 break;
-            case model.Support.DEFAULT:
+            default:    // support
                 const foundScheme = text2support(ovaScheme);
                 scheme = {
                     case: "support",
@@ -177,7 +231,7 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
             scheme: scheme,
         });
     } else {
-        throw new Error("SchemeType undefined!");  
+        throw new Error("SchemeType undefined!");
     }
 }
 
