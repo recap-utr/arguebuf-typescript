@@ -4,5 +4,4 @@ import * as arguebuf from "../index.js";
 
 test("graph: aif2arguebuf", () => {
   const g = arguebuf.load.argdown(graph);
-  console.log(g);
 });
