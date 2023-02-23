@@ -1,7 +1,7 @@
 import { assertType, expect, test } from "vitest";
-import * as arguebuf from "../index.js";
-import * as model from "../model/index.js";
-import file from "../../data/arguebase-private/kialo/format=kialo,lang=en/can-religious-faith-and-science-co-exist-10223.txt?raw";
+import file from "../data/arguebase-private/kialo/format=kialo,lang=en/can-religious-faith-and-science-co-exist-10223.txt?raw";
+import * as arguebuf from "../src/index.js";
+import * as model from "../src/model/index.js";
 
 test("graph: kialo2arguebuf", () => {
   const g: model.Graph = arguebuf.load.kialo(file);
