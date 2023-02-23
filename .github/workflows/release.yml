@@ -20,7 +20,7 @@ jobs:
       - uses: iterative/setup-dvc@v1
         with:
           version: ${{ env.DVC_VERSION }}
-      - uses: jacobtomlinson/gha-find-replace@v2
+      - uses: jacobtomlinson/gha-find-replace@v3
         with:
           find: "git@github.com:"
           replace: "https://github.com/"
