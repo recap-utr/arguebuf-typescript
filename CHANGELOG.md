@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.3.0...v1.4.0) (2023-02-23)
+
+
+### Features
+
+* add loader for exports from kialo.com ([#13](https://github.com/recap-utr/arguebuf-typescript/issues/13)) ([5fd3296](https://github.com/recap-utr/arguebuf-typescript/commit/5fd3296919cf49702e4ee553519aeb4f07010c53))
+
 ## [1.3.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.2.0...v1.3.0) (2023-02-07)
 
 
