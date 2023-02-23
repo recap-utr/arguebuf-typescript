@@ -1,6 +1,6 @@
 import { assertType, expect, test } from "vitest";
-import aifGraph from "../../data/arguebase-public/microtexts/format=aif,lang=en/nodeset6361.json";
-import * as arguebuf from "../index.js";
+import aifGraph from "../data/arguebase-public/microtexts/format=aif,lang=en/nodeset6361.json";
+import * as arguebuf from "../src/index.js";
 
 test("graph: aif2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.aif(
