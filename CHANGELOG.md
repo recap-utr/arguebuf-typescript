@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.5.0...v1.5.1) (2023-02-24)
+
+
+### Bug Fixes
+
+* update deps ([8f8e1bb](https://github.com/recap-utr/arguebuf-typescript/commit/8f8e1bb9a3551c97f4017291eeccaaa591891bc1))
+
 ## [1.5.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.4.0...v1.5.0) (2023-02-24)
 
 
