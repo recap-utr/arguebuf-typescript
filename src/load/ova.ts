@@ -13,7 +13,7 @@ const aif2scheme = (scheme: NodeType) => {
       return "rephrase";
     case "PA":
       return "preference";
-    case "":
+    default:
       return undefined;
   }
 };
@@ -210,6 +210,8 @@ const text2support = (text: string) => {
       return model.Support.WASTE;
     case "Witness Testimony":
       return model.Support.WITNESS_TESTIMONY;
+    default:
+      return model.Support.DEFAULT;
   }
 };
 
