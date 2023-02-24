@@ -8,12 +8,14 @@ import { Resource, ResourceInterface } from "./resource.js";
 import { Userdata } from "./userdata.js";
 import { Mapping } from "./utils.js";
 
+type ArrayOrMapping<T> = Array<T> | Mapping<string, T>;
+
 export interface GraphConstructor {
-  nodes?: Array<Node> | Mapping<string, Node>;
-  edges?: Array<Edge> | Mapping<string, Edge>;
-  resources?: Array<Resource> | Mapping<string, Resource>;
-  participants?: Array<Participant> | Mapping<string, Participant>;
-  analysts?: Array<Analyst> | Mapping<string, Analyst>;
+  nodes?: ArrayOrMapping<Node>;
+  edges?: ArrayOrMapping<Edge>;
+  resources?: ArrayOrMapping<Resource>;
+  participants?: ArrayOrMapping<Participant>;
+  analysts?: ArrayOrMapping<Analyst>;
   majorClaim?: string;
   metadata?: Metadata;
   userdata?: Userdata;
@@ -30,9 +32,7 @@ export interface GraphInterface {
   userdata: Userdata;
 }
 
-function assign<T extends Node | Edge | Resource | Participant | Analyst>(
-  data: Array<T> | Mapping<string, T>
-) {
+function assign<T extends { id: string }>(data: ArrayOrMapping<T>) {
   if (Array.isArray(data)) {
     return Object.fromEntries(data.map((elem) => [elem.id, elem]));
   } else {
@@ -100,6 +100,4 @@ export class Graph implements GraphInterface {
       }
     }
   }
-
-  toJSON() {}
 }
