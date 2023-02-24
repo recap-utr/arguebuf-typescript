@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.4.0...v1.5.0) (2023-02-24)
+
+
+### Features
+
+* add loader for Arg-Tech's OVA v2 ([#17](https://github.com/recap-utr/arguebuf-typescript/issues/17)) ([4196d88](https://github.com/recap-utr/arguebuf-typescript/commit/4196d88224e91eb9296d0cd10ae5a2997912e8af))
+
 ## [1.4.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.3.0...v1.4.0) (2023-02-23)
 
 
