@@ -10,9 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: de-vri-es/setup-git-credentials@v2
-        with:
-          credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
@@ -20,7 +17,13 @@ jobs:
       - uses: iterative/setup-dvc@v1
         with:
           version: ${{ env.DVC_VERSION }}
+      # DVC hack
+      - uses: de-vri-es/setup-git-credentials@v2
+        if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
+        with:
+          credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: jacobtomlinson/gha-find-replace@v3
+        if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
         with:
           find: "git@github.com:"
           replace: "https://github.com/"
