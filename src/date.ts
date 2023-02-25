@@ -7,8 +7,8 @@ export function now(): DateType {
   return new Date();
 }
 
-export function parse(dateString: string, format: string): DateType {
-  return dayjs(dateString, format).toDate();
+export function parse(value: string, format: string): DateType {
+  return dayjs(value, format).toDate();
 }
 
 export function format(data: DateType, format: string): string {
@@ -25,4 +25,8 @@ export function fromProtobuf(timestamp: Timestamp | undefined): DateType {
 
 export function toProtobuf(date: DateType): Timestamp {
   return Timestamp.fromDate(date);
+}
+
+export function dateFromJSON(value: string): DateType {
+  return new Date(value);
 }
