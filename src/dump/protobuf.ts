@@ -94,9 +94,9 @@ export function protobuf(graph: model.Graph): pb.Graph {
   return new pb.Graph({
     nodes: nodes,
     edges: edges,
-    schemaVersion: graph._schemaVersion,
+    schemaVersion: graph.schemaVersion,
     analysts: graph.analysts,
-    libraryVersion: graph._libraryVersion,
+    libraryVersion: graph.libraryVersion,
     majorClaim: graph.majorClaim,
     metadata: new pb.Metadata({
       created: date.toProtobuf(graph.metadata.created),

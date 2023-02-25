@@ -1,4 +1,4 @@
-import { Resource } from "./resource.js";
+import { Resource, ResourceInterface } from "./resource.js";
 import { uuid } from "./utils.js";
 
 export interface ReferenceConstructor {
@@ -9,8 +9,8 @@ export interface ReferenceConstructor {
 }
 
 export interface ReferenceInterface {
-  readonly id: string;
-  readonly resource?: Resource;
+  id: string;
+  resource?: ResourceInterface;
   offset?: number;
   text: string;
 }

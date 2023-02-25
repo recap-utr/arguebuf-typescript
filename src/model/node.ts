@@ -6,7 +6,7 @@ import {
   Support,
 } from "arg-services/graph/v1/graph_pb";
 import { Metadata, MetadataInterface } from "./metadata.js";
-import { Userdata } from "./userdata.js";
+import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
 
 export type Scheme = RawScheme["type"];
@@ -35,10 +35,10 @@ export interface AbstractNodeConstructor {
 }
 
 interface AbstractNodeInterface {
-  readonly id: string;
-  readonly type: "atom" | "scheme";
+  id: string;
+  type: "atom" | "scheme";
   metadata: MetadataInterface;
-  userdata: Userdata;
+  userdata: UserdataInterface;
 }
 
 abstract class AbstractNode implements AbstractNodeInterface {
@@ -68,7 +68,7 @@ export interface AtomNodeConstructor extends AbstractNodeConstructor {
 }
 
 export interface AtomNodeInterface extends AbstractNodeInterface {
-  readonly type: "atom";
+  type: "atom";
   text: string;
   // readonly reference?: ReferenceConstructor;
   // readonly participant?: ParticipantConstructor;
@@ -99,7 +99,7 @@ export interface SchemeNodeConstructor extends AbstractNodeConstructor {
 }
 
 export interface SchemeNodeInterface extends AbstractNodeInterface {
-  readonly type: "scheme";
+  type: "scheme";
   scheme: Scheme;
   premise_descriptors?: Array<string>;
 }

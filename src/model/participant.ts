@@ -1,5 +1,5 @@
 import { Metadata, MetadataInterface } from "./metadata.js";
-import { Userdata } from "./userdata.js";
+import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
 
 export interface ParticipantConstructor {
@@ -15,7 +15,7 @@ export interface ParticipantConstructor {
 }
 
 export interface ParticipantInterface {
-  readonly id: string;
+  id: string;
   name?: string;
   username?: string;
   email?: string;
@@ -23,7 +23,7 @@ export interface ParticipantInterface {
   location?: string;
   description?: string;
   metadata: MetadataInterface;
-  userdata: Userdata;
+  userdata: UserdataInterface;
 }
 
 export class Participant {

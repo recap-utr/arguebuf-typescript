@@ -1,6 +1,6 @@
 import { DateType } from "../date.js";
-import { Metadata } from "./metadata.js";
-import { Userdata } from "./userdata.js";
+import { Metadata, MetadataInterface } from "./metadata.js";
+import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
 
 export interface ResourceConstructor {
@@ -14,13 +14,13 @@ export interface ResourceConstructor {
 }
 
 export interface ResourceInterface {
-  readonly id: string;
+  id: string;
   text: string;
   title?: string;
   source?: string;
   timestamp?: DateType;
-  metadata: Metadata;
-  userdata: Userdata;
+  metadata: MetadataInterface;
+  userdata: UserdataInterface;
 }
 
 export class Resource implements ResourceInterface {

@@ -1,4 +1,4 @@
-import { Userdata } from "./userdata.js";
+import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
 
 export interface AnalystConstructor {
@@ -9,10 +9,10 @@ export interface AnalystConstructor {
 }
 
 export interface AnalystInterface {
-  readonly id: string;
+  id: string;
   name?: string;
   email?: string;
-  userdata: Userdata;
+  userdata: UserdataInterface;
 }
 
 export class Analyst implements AnalystInterface {
@@ -27,4 +27,17 @@ export class Analyst implements AnalystInterface {
     this.email = data?.email;
     this.userdata = data?.userdata ?? {};
   }
+
+  // toJSON() {
+  //   return { ...this };
+  // }
+
+  // static fromJSON(obj: JSONObject) {
+  //   return new Analyst({
+  //     id: obj.id,
+  //     name: obj.name,
+  //     email: obj.email,
+  //     userdata: obj.userdata,
+  //   });
+  // }
 }

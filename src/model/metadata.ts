@@ -1,5 +1,4 @@
 import { DateType, now } from "../date.js";
-import { JSONObject } from "./utils.js";
 
 export interface MetadataConstructor {
   created?: DateType;
@@ -25,11 +24,15 @@ export class Metadata implements MetadataInterface {
     this.updated = now();
   }
 
-  toJSON() {
-    return { ...this };
-  }
+  // toJSON() {
+  //   return { ...this };
+  // }
 
-  static fromJSON(obj: JSONObject) {
-    return Object.assign(new Metadata(), obj);
-  }
+  // static fromJSON(obj: JSONObject) {
+  //   const cls = new Metadata();
+  //   cls.created = dateFromJSON(obj.created);
+  //   cls.updated = dateFromJSON(obj.updated);
+
+  //   return cls;
+  // }
 }

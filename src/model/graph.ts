@@ -5,7 +5,7 @@ import { Metadata, MetadataInterface } from "./metadata.js";
 import { AtomNode, Node, NodeInterface } from "./node.js";
 import { Participant, ParticipantInterface } from "./participant.js";
 import { Resource, ResourceInterface } from "./resource.js";
-import { Userdata } from "./userdata.js";
+import { Userdata, UserdataInterface } from "./userdata.js";
 import { Mapping } from "./utils.js";
 
 type ArrayOrMapping<T> = Array<T> | Mapping<string, T>;
@@ -22,14 +22,14 @@ export interface GraphConstructor {
 }
 
 export interface GraphInterface {
-  readonly nodes: Readonly<Mapping<string, NodeInterface>>;
-  readonly edges: Readonly<Mapping<string, EdgeInterface>>;
-  readonly resources: Readonly<Mapping<string, ResourceInterface>>;
-  readonly participants: Readonly<Mapping<string, ParticipantInterface>>;
-  readonly analysts: Readonly<Mapping<string, AnalystInterface>>;
+  nodes: Mapping<string, NodeInterface>;
+  edges: Mapping<string, EdgeInterface>;
+  resources: Mapping<string, ResourceInterface>;
+  participants: Mapping<string, ParticipantInterface>;
+  analysts: Mapping<string, AnalystInterface>;
   majorClaim?: string;
   metadata: MetadataInterface;
-  userdata: Userdata;
+  userdata: UserdataInterface;
 }
 
 function assign<T extends { id: string }>(data: ArrayOrMapping<T>) {
@@ -41,14 +41,14 @@ function assign<T extends { id: string }>(data: ArrayOrMapping<T>) {
 }
 
 export class Graph implements GraphInterface {
-  protected readonly _nodes: Mapping<string, Node> = {};
-  protected readonly _edges: Mapping<string, Edge> = {};
-  protected readonly _resources: Mapping<string, Resource> = {};
-  protected readonly _participants: Mapping<string, Participant> = {};
-  protected readonly _analysts: Mapping<string, Analyst> = {};
+  protected _nodes: Mapping<string, Node> = {};
+  protected _edges: Mapping<string, Edge> = {};
+  protected _resources: Mapping<string, Resource> = {};
+  protected _participants: Mapping<string, Participant> = {};
+  protected _analysts: Mapping<string, Analyst> = {};
   majorClaim?: string;
-  readonly _libraryVersion: string = arguebufVersion;
-  readonly _schemaVersion: number = 1;
+  readonly libraryVersion: string = arguebufVersion;
+  readonly schemaVersion: number = 1;
   metadata: Metadata;
   userdata: Userdata;
 
@@ -73,20 +73,25 @@ export class Graph implements GraphInterface {
     this.userdata = data?.userdata ?? {};
   }
 
-  get nodes() {
+  get nodes(): Readonly<Mapping<string, Node>> {
     return this._nodes;
   }
-  get edges() {
+  get edges(): Readonly<Mapping<string, Edge>> {
     return this._edges;
   }
-  get resources() {
+  get resources(): Readonly<Mapping<string, Resource>> {
     return this._resources;
   }
-  get participants() {
+  get participants(): Readonly<Mapping<string, Participant>> {
     return this._participants;
   }
-  get analysts() {
+  get analysts(): Readonly<Mapping<string, Analyst>> {
     return this._analysts;
+  }
+
+  setElements(nodes: ArrayOrMapping<Node>, edges: ArrayOrMapping<Edge>) {
+    this._nodes = assign(nodes);
+    this._edges = assign(edges);
   }
 
   setMajorClaim(atom: string | AtomNode | undefined) {
