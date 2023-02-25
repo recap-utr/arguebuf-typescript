@@ -1,8 +1,9 @@
+import { version as libraryVersion } from "arg-services";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
 import * as model from "../model/index.js";
 
-function edgeToProtobuf(edge: model.Edge): pb.Edge {
+function edgeToProtobuf(edge: model.EdgeInterface): pb.Edge {
   return new pb.Edge({
     source: edge.source,
     target: edge.target,
@@ -14,7 +15,7 @@ function edgeToProtobuf(edge: model.Edge): pb.Edge {
   });
 }
 
-function nodeToProtobuf(node: model.Node): pb.Node {
+function nodeToProtobuf(node: model.NodeInterface): pb.Node {
   if (node.type === "atom") {
     return new pb.Node({
       metadata: new pb.Metadata({
@@ -47,7 +48,7 @@ function nodeToProtobuf(node: model.Node): pb.Node {
   }
 }
 
-export function protobuf(graph: model.Graph): pb.Graph {
+export function protobuf(graph: model.GraphInterface): pb.Graph {
   const edges: { [key: string]: pb.Edge } = Object.fromEntries(
     Object.values(graph.edges).map((e) => [e.id, edgeToProtobuf(e)])
   );
@@ -94,9 +95,9 @@ export function protobuf(graph: model.Graph): pb.Graph {
   return new pb.Graph({
     nodes: nodes,
     edges: edges,
-    schemaVersion: graph.schemaVersion,
+    schemaVersion: 1,
     analysts: graph.analysts,
-    libraryVersion: graph.libraryVersion,
+    libraryVersion: libraryVersion,
     majorClaim: graph.majorClaim,
     metadata: new pb.Metadata({
       created: date.toProtobuf(graph.metadata.created),

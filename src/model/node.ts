@@ -13,7 +13,7 @@ export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 export { Attack, Preference, Rephrase, Support };
 
-const scheme2string = (scheme: Scheme) => {
+export const scheme2string = (scheme: Scheme) => {
   switch (scheme.case) {
     case "attack":
       return Attack[scheme.value];

@@ -5,7 +5,7 @@ import { protobuf as dumpProtobuf } from "./protobuf.js";
 type JSONObject = { [key: string]: any };
 
 export function json(
-  graph: model.Graph,
+  graph: model.GraphInterface,
   format: "aif" | "arguebuf"
 ): JSONObject {
   if (format === "aif") {

@@ -9,7 +9,30 @@ const scheme2aif: { [key in model.SchemeType]: aifSchema.SchemeType } = {
   preference: "PA",
 };
 
-export function aif(obj: model.Graph): aifSchema.Graph {
+function label(node: model.NodeInterface): string {
+  if (node.type === "atom") {
+    return node.text;
+  } else if (node.type === "scheme") {
+    let text = "Unknown";
+
+    if (node.scheme.case !== undefined) {
+      const schemeType = node.scheme.case;
+      text = schemeType;
+
+      const schemeValue = model.scheme2string(node.scheme);
+
+      if (schemeValue !== "DEFAULT") {
+        // TODO
+      }
+    }
+
+    return text;
+  }
+
+  return "Unknown";
+}
+
+export function aif(obj: model.GraphInterface): aifSchema.Graph {
   return {
     nodes: Object.values(obj.nodes).map((entry) => nodeToAif(entry)),
     edges: Object.values(obj.edges).map((entry) => edgeToAif(entry)),
@@ -17,7 +40,7 @@ export function aif(obj: model.Graph): aifSchema.Graph {
   };
 }
 
-function nodeToAif(n: model.Node): aifSchema.Node {
+function nodeToAif(n: model.NodeInterface): aifSchema.Node {
   if (n.type === "atom") {
     return {
       nodeID: n.id,
@@ -28,7 +51,7 @@ function nodeToAif(n: model.Node): aifSchema.Node {
   } else if (n.type === "scheme") {
     return {
       nodeID: n.id,
-      text: n.label(),
+      text: label(n),
       type: n.scheme.case ? scheme2aif[n.scheme.case] : "",
       timestamp: date.format(n.metadata.updated, aifSchema.DATE_FORMAT),
     };
@@ -37,7 +60,7 @@ function nodeToAif(n: model.Node): aifSchema.Node {
   throw new Error("Node type not supported");
 }
 
-function edgeToAif(e: model.Edge): aifSchema.Edge {
+function edgeToAif(e: model.EdgeInterface): aifSchema.Edge {
   return {
     edgeID: e.id,
     fromID: e.source,

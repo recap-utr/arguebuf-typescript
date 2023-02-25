@@ -1,4 +1,3 @@
-import { version as arguebufVersion } from "arg-services";
 import { Analyst, AnalystInterface } from "./analyst.js";
 import { Edge, EdgeInterface } from "./edge.js";
 import { Metadata, MetadataInterface } from "./metadata.js";
@@ -47,8 +46,6 @@ export class Graph implements GraphInterface {
   protected _participants: Mapping<string, Participant> = {};
   protected _analysts: Mapping<string, Analyst> = {};
   majorClaim?: string;
-  readonly libraryVersion: string = arguebufVersion;
-  readonly schemaVersion: number = 1;
   metadata: Metadata;
   userdata: Userdata;
 
