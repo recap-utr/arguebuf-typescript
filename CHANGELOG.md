@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.5.1...v1.6.0) (2023-02-25)
+
+
+### Features
+
+* add json import/export ([37020cf](https://github.com/recap-utr/arguebuf-typescript/commit/37020cf86e3d539dcd5e98e1e3eaab69d72b0452))
+* use node ids instead of objects for edges ([cc13bde](https://github.com/recap-utr/arguebuf-typescript/commit/cc13bdede4598b1f2aa35479828f260bc9f77e3c))
+
+
+### Bug Fixes
+
+* allow parsing dates from json strings ([0ade6a6](https://github.com/recap-utr/arguebuf-typescript/commit/0ade6a6f13d206286ad5484b975a51abc895a27e))
+* overhaul interfaces to simplify them ([e578fde](https://github.com/recap-utr/arguebuf-typescript/commit/e578fdeb8ef4fe3af8e588683a27c55aca0dbbdf))
+* properly convert between protobuf/json ([9991fb6](https://github.com/recap-utr/arguebuf-typescript/commit/9991fb68e462a3d55c5ccb77d02b6256bc720010))
+
 ## [1.5.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.5.0...v1.5.1) (2023-02-24)
 
 
