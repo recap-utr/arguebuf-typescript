@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.0...v1.6.1) (2023-02-25)
+
+
+### Bug Fixes
+
+* allow dumping of interfaces ([0d0282c](https://github.com/recap-utr/arguebuf-typescript/commit/0d0282c4ebec7bf398d7f99d5d648340e3b65c18))
+
 ## [1.6.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.5.1...v1.6.0) (2023-02-25)
 
 
