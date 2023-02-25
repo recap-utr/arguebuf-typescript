@@ -7,7 +7,7 @@ export function aif(obj: aifSchema.Graph): model.Graph {
     obj.nodes.map((node) => [node.nodeID, nodeFromAif(node)])
   );
   const edges = Object.fromEntries(
-    obj.edges.map((edge) => [edge.edgeID, edgeFromAif(edge, nodes)])
+    obj.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)])
   );
 
   return new model.Graph({
@@ -71,13 +71,10 @@ function nodeFromAif(obj: aifSchema.Node): model.Node {
   }
 }
 
-function edgeFromAif(
-  obj: aifSchema.Edge,
-  nodes: { [key: string]: model.Node }
-): model.Edge {
+function edgeFromAif(obj: aifSchema.Edge): model.Edge {
   return new model.Edge({
     id: obj.edgeID,
-    source: nodes[obj.fromID],
-    target: nodes[obj.toID],
+    source: obj.fromID,
+    target: obj.toID,
   });
 }

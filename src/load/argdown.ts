@@ -1,15 +1,15 @@
-import * as model from "../model/index.js";
 import {
   ArgdownApplication,
   IArgdownRequest,
-  ParserPlugin,
-  ModelPlugin,
-  PreselectionPlugin,
-  MapPlugin,
-  IMapNode,
-  IMapEdge,
   IMap,
+  IMapEdge,
+  IMapNode,
+  MapPlugin,
+  ModelPlugin,
+  ParserPlugin,
+  PreselectionPlugin,
 } from "@argdown/core";
+import * as model from "../model/index.js";
 
 export function argdown(obj: string) {
   const app = new ArgdownApplication();
@@ -58,14 +58,14 @@ export function argdown(obj: string) {
 
       // Create the two edges to and from the schemeNode
       const e1 = new model.Edge({
-        source: nodes[e.from.id],
-        target: schemeNode,
+        source: e.from.id,
+        target: schemeNode.id,
         metadata: new model.Metadata(),
       });
       edges[e1.id] = e1;
       const e2 = new model.Edge({
-        source: schemeNode,
-        target: nodes[e.to.id],
+        source: schemeNode.id,
+        target: e.to.id,
         metadata: new model.Metadata(),
       });
       edges[e2.id] = e2;

@@ -4,8 +4,8 @@ import * as model from "../model/index.js";
 
 function edgeToProtobuf(edge: model.Edge): pb.Edge {
   return new pb.Edge({
-    source: edge.source.id,
-    target: edge.target.id,
+    source: edge.source,
+    target: edge.target,
     metadata: new pb.Metadata({
       created: date.toProtobuf(edge.metadata.created),
       updated: date.toProtobuf(edge.metadata.updated),

@@ -1,4 +1,5 @@
 import { assertType, expect, test } from "vitest";
+// @ts-ignore
 import file from "../data/arguebase-private/kialo/format=kialo,lang=en/can-religious-faith-and-science-co-exist-10223.txt?raw";
 import * as arguebuf from "../src/index.js";
 import * as model from "../src/model/index.js";
@@ -31,7 +32,7 @@ test("graph: kialo2arguebuf", () => {
   // Test a specific edge in the graph
   const e1: arguebuf.Edge = g.edges["1.6.5.->1.6.5.scheme"];
   assertType<arguebuf.Edge>(e1);
-  expect(e1.source.id).toStrictEqual("1.6.5.");
-  expect(e1.target.id).toStrictEqual("1.6.5.scheme");
+  expect(e1.source).toStrictEqual("1.6.5.");
+  expect(e1.target).toStrictEqual("1.6.5.scheme");
   expect(e1.metadata).not.toStrictEqual({});
 });

@@ -40,8 +40,8 @@ function nodeToAif(n: model.Node): aifSchema.Node {
 function edgeToAif(e: model.Edge): aifSchema.Edge {
   return {
     edgeID: e.id,
-    fromID: e.source.id,
-    toID: e.target.id,
+    fromID: e.source,
+    toID: e.target,
     formEdgeID: null,
   };
 }

@@ -2,14 +2,11 @@ import * as date from "../date.js";
 import * as model from "../model/index.js";
 import * as sadfaceSchema from "../schemas/sadface.js";
 
-export function edgeFromSadface(
-  obj: sadfaceSchema.Edge,
-  nodes: { [key: string]: model.Node }
-): model.Edge {
+export function edgeFromSadface(obj: sadfaceSchema.Edge): model.Edge {
   return new model.Edge({
     id: obj.id,
-    source: nodes[obj.source_id],
-    target: nodes[obj.target_id],
+    source: obj.source_id,
+    target: obj.target_id,
     metadata: new model.Metadata(),
   });
 }
@@ -50,7 +47,7 @@ export function sadface(obj: sadfaceSchema.Graph): model.Graph {
     obj.nodes.map((node) => [node.id, nodeFromSadface(node)])
   );
   const edges = Object.fromEntries(
-    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge, nodes)])
+    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge)])
   );
 
   const metadata = new model.Metadata({

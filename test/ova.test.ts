@@ -41,13 +41,13 @@ test("graph: ova2arguebuf", () => {
   const n3: arguebuf.Node = g.nodes["103"];
   const n4: arguebuf.Node = g.nodes["105"];
   const edge = Object.values(g.edges).find(
-    (e) => e.source === n3 && e.target === n4
+    (e) => e.source === n3.id && e.target === n4.id
   );
   expect(edge).not.toEqual(undefined);
   if (edge === undefined) {
     throw new Error("Edge should not be undefined!");
   }
   assertType<arguebuf.Edge>(edge);
-  expect(edge.source.id).toStrictEqual("103");
-  expect(edge.target.id).toStrictEqual("105");
+  expect(edge.source).toStrictEqual("103");
+  expect(edge.target).toStrictEqual("105");
 });

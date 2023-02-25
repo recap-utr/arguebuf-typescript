@@ -27,7 +27,7 @@ test("graph: aif2arguebuf", () => {
 
   // Test a specific Edge in the graph
   const e1: arguebuf.Edge = arguebufGraph.edges["160911"];
-  expect(e1.source.id).toStrictEqual("119934");
-  expect(e1.target.id).toStrictEqual("119932");
+  expect(e1.source).toStrictEqual("119934");
+  expect(e1.target).toStrictEqual("119932");
   expect(e1.metadata).not.toStrictEqual({});
 });

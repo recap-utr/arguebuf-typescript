@@ -111,15 +111,15 @@ export function kialo(input: string): model.Graph {
       nodes.push(scheme);
       edges.push(
         new model.Edge({
-          source: source,
-          target: scheme,
+          source: source.id,
+          target: scheme.id,
           id: source.id + "->" + scheme.id,
         })
       );
       edges.push(
         new model.Edge({
-          source: scheme,
-          target: target,
+          source: scheme.id,
+          target: target.id,
           id: scheme.id + "->" + target.id,
         })
       );

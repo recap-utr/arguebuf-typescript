@@ -1,28 +1,27 @@
 import { Metadata } from "./metadata.js";
-import { Node } from "./node.js";
 import { Userdata } from "./userdata.js";
 import { uuid } from "./utils.js";
 
 export interface EdgeConstructor {
   id?: string;
-  source: Node;
-  target: Node;
+  source: string;
+  target: string;
   metadata?: Metadata;
   userdata?: Userdata;
 }
 
 export interface EdgeInterface {
   readonly id: string;
-  readonly source: Node;
-  readonly target: Node;
   metadata: Metadata;
   userdata: Userdata;
+  readonly source: string;
+  readonly target: string;
 }
 
 export class Edge implements EdgeInterface {
   readonly id: string;
-  readonly source: Node;
-  readonly target: Node;
+  readonly source: string;
+  readonly target: string;
   metadata: Metadata;
   userdata: Userdata;
 

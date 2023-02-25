@@ -1,7 +1,7 @@
-import * as ovaSchema from "../schemas/ova.js";
-import * as model from "../model/index.js";
 import * as date from "../date.js";
+import * as model from "../model/index.js";
 import { NodeType } from "../schemas/aif.js";
+import * as ovaSchema from "../schemas/ova.js";
 
 const aif2scheme = (scheme: NodeType) => {
   switch (scheme) {
@@ -363,8 +363,8 @@ function edgeFromOva(
 
   if (nodes[source_id] !== undefined && nodes[target_id] !== undefined) {
     return new model.Edge({
-      source: nodes[source_id],
-      target: nodes[target_id],
+      source: source_id.toString(),
+      target: target_id.toString(),
       metadata: new model.Metadata({
         created: timestamp,
         updated: timestamp,

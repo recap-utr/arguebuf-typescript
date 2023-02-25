@@ -54,7 +54,7 @@ test("graph: sadface2arguebuf", () => {
   // Test a specific Edge in the graph
   let e1: arguebuf.Edge =
     arguebufGraph.edges["bfe3db02-f93f-4d91-bd78-beccee980175"];
-  expect(e1.source.id).toStrictEqual("45199aa0-1556-4b94-8940-3ba30aa08e38");
-  expect(e1.target.id).toStrictEqual("f129934f-53d2-49f6-8feb-9afaff9aabcf");
+  expect(e1.source).toStrictEqual("45199aa0-1556-4b94-8940-3ba30aa08e38");
+  expect(e1.target).toStrictEqual("f129934f-53d2-49f6-8feb-9afaff9aabcf");
   expect(e1.metadata).not.toStrictEqual({});
 });

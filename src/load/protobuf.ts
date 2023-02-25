@@ -2,15 +2,11 @@ import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
 import * as model from "../model/index.js";
 
-function edgeFromProtobuf(
-  id: string,
-  obj: pb.Edge,
-  nodes: { [key: string]: model.Node }
-): model.Edge {
+function edgeFromProtobuf(id: string, obj: pb.Edge): model.Edge {
   return new model.Edge({
     id: id,
-    source: nodes[obj.source],
-    target: nodes[obj.target],
+    source: obj.source,
+    target: obj.target,
     metadata: new model.Metadata(),
   });
 }
@@ -55,7 +51,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
   );
   const edges = Object.fromEntries(
     Object.entries(obj.edges).map(([key, value]) => [
-      edgeFromProtobuf(key, value, nodes),
+      edgeFromProtobuf(key, value),
     ])
   );
   const analysts: { [key: string]: model.Analyst } = Object.fromEntries(
