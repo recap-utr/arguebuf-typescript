@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.1...v1.6.2) (2023-02-26)
+
+
+### Bug Fixes
+
+* properly export json load/dump ([4e2a1bc](https://github.com/recap-utr/arguebuf-typescript/commit/4e2a1bc95bf2d491b7529ebfaf8df1011c1cfdc4))
+* remove readonly annotations fro graph ([1266832](https://github.com/recap-utr/arguebuf-typescript/commit/126683269fe4d59c563051db5e9193e5e7fbee09))
+* replace setElements with copy ([b8f68bb](https://github.com/recap-utr/arguebuf-typescript/commit/b8f68bb3983e5a994dacb1f4351abe01b07d0914))
+
 ## [1.6.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.0...v1.6.1) (2023-02-25)
 
 
