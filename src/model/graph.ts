@@ -86,9 +86,15 @@ export class Graph implements GraphInterface {
     return this._analysts;
   }
 
-  setElements(nodes: ArrayOrMapping<Node>, edges: ArrayOrMapping<Edge>) {
-    this._nodes = assign(nodes);
-    this._edges = assign(edges);
+  copy(data?: GraphConstructor): Graph {
+    return new Graph(
+      Object.fromEntries(
+        Object.entries(data ?? {}).map(([key, value]) => [
+          key,
+          value ?? (this as { [x: string]: any })[key],
+        ])
+      )
+    );
   }
 
   setMajorClaim(atom: string | AtomNode | undefined) {
