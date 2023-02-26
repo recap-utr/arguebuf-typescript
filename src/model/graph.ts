@@ -70,19 +70,19 @@ export class Graph implements GraphInterface {
     this.userdata = data?.userdata ?? {};
   }
 
-  get nodes(): Readonly<Mapping<string, Node>> {
+  get nodes(): Mapping<string, Node> {
     return this._nodes;
   }
-  get edges(): Readonly<Mapping<string, Edge>> {
+  get edges(): Mapping<string, Edge> {
     return this._edges;
   }
-  get resources(): Readonly<Mapping<string, Resource>> {
+  get resources(): Mapping<string, Resource> {
     return this._resources;
   }
-  get participants(): Readonly<Mapping<string, Participant>> {
+  get participants(): Mapping<string, Participant> {
     return this._participants;
   }
-  get analysts(): Readonly<Mapping<string, Analyst>> {
+  get analysts(): Mapping<string, Analyst> {
     return this._analysts;
   }
 
