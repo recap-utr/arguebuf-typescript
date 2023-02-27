@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.3...v1.7.0) (2023-02-27)
+
+
+### Features
+
+* add reference/participant to atom nodes ([fa2fbbe](https://github.com/recap-utr/arguebuf-typescript/commit/fa2fbbe4bcae2adbc8e72e6a66825da1dbdccdff))
+
+
+### Bug Fixes
+
+* export date from library ([8001996](https://github.com/recap-utr/arguebuf-typescript/commit/8001996c893885f247e58aa2c048e37b418fc83c))
+
 ## [1.6.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.2...v1.6.3) (2023-02-27)
 
 
