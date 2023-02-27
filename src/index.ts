@@ -1,3 +1,4 @@
+export * as date from "./date.js";
 export * as dump from "./dump/index.js";
 export * as load from "./load/index.js";
 export * from "./model/index.js";
