@@ -6,6 +6,7 @@ import {
   Support,
 } from "arg-services/graph/v1/graph_pb";
 import { Metadata, MetadataInterface } from "./metadata.js";
+import { Reference, ReferenceInterface } from "./reference.js";
 import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
 
@@ -86,29 +87,29 @@ abstract class AbstractNode implements AbstractNodeInterface {
 
 export interface AtomNodeConstructor extends AbstractNodeConstructor {
   text: string;
-  // reference?: ReferenceConstructor;
-  // participant?: ParticipantConstructor;
+  reference?: Reference;
+  participant?: string;
 }
 
 export interface AtomNodeInterface extends AbstractNodeInterface {
   type: "atom";
   text: string;
-  // readonly reference?: ReferenceConstructor;
-  // readonly participant?: ParticipantConstructor;
+  reference?: ReferenceInterface;
+  participant?: string;
 }
 
 export class AtomNode extends AbstractNode implements AtomNodeInterface {
   declare readonly type: "atom";
   text: string;
-  // readonly reference?: Reference;
-  // readonly participant?: Participant;
+  reference?: Reference;
+  participant?: string;
 
   constructor(data: AtomNodeConstructor) {
     super("atom", data);
 
     this.text = data.text;
-    // this.reference = new Reference(data?.reference);
-    // this.participant = new Participant(data?.participant);
+    this.reference = data.reference;
+    this.participant = data.participant;
   }
 
   label(): string {

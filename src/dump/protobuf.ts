@@ -26,6 +26,14 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
       type: {
         value: new pb.Atom({
           text: node.text,
+          participant: node.participant,
+          reference: node.reference
+            ? new pb.Reference({
+                offset: node.reference.offset,
+                resource: node.reference.resource,
+                text: node.reference.text,
+              })
+            : undefined,
         }),
         case: "atom",
       },
