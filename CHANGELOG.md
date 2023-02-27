@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.2...v1.6.3) (2023-02-27)
+
+
+### Bug Fixes
+
+* export node label function ([279b29f](https://github.com/recap-utr/arguebuf-typescript/commit/279b29f322c3c5bd458c1624cfef3c37edb3eaa6))
+
 ## [1.6.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.1...v1.6.2) (2023-02-26)
 
 
