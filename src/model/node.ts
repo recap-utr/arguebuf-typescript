@@ -13,6 +13,29 @@ export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 export { Attack, Preference, Rephrase, Support };
 
+export function nodeLabel(node: NodeInterface): string {
+  if (node.type === "atom") {
+    return node.text;
+  } else if (node.type === "scheme") {
+    let text = "Unknown";
+
+    if (node.scheme.case !== undefined) {
+      const schemeType = node.scheme.case;
+      text = schemeType;
+
+      const schemeValue = scheme2string(node.scheme);
+
+      if (schemeValue !== "DEFAULT") {
+        // TODO
+      }
+    }
+
+    return text;
+  }
+
+  return "Unknown";
+}
+
 export const scheme2string = (scheme: Scheme) => {
   switch (scheme.case) {
     case "attack":
@@ -89,7 +112,7 @@ export class AtomNode extends AbstractNode implements AtomNodeInterface {
   }
 
   label(): string {
-    return this.text;
+    return nodeLabel(this);
   }
 }
 
@@ -116,20 +139,7 @@ export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
   }
 
   label(): string {
-    let label = "Unknown";
-
-    if (this.scheme.case !== undefined) {
-      const schemeType = this.scheme.case;
-      label = schemeType;
-
-      const schemeValue = scheme2string(this.scheme);
-
-      if (schemeValue !== "DEFAULT") {
-        // TODO
-      }
-    }
-
-    return label;
+    return nodeLabel(this);
   }
 }
 
