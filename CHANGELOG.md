@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.0...v1.7.1) (2023-02-28)
+
+
+### Bug Fixes
+
+* protobuf import not working for edges ([0200635](https://github.com/recap-utr/arguebuf-typescript/commit/020063520c32a100b367ae505b915b8f0d9c22a1))
+
 ## [1.7.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.6.3...v1.7.0) (2023-02-27)
 
 
