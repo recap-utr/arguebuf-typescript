@@ -1,3 +1,4 @@
+import { Struct } from "@bufbuild/protobuf";
 import { version as libraryVersion } from "arg-services";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
@@ -11,7 +12,7 @@ function edgeToProtobuf(edge: model.EdgeInterface): pb.Edge {
       created: date.toProtobuf(edge.metadata.created),
       updated: date.toProtobuf(edge.metadata.updated),
     }),
-    userdata: edge.userdata,
+    userdata: Struct.fromJson(edge.userdata),
   });
 }
 
@@ -22,7 +23,7 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
         created: date.toProtobuf(node.metadata.created),
         updated: date.toProtobuf(node.metadata.updated),
       }),
-      userdata: node.userdata,
+      userdata: Struct.fromJson(node.userdata),
       type: {
         value: new pb.Atom({
           text: node.text,
@@ -44,7 +45,7 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
         created: date.toProtobuf(node.metadata.created),
         updated: date.toProtobuf(node.metadata.updated),
       }),
-      userdata: node.userdata,
+      userdata: Struct.fromJson(node.userdata),
       type: {
         value: new pb.Scheme({
           premiseDescriptors: node.premise_descriptors,
@@ -76,7 +77,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
           updated: date.toProtobuf(value.metadata.updated),
         }),
         url: value.url,
-        userdata: value.userdata,
+        userdata: Struct.fromJson(value.userdata),
         username: value.username,
       }),
     ])
@@ -96,7 +97,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
           created: date.toProtobuf(value.metadata.created),
           updated: date.toProtobuf(value.metadata.updated),
         }),
-        userdata: value.userdata,
+        userdata: Struct.fromJson(value.userdata),
       }),
     ])
   );
@@ -111,7 +112,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
       created: date.toProtobuf(graph.metadata.created),
       updated: date.toProtobuf(graph.metadata.updated),
     }),
-    userdata: graph.userdata,
+    userdata: Struct.fromJson(graph.userdata),
     participants: participants,
     resources: resources,
   });

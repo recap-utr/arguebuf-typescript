@@ -1,2 +1,4 @@
-export type Userdata = { [key: string]: any };
-export type UserdataInterface = { [key: string]: any };
+import { JSONObject } from "./utils.js";
+
+export type Userdata = JSONObject;
+export type UserdataInterface = JSONObject;

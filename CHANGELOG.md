@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.1...v1.7.2) (2023-03-01)
+
+
+### Bug Fixes
+
+* correctly parse protobuf structs ([117935d](https://github.com/recap-utr/arguebuf-typescript/commit/117935d9ec3fda28112a3045398bdab42f76b399))
+
 ## [1.7.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.0...v1.7.1) (2023-02-28)
 
 
