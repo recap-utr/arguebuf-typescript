@@ -92,8 +92,8 @@ export class Graph implements GraphInterface {
         Object.entries(data ?? {}).map(([key, value]) => [
           key,
           value ?? (this as { [x: string]: any })[key],
-        ])
-      )
+        ]),
+      ),
     );
   }
 

@@ -114,14 +114,14 @@ export function kialo(input: string): model.Graph {
           source: source.id,
           target: scheme.id,
           id: source.id + "->" + scheme.id,
-        })
+        }),
       );
       edges.push(
         new model.Edge({
           source: scheme.id,
           target: target.id,
           id: scheme.id + "->" + target.id,
-        })
+        }),
       );
 
       current_line = next_line;
