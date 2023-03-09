@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.2...v1.7.3) (2023-03-09)
+
+
+### Bug Fixes
+
+* graphs were not properly copied ([0084fac](https://github.com/recap-utr/arguebuf-typescript/commit/0084fac3fb4e99a0d3fab696813360b795ca7830))
+
 ## [1.7.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.1...v1.7.2) (2023-03-01)
 
 
