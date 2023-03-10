@@ -87,14 +87,33 @@ export class Graph implements GraphInterface {
   }
 
   copy(data?: GraphConstructor): Graph {
-    return new Graph(
-      Object.fromEntries(
-        Object.entries(data ?? {}).map(([key, value]) => [
-          key,
-          value ?? (this as { [x: string]: any })[key],
-        ])
-      )
-    );
+    const copy = new Graph(data);
+
+    if (data?.nodes === undefined) {
+      copy._nodes = this._nodes;
+    }
+    if (data?.edges === undefined) {
+      copy._edges = this._edges;
+    }
+    if (data?.resources === undefined) {
+      copy._resources = this._resources;
+    }
+    if (data?.participants === undefined) {
+      copy._participants = this._participants;
+    }
+    if (data?.analysts === undefined) {
+      copy._analysts = this._analysts;
+    }
+    if (data?.majorClaim === undefined) {
+      copy.majorClaim = this.majorClaim;
+    }
+    if (data?.userdata === undefined) {
+      copy.userdata = this.userdata;
+    }
+
+    // metadata is always created from scratch
+
+    return copy;
   }
 
   setMajorClaim(atom: string | AtomNode | undefined) {
