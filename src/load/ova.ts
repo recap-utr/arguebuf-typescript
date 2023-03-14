@@ -224,7 +224,7 @@ export function ova(obj: ovaSchema.Graph): model.Graph {
       new model.Participant({
         name: p.firstname + p.surname,
         id: p.id.toString(),
-      })
+      }),
   );
 
   var majorClaim;
@@ -312,7 +312,7 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
 
     const premise_descriptors = Object.entries(obj.descriptors)
       .filter(([description, _]) =>
-        description.toLowerCase().startsWith("s_conclusion")
+        description.toLowerCase().startsWith("s_conclusion"),
       )
       .map(([_, node_id]) => node_id.toString());
 
@@ -352,7 +352,7 @@ function atomFromOva(obj: ovaSchema.Node): model.AtomNode {
 
 function edgeFromOva(
   obj: ovaSchema.Edge,
-  nodes: { [key in string]: model.Node }
+  nodes: { [key in string]: model.Node },
 ): model.Edge | undefined {
   const source_id = obj.from.id;
   const target_id = obj.to.id;

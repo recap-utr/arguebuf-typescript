@@ -18,7 +18,7 @@ test("graph: kialo2arguebuf", () => {
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
     expect(n1.text).toStrictEqual(
-      "Understanding life is not the only purpose of faith, so even if it is not needed for that there is still a place for it."
+      "Understanding life is not the only purpose of faith, so even if it is not needed for that there is still a place for it.",
     );
   }
 

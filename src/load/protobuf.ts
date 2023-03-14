@@ -51,10 +51,10 @@ function nodeFromProtobuf(id: string, obj: pb.Node): model.Node {
 
 export function protobuf(obj: pb.Graph): model.Graph {
   const nodes: Array<model.Node> = Object.entries(obj.nodes).map(
-    ([key, value]) => nodeFromProtobuf(key, value)
+    ([key, value]) => nodeFromProtobuf(key, value),
   );
   const edges: Array<model.Edge> = Object.entries(obj.edges).map(
-    ([key, value]) => edgeFromProtobuf(key, value)
+    ([key, value]) => edgeFromProtobuf(key, value),
   );
   const analysts: Array<model.Analyst> = Object.entries(obj.analysts).map(
     ([key, value]) =>
@@ -63,7 +63,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         email: value.email,
         name: value.name,
         userdata: value.userdata?.toJson() as JSONObject,
-      })
+      }),
   );
   const resources: Array<model.Resource> = Object.entries(obj.resources).map(
     ([key, value]) =>
@@ -75,10 +75,10 @@ export function protobuf(obj: pb.Graph): model.Graph {
         timestamp: date.fromProtobuf(value.timestamp),
         title: value.title,
         userdata: value.userdata?.toJson() as JSONObject,
-      })
+      }),
   );
   const participants: Array<model.Participant> = Object.entries(
-    obj.participants
+    obj.participants,
   ).map(
     ([key, value]) =>
       new model.Participant({
@@ -91,7 +91,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         username: value.username,
         metadata: metadataFromProtobuf(value.metadata),
         userdata: value.userdata?.toJson() as JSONObject,
-      })
+      }),
   );
   return new model.Graph({
     nodes: nodes,
