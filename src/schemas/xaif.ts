@@ -1,4 +1,5 @@
-import * as aifScheme from "./aif.js";
+import type { NodeType } from "./aif.js";
+export type { NodeType, SchemeType } from "./aif.js";
 
 export interface Graph {
   AIF: Aif;
@@ -21,12 +22,10 @@ export interface Aif {
   participants: Array<aifParticipant>;
 }
 
-export type SchemeType = "RA" | "CA" | "MA" | "PA" | "";
-
 export interface aifNode {
   nodeID: string;
   text: string;
-  type: aifScheme.NodeType;
+  type: NodeType;
 }
 
 export interface aifEdge {
