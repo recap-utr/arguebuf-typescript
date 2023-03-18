@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.8.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.3...v1.8.0) (2023-03-18)
+
+
+### Features
+
+* add loader for xAIF graphs ([#20](https://github.com/recap-utr/arguebuf-typescript/issues/20)) ([d91fa70](https://github.com/recap-utr/arguebuf-typescript/commit/d91fa700055664869e35b2104bc910ce54a6001d))
+
+
+### Bug Fixes
+
+* make xaif schema more robust ([d3b76d6](https://github.com/recap-utr/arguebuf-typescript/commit/d3b76d6acbe2b00bb06eaea7921c9a694bae6b30))
+* use correct capitalization of xaif files ([dbd6063](https://github.com/recap-utr/arguebuf-typescript/commit/dbd60637b021a3e7e4e6910a393c608cde94cbd8))
+
 ## [1.7.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.2...v1.7.3) (2023-03-09)
 
 
