@@ -5,3 +5,4 @@ export * from "./kialo.js";
 export * from "./ova.js";
 export * from "./protobuf.js";
 export * from "./sadface.js";
+export * from "./xaif.js";
