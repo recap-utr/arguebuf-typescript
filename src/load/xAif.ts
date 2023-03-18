@@ -1,5 +1,5 @@
 import * as model from "../model/index.js";
-import * as xAifSchema from "../schemas/xAif.js";
+import * as xAifSchema from "../schemas/xaif.js";
 
 export function xAif(obj: xAifSchema.Graph): model.Graph {
   const nodes = Object.fromEntries(
