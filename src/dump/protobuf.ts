@@ -59,10 +59,10 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
 
 export function protobuf(graph: model.GraphInterface): pb.Graph {
   const edges: { [key: string]: pb.Edge } = Object.fromEntries(
-    Object.values(graph.edges).map((e) => [e.id, edgeToProtobuf(e)])
+    Object.values(graph.edges).map((e) => [e.id, edgeToProtobuf(e)]),
   );
   const nodes: { [key: string]: pb.Node } = Object.fromEntries(
-    Object.values(graph.nodes).map((n) => [n.id, nodeToProtobuf(n)])
+    Object.values(graph.nodes).map((n) => [n.id, nodeToProtobuf(n)]),
   );
   const participants: { [key: string]: pb.Participant } = Object.fromEntries(
     Object.entries(graph.participants).map(([key, value]) => [
@@ -80,7 +80,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
         userdata: Struct.fromJson(value.userdata),
         username: value.username,
       }),
-    ])
+    ]),
   );
   const resources: { [key: string]: pb.Resource } = Object.fromEntries(
     Object.entries(graph.resources).map(([key, value]) => [
@@ -99,7 +99,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
         }),
         userdata: Struct.fromJson(value.userdata),
       }),
-    ])
+    ]),
   );
   return new pb.Graph({
     nodes: nodes,

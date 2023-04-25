@@ -6,7 +6,7 @@ type JSONObject = { [key: string]: any };
 
 export function json(
   graph: model.GraphInterface,
-  format: "aif" | "arguebuf"
+  format: "aif" | "arguebuf",
 ): JSONObject {
   if (format === "aif") {
     return dumpAif(graph);

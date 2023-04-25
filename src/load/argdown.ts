@@ -47,7 +47,7 @@ export function argdown(obj: string) {
         .map((n) => {
           const argdownNode = nodefromArgdown(n);
           return [argdownNode.id, argdownNode];
-        })
+        }),
     );
 
     var edges: { [key: string]: model.Edge } = {};
@@ -94,7 +94,7 @@ function nodefromArgdown(obj: IMapNode): model.Node {
 function inEdges(node: IMapNode, edges: Array<IMapEdge>): boolean {
   return (
     edges.find(
-      (value) => value.from.id === node.id || value.to.id === node.id
+      (value) => value.from.id === node.id || value.to.id === node.id,
     ) !== undefined
   );
 }

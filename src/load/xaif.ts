@@ -3,16 +3,16 @@ import * as xAifSchema from "../schemas/xaif.js";
 
 export function xAif(obj: xAifSchema.Graph): model.Graph {
   const nodes = Object.fromEntries(
-    obj.AIF.nodes.map((node) => [node.nodeID, nodeFromAif(node)])
+    obj.AIF.nodes.map((node) => [node.nodeID, nodeFromAif(node)]),
   );
   const edges = Object.fromEntries(
-    obj.AIF.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)])
+    obj.AIF.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)]),
   );
   const participants = Object.fromEntries(
     obj.AIF.participants.map((participant) => [
       participant.participantID.toString(),
       participantFromAif(participant),
-    ])
+    ]),
   );
 
   return new model.Graph({

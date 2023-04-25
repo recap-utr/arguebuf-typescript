@@ -4,7 +4,7 @@ import * as arguebuf from "../src/index.js";
 
 test("graph: aif2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.aif(
-    aifGraph as arguebuf.schemas.aif.Graph
+    aifGraph as arguebuf.schemas.aif.Graph,
   );
 
   // Test some graph properties
@@ -18,7 +18,7 @@ test("graph: aif2arguebuf", () => {
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
     expect(n1.text).toStrictEqual(
-      "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins."
+      "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins.",
     );
   }
   const comparisonDate = new Date(2015, 11, 14, 12, 9, 14);

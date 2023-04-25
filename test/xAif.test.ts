@@ -4,7 +4,7 @@ import * as arguebuf from "../src/index.js";
 
 test("graph: xAif2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.xAif(
-    xAifGraph as arguebuf.schemas.xAif.Graph
+    xAifGraph as arguebuf.schemas.xAif.Graph,
   );
 
   // Test some graph properties
