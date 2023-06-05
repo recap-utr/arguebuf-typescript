@@ -1,3 +1,4 @@
+import { immerable } from "immer";
 import { DateType } from "../date.js";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata, UserdataInterface } from "./userdata.js";
@@ -24,6 +25,7 @@ export interface ResourceInterface {
 }
 
 export class Resource implements ResourceInterface {
+  [immerable] = true;
   readonly id: string;
   text: string;
   title?: string;

@@ -1,3 +1,4 @@
+import { immerable } from "immer";
 import { DateType, now } from "../date.js";
 
 export interface MetadataConstructor {
@@ -11,6 +12,7 @@ export interface MetadataInterface {
 }
 
 export class Metadata implements MetadataInterface {
+  [immerable] = true;
   created: DateType;
   updated: DateType;
 

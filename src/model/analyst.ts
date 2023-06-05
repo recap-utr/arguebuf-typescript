@@ -1,3 +1,4 @@
+import { immerable } from "immer";
 import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
 
@@ -16,6 +17,7 @@ export interface AnalystInterface {
 }
 
 export class Analyst implements AnalystInterface {
+  [immerable] = true;
   readonly id: string;
   name?: string;
   email?: string;

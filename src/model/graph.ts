@@ -1,3 +1,4 @@
+import { immerable } from "immer";
 import { Analyst, AnalystInterface } from "./analyst.js";
 import { Edge, EdgeInterface } from "./edge.js";
 import { Metadata, MetadataInterface } from "./metadata.js";
@@ -40,6 +41,7 @@ function assign<T extends { id: string }>(data: ArrayOrMapping<T>) {
 }
 
 export class Graph implements GraphInterface {
+  [immerable] = true;
   protected _nodes: Mapping<string, Node> = {};
   protected _edges: Mapping<string, Edge> = {};
   protected _resources: Mapping<string, Resource> = {};

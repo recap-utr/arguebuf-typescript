@@ -1,3 +1,4 @@
+import { immerable } from "immer";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
@@ -19,6 +20,7 @@ export interface EdgeInterface {
 }
 
 export class Edge implements EdgeInterface {
+  [immerable] = true;
   readonly id: string;
   source: string;
   target: string;

@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "arg-services": "^2.4.1",
-    "dayjs": "^1.11.8"
+    "dayjs": "^1.11.8",
+    "immer": "^10.0.2"
   },
   "devDependencies": {
     "@argdown/core": "^1.7.5",

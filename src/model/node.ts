@@ -1,10 +1,11 @@
 import {
   Attack,
   Preference,
-  Rephrase,
   Scheme as RawScheme,
+  Rephrase,
   Support,
 } from "arg-services/graph/v1/graph_pb";
+import { immerable } from "immer";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Reference, ReferenceInterface } from "./reference.js";
 import { Userdata, UserdataInterface } from "./userdata.js";
@@ -66,6 +67,7 @@ interface AbstractNodeInterface {
 }
 
 abstract class AbstractNode implements AbstractNodeInterface {
+  [immerable] = true;
   readonly id: string;
   readonly type: "atom" | "scheme";
   metadata: Metadata;
@@ -99,6 +101,7 @@ export interface AtomNodeInterface extends AbstractNodeInterface {
 }
 
 export class AtomNode extends AbstractNode implements AtomNodeInterface {
+  [immerable] = true;
   declare readonly type: "atom";
   text: string;
   reference?: Reference;
@@ -129,6 +132,7 @@ export interface SchemeNodeInterface extends AbstractNodeInterface {
 }
 
 export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
+  [immerable] = true;
   declare readonly type: "scheme";
   scheme: Scheme;
   premise_descriptors?: Array<string>;

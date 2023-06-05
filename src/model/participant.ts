@@ -1,3 +1,4 @@
+import { immerable } from "immer";
 import { Metadata, MetadataInterface } from "./metadata.js";
 import { Userdata, UserdataInterface } from "./userdata.js";
 import { uuid } from "./utils.js";
@@ -27,6 +28,7 @@ export interface ParticipantInterface {
 }
 
 export class Participant {
+  [immerable] = true;
   readonly id: string;
   name?: string;
   username?: string;

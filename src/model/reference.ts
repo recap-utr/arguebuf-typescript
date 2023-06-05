@@ -1,3 +1,5 @@
+import { immerable } from "immer";
+
 export interface ReferenceConstructor {
   resource?: string;
   offset?: number;
@@ -11,6 +13,7 @@ export interface ReferenceInterface {
 }
 
 export class Reference implements ReferenceInterface {
+  [immerable] = true;
   readonly resource?: string;
   offset?: number;
   text: string;
