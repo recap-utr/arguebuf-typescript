@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.3](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.2...v1.8.3) (2023-06-05)
+
+
+### Bug Fixes
+
+* always return value in scheme2string ([0c4f1e4](https://github.com/recap-utr/arguebuf-typescript/commit/0c4f1e4757a0dd72103f91a45278bde5642fe541))
+* return lowercased scheme names as label ([5102f07](https://github.com/recap-utr/arguebuf-typescript/commit/5102f07a1d882b1cc84e0ed3d92e77891e3ecbfe))
+
 ## [1.8.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.1...v1.8.2) (2023-06-05)
 
 
