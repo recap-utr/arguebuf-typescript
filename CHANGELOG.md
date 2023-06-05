@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.1...v1.8.2) (2023-06-05)
+
+
+### Bug Fixes
+
+* properly set major claim in graph constructor ([9418814](https://github.com/recap-utr/arguebuf-typescript/commit/94188146e89e8799f7469f94cc574bd800d18428))
+
 ## [1.8.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.0...v1.8.1) (2023-06-05)
 
 
