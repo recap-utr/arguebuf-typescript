@@ -15,11 +15,13 @@ export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 export { Attack, Preference, Rephrase, Support };
 
+const FALLBACK_LABEL = "Unknown";
+
 export function nodeLabel(node: NodeInterface): string {
   if (node.type === "atom") {
     return node.text;
   } else if (node.type === "scheme") {
-    let text = "Unknown";
+    let text = FALLBACK_LABEL;
 
     if (node.scheme.case !== undefined) {
       const schemeType = node.scheme.case;
@@ -35,7 +37,7 @@ export function nodeLabel(node: NodeInterface): string {
     return text;
   }
 
-  return "Unknown";
+  return FALLBACK_LABEL;
 }
 
 export function scheme2string(scheme: Scheme) {
@@ -49,7 +51,7 @@ export function scheme2string(scheme: Scheme) {
     case "preference":
       return Preference[scheme.value];
     default:
-      return "Unknown";
+      return FALLBACK_LABEL;
   }
 }
 
