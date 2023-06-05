@@ -68,6 +68,7 @@ export class Graph implements GraphInterface {
       this._analysts = assign(data.analysts);
     }
 
+    this.majorClaim = data?.majorClaim;
     this.metadata = data?.metadata ?? new Metadata();
     this.userdata = data?.userdata ?? {};
   }
