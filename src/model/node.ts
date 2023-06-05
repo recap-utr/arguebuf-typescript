@@ -38,7 +38,7 @@ export function nodeLabel(node: NodeInterface): string {
   return "Unknown";
 }
 
-export const scheme2string = (scheme: Scheme) => {
+export function scheme2string(scheme: Scheme) {
   switch (scheme.case) {
     case "attack":
       return Attack[scheme.value];
@@ -48,10 +48,10 @@ export const scheme2string = (scheme: Scheme) => {
       return Rephrase[scheme.value];
     case "preference":
       return Preference[scheme.value];
-    case undefined:
-      throw new Error("TODO");
+    default:
+      return "Unknown";
   }
-};
+}
 
 export interface AbstractNodeConstructor {
   id?: string;
