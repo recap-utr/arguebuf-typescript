@@ -15,26 +15,20 @@ export type Scheme = RawScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 export { Attack, Preference, Rephrase, Support };
 
-const FALLBACK_LABEL = "Unknown";
+const FALLBACK_LABEL = "unknown";
 
 export function nodeLabel(node: NodeInterface): string {
   if (node.type === "atom") {
     return node.text;
-  } else if (node.type === "scheme") {
-    let text = FALLBACK_LABEL;
+  } else if (node.type === "scheme" && node.scheme.case !== undefined) {
+    const schemeType = node.scheme.case;
+    const schemeValue = scheme2string(node.scheme);
 
-    if (node.scheme.case !== undefined) {
-      const schemeType = node.scheme.case;
-      text = schemeType;
-
-      const schemeValue = scheme2string(node.scheme);
-
-      if (schemeValue !== "DEFAULT") {
-        // TODO
-      }
+    if (schemeValue !== "default") {
+      return schemeValue;
     }
 
-    return text;
+    return schemeType;
   }
 
   return FALLBACK_LABEL;
@@ -43,13 +37,13 @@ export function nodeLabel(node: NodeInterface): string {
 export function scheme2string(scheme: Scheme) {
   switch (scheme.case) {
     case "attack":
-      return Attack[scheme.value];
+      return Attack[scheme.value].toLowerCase();
     case "support":
-      return Support[scheme.value];
+      return Support[scheme.value].toLowerCase();
     case "rephrase":
-      return Rephrase[scheme.value];
+      return Rephrase[scheme.value].toLowerCase();
     case "preference":
-      return Preference[scheme.value];
+      return Preference[scheme.value].toLowerCase();
     default:
       return FALLBACK_LABEL;
   }
