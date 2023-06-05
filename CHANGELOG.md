@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.0...v1.8.1) (2023-06-05)
+
+
+### Bug Fixes
+
+* declare all classes as immerable ([6e2ca9c](https://github.com/recap-utr/arguebuf-typescript/commit/6e2ca9caa3c1b6360e2277af269775c8a0426c15))
+
 ## [1.8.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.7.3...v1.8.0) (2023-03-18)
 
 
