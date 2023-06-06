@@ -2,7 +2,7 @@ export type NodeType = "I" | "L" | "RA" | "CA" | "MA" | "TA" | "PA" | "YA" | "";
 
 export type SchemeType = "RA" | "CA" | "MA" | "PA" | "";
 
-export const DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+export const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 export interface Graph {
   nodes: Array<Node>;

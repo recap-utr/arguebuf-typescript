@@ -1,6 +1,6 @@
 import { NodeType } from "./aif.js";
 
-export const DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+export const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 export const DATE_FORMAT_ANALYSIS = "DD/MM/YYYY";
 
