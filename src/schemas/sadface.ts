@@ -1,3 +1,5 @@
+import type { JsonObject } from "@bufbuild/protobuf";
+
 export interface Graph {
   nodes: Array<Node>;
   edges: Array<Edge>;
@@ -14,7 +16,7 @@ export type Node = AtomNode | SchemeNode;
 
 export interface AtomNode {
   id: string;
-  metadata: object;
+  metadata: JsonObject;
   sources: Array<any>;
   text: string;
   type: "atom";
@@ -24,7 +26,7 @@ export const DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss";
 
 export interface SchemeNode {
   id: string;
-  metadata: object;
+  metadata: JsonObject;
   name: string;
   type: "scheme";
 }
