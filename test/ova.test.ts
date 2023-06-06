@@ -3,7 +3,9 @@ import ovaGraph from "../data/arguebase-private/recap/format=ova,lang=de/Hamburg
 import * as arguebuf from "../src/index.js";
 
 test("graph: ova2arguebuf", () => {
-  const g = arguebuf.load.ova(ovaGraph as arguebuf.schemas.ova.Graph);
+  const g = arguebuf.load.ova(
+    ovaGraph as unknown as arguebuf.schemas.ova.Graph
+  );
 
   // Test some graph properties
   assertType<arguebuf.Graph>(g);
