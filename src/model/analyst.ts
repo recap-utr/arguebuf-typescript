@@ -29,17 +29,4 @@ export class Analyst implements AnalystInterface {
     this.email = data?.email;
     this.userdata = data?.userdata ?? {};
   }
-
-  // toJSON() {
-  //   return { ...this };
-  // }
-
-  // static fromJSON(obj: JSONObject) {
-  //   return new Analyst({
-  //     id: obj.id,
-  //     name: obj.name,
-  //     email: obj.email,
-  //     userdata: obj.userdata,
-  //   });
-  // }
 }

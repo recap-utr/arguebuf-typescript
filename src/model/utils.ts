@@ -15,7 +15,6 @@ export type Mutable<T> = {
 export type Mapping<T extends string | number | symbol, U> = {
   [key in T]: U;
 };
-export type JSONObject = Mapping<string, any>;
 
 export type PartiallyRequired<T, K extends keyof T> = Pick<T, K> &
   Partial<Omit<T, K>>;

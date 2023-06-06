@@ -1,4 +1,4 @@
-import { JSONObject } from "./utils.js";
+import type { JsonObject } from "@bufbuild/protobuf";
 
-export type Userdata = JSONObject;
-export type UserdataInterface = JSONObject;
+export type Userdata = JsonObject;
+export type UserdataInterface = JsonObject;

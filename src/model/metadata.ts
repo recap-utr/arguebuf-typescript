@@ -25,16 +25,4 @@ export class Metadata implements MetadataInterface {
   update() {
     this.updated = now();
   }
-
-  // toJSON() {
-  //   return { ...this };
-  // }
-
-  // static fromJSON(obj: JSONObject) {
-  //   const cls = new Metadata();
-  //   cls.created = dateFromJSON(obj.created);
-  //   cls.updated = dateFromJSON(obj.updated);
-
-  //   return cls;
-  // }
 }
