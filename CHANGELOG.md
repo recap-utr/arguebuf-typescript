@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.5](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.4...v1.8.5) (2023-06-06)
+
+
+### Bug Fixes
+
+* loosen json object constraints ([44b88ae](https://github.com/recap-utr/arguebuf-typescript/commit/44b88aee7cda6733f292504693a25717329b0f95))
+
 ## [1.8.4](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.3...v1.8.4) (2023-06-06)
 
 
