@@ -1,10 +1,10 @@
 import { assertType, expect, test } from "vitest";
-import xAifGraph from "./xAifTestFile.json";
+import xaifgraph from "../data/xaif.json";
 import * as arguebuf from "../src/index.js";
 
-test("graph: xAif2arguebuf", () => {
+test("graph: xaif2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.xAif(
-    xAifGraph as arguebuf.schemas.xAif.Graph
+    xaifgraph as arguebuf.schemas.xAif.Graph
   );
 
   // Test some graph properties
