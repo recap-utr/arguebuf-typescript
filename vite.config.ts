@@ -2,6 +2,7 @@
 import path from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { configDefaults } from "vitest/dist/config";
 
 const external = (id: string) =>
   !id.startsWith("\0") && !id.startsWith(".") && !id.startsWith("/");
@@ -18,6 +19,8 @@ export default defineConfig({
       formats: ["es"],
     },
   },
-  test: {},
+  test: {
+    exclude: [...configDefaults.exclude, ".direnv/**"],
+  },
   plugins: [dts()],
 });
