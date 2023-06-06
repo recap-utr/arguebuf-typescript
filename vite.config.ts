@@ -6,6 +6,7 @@ import dts from "vite-plugin-dts";
 const external = (id: string) =>
   !id.startsWith("\0") && !id.startsWith(".") && !id.startsWith("/");
 
+// https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vanilla-ts
 export default defineConfig({
   build: {
     rollupOptions: {
