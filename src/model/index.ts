@@ -8,3 +8,4 @@ export * from "./reference.js";
 export * from "./resource.js";
 export * from "./userdata.js";
 export { uuid } from "./utils.js";
+export type { JsonObject } from "./utils.js";

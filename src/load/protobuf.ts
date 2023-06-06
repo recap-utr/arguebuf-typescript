@@ -1,6 +1,6 @@
-import type { JsonObject } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
+import type { JsonObject } from "../model";
 import * as model from "../model/index.js";
 
 function metadataFromProtobuf(obj?: pb.Metadata): model.Metadata | undefined {

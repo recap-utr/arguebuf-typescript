@@ -1,4 +1,4 @@
-import type { JsonObject } from "@bufbuild/protobuf";
+import type { JsonObject } from "../model";
 
 export interface Graph {
   nodes: Array<Node>;
