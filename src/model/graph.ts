@@ -130,4 +130,94 @@ export class Graph implements GraphInterface {
       }
     }
   }
+
+  addAnalyst(analyst: Analyst) {
+    if (analyst.id in this._analysts) {
+      throw new Error(`Analyst with id ${analyst.id} already exists`);
+    }
+
+    this._analysts[analyst.id] = analyst;
+  }
+
+  removeAnalyst(analyst: Analyst | string) {
+    const id = typeof analyst === "string" ? analyst : analyst.id;
+
+    if (!(id in this._analysts)) {
+      throw new Error(`Analyst with id ${id} does not exist`);
+    }
+
+    delete this._analysts[id];
+  }
+
+  addNode(node: Node) {
+    if (node.id in this._nodes) {
+      throw new Error(`Node with id ${node.id} already exists`);
+    }
+
+    this._nodes[node.id] = node;
+  }
+
+  removeNode(node: Node | string) {
+    const id = typeof node === "string" ? node : node.id;
+
+    if (!(id in this._nodes)) {
+      throw new Error(`Node with id ${id} does not exist`);
+    }
+
+    delete this._nodes[id];
+  }
+
+  addEdge(edge: Edge) {
+    if (edge.id in this._edges) {
+      throw new Error(`Edge with id ${edge.id} already exists`);
+    }
+
+    this._edges[edge.id] = edge;
+  }
+
+  removeEdge(edge: Edge | string) {
+    const id = typeof edge === "string" ? edge : edge.id;
+
+    if (!(id in this._edges)) {
+      throw new Error(`Edge with id ${id} does not exist`);
+    }
+
+    delete this._edges[id];
+  }
+
+  addResource(resource: Resource) {
+    if (resource.id in this._resources) {
+      throw new Error(`Resource with id ${resource.id} already exists`);
+    }
+
+    this._resources[resource.id] = resource;
+  }
+
+  removeResource(resource: Resource | string) {
+    const id = typeof resource === "string" ? resource : resource.id;
+
+    if (!(id in this._resources)) {
+      throw new Error(`Resource with id ${id} does not exist`);
+    }
+
+    delete this._resources[id];
+  }
+
+  addParticipant(participant: Participant) {
+    if (participant.id in this._participants) {
+      throw new Error(`Participant with id ${participant.id} already exists`);
+    }
+
+    this._participants[participant.id] = participant;
+  }
+
+  removeParticipant(participant: Participant | string) {
+    const id = typeof participant === "string" ? participant : participant.id;
+
+    if (!(id in this._participants)) {
+      throw new Error(`Participant with id ${id} does not exist`);
+    }
+
+    delete this._participants[id];
+  }
 }
