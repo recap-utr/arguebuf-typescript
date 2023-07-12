@@ -12,10 +12,16 @@
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = import systems;
-      perSystem = {pkgs, ...}: {
+      perSystem = {pkgs, ...}: let
+        packages = with pkgs; [nodejs-18_x];
+      in {
+        packages.releaseEnv = pkgs.buildEnv {
+          name = "release-env";
+          paths = packages;
+        };
         devShells.default = pkgs.mkShell {
           shellHook = "npm install";
-          packages = with pkgs; [nodejs-18_x];
+          inherit packages;
         };
       };
     };

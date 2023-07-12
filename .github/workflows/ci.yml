@@ -4,19 +4,16 @@ on:
     branches:
       - main
       - beta
-env:
-  DVC_VERSION: 2.45.1
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: lts/hydrogen
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: iterative/setup-dvc@v1
         with:
-          version: ${{ env.DVC_VERSION }}
+          version: "2.58.2"
       # DVC hack
       - uses: de-vri-es/setup-git-credentials@v2
         if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
@@ -29,17 +26,18 @@ jobs:
           replace: "https://github.com/"
           regex: false
           include: "**/*.dvc"
-      - run: dvc pull --force --verbose
-      - run: npm ci
-      - run: npm run test
+      - run: dvc pull --force
+      - run: nix develop -c npm run test
   release:
     needs: test
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - run: nix profile install .#releaseEnv
       - uses: cihelper/action-semanticrelease-npm@v1
         with:
-          node-version: lts/hydrogen
           npm-token: ${{ secrets.NPM_TOKEN }}
           npm-install: true
