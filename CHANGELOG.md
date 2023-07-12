@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.6](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.5...v1.8.6) (2023-07-12)
+
+
+### Bug Fixes
+
+* add methods to add/remove graph elements ([#33](https://github.com/recap-utr/arguebuf-typescript/issues/33)) ([e49f700](https://github.com/recap-utr/arguebuf-typescript/commit/e49f700460539c04096a95a3a0db1b8ad8b08909))
+
 ## [1.8.5](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.4...v1.8.5) (2023-06-06)
 
 
