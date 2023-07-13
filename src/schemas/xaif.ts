@@ -4,53 +4,55 @@ export type { NodeType, SchemeType } from "./aif.js";
 export interface Graph {
   AIF: Aif;
   OVA: Ova;
-  text: Text;
+  text: string;
+  // dialog: boolean;
 }
 
 export interface Ova {
   firstname: string;
   surname: string;
-  nodes: Array<ovaNode>;
-  edges: Array<ovaEdge>;
+  url: string;
+  nodes: Array<OvaNode>;
+  edges: Array<OvaEdge>;
 }
 
 export interface Aif {
-  nodes: Array<aifNode>;
-  edges: Array<aifEdge>;
-  schemefulfillments: Array<aifSchemeFulfillment>;
-  locutions: Array<aifLocution>;
-  participants: Array<aifParticipant>;
+  nodes: Array<AifNode>;
+  edges: Array<AifEdge>;
+  schemefulfillments: Array<AifSchemeFulfillment>;
+  locutions: Array<AifLocution>;
+  participants: Array<AifParticipant>;
 }
 
-export interface aifNode {
+export interface AifNode {
   nodeID: string;
   text: string;
   type: NodeType;
 }
 
-export interface aifEdge {
-  edgeID: number;
+export interface AifEdge {
+  edgeID: string | number;
   fromID: string;
   toID: string;
 }
 
-export interface aifSchemeFulfillment {
+export interface AifSchemeFulfillment {
   nodeID: string;
   schemeID: string;
 }
 
-export interface aifLocution {
+export interface AifLocution {
   nodeID: string;
   personID: number;
 }
 
-export interface aifParticipant {
+export interface AifParticipant {
   participantID: number;
   firstname: string;
   surname: string;
 }
 
-export interface ovaNode {
+export interface OvaNode {
   nodeID: string;
   visible: boolean;
   x: number;
@@ -58,13 +60,8 @@ export interface ovaNode {
   timestamp: string;
 }
 
-export interface ovaEdge {
+export interface OvaEdge {
   fromID: string;
   toID: string;
   visible: boolean;
-}
-
-export interface Text {
-  txt: string;
-  url: string;
 }

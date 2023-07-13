@@ -1,7 +1,7 @@
 import * as model from "../model/index.js";
-import * as xAifSchema from "../schemas/xaif.js";
+import * as xaifSchema from "../schemas/xaif.js";
 
-export function xAif(obj: xAifSchema.Graph): model.Graph {
+export function xaif(obj: xaifSchema.Graph): model.Graph {
   const nodes = Object.fromEntries(
     obj.AIF.nodes.map((node) => [node.nodeID, nodeFromAif(node)])
   );
@@ -19,17 +19,18 @@ export function xAif(obj: xAifSchema.Graph): model.Graph {
     nodes: nodes,
     edges: edges,
     participants: participants,
+    resources: [new model.Resource({ text: obj.text })],
   });
 }
 
-function participantFromAif(obj: xAifSchema.aifParticipant) {
+function participantFromAif(obj: xaifSchema.AifParticipant) {
   return new model.Participant({
     id: obj.participantID.toString(),
-    name: obj.firstname + " " + obj.surname,
+    name: `${obj.firstname} ${obj.surname}`,
   });
 }
 
-function edgeFromAif(obj: xAifSchema.aifEdge): model.Edge {
+function edgeFromAif(obj: xaifSchema.AifEdge): model.Edge {
   return new model.Edge({
     id: obj.edgeID.toString(),
     source: obj.fromID,
@@ -37,7 +38,7 @@ function edgeFromAif(obj: xAifSchema.aifEdge): model.Edge {
   });
 }
 
-function nodeFromAif(obj: xAifSchema.aifNode): model.Node {
+function nodeFromAif(obj: xaifSchema.AifNode): model.Node {
   if (obj.type === "I") {
     return new model.AtomNode({
       id: obj.nodeID,
@@ -45,7 +46,7 @@ function nodeFromAif(obj: xAifSchema.aifNode): model.Node {
       metadata: new model.Metadata(),
     });
   } else {
-    const aifType = obj.type as xAifSchema.SchemeType;
+    const aifType = obj.type as xaifSchema.SchemeType;
     const schemeNode = new model.SchemeNode({
       id: obj.nodeID,
       metadata: new model.Metadata(),

@@ -1,0 +1,19 @@
+{
+  "AIF": {
+    "nodes": [],
+    "edges": [],
+    "schemefulfillments": [],
+    "descriptorfulfillments": [],
+    "participants": [],
+    "locutions": []
+  },
+  "text": "",
+  "dialog": true,
+  "OVA": {
+    "firstname": "",
+    "surname": "",
+    "url": "",
+    "nodes": [],
+    "edges": []
+  }
+}
