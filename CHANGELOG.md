@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.7](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.6...v1.8.7) (2023-07-13)
+
+
+### Bug Fixes
+
+* update xaif schema to latest version ([77af62b](https://github.com/recap-utr/arguebuf-typescript/commit/77af62ba9945910c81538d27a2ef44214b2d2f49))
+
 ## [1.8.6](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.5...v1.8.6) (2023-07-12)
 
 
