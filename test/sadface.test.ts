@@ -4,17 +4,17 @@ import * as arguebuf from "../src/index.js";
 
 test("graph: sadface2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.sadface(
-    sadfaceGraph as arguebuf.schemas.sadface.Graph
+    sadfaceGraph as arguebuf.schemas.sadface.Graph,
   );
 
   // Test some graph properties
   assertType<arguebuf.Graph>(arguebufGraph);
   expect(arguebufGraph.resources).toStrictEqual({});
   expect(Object.values(arguebufGraph.analysts)[0].name).toStrictEqual(
-    "Simon Wells"
+    "Simon Wells",
   );
   expect(Object.values(arguebufGraph.analysts)[0].email).toStrictEqual(
-    "siwells@gmail.com"
+    "siwells@gmail.com",
   );
   const comparisonDate = new Date(2019, 3, 22, 23, 52, 30);
   expect(arguebufGraph.metadata.created).toStrictEqual(comparisonDate);
@@ -35,7 +35,7 @@ test("graph: sadface2arguebuf", () => {
   expect(n1.type).toStrictEqual("atom");
   if (n1.type === "atom") {
     expect(n1.text).toStrictEqual(
-      "Road users have a responsibility to make our roads safer by being more vigilant."
+      "Road users have a responsibility to make our roads safer by being more vigilant.",
     );
   }
   expect(n1.metadata.created).not.toStrictEqual(undefined);
