@@ -44,10 +44,10 @@ function nodeFromSadface(obj: sadfaceSchema.Node): model.Node {
 
 export function sadface(obj: sadfaceSchema.Graph): model.Graph {
   const nodes = Object.fromEntries(
-    obj.nodes.map((node) => [node.id, nodeFromSadface(node)])
+    obj.nodes.map((node) => [node.id, nodeFromSadface(node)]),
   );
   const edges = Object.fromEntries(
-    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge)])
+    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge)]),
   );
 
   const metadata = new model.Metadata({

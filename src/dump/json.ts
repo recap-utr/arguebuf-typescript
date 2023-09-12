@@ -5,7 +5,7 @@ import { protobuf as dumpProtobuf } from "./protobuf.js";
 
 export function json(
   graph: model.GraphInterface,
-  format: "aif" | "arguebuf"
+  format: "aif" | "arguebuf",
 ): JsonObject {
   if (format === "aif") {
     return dumpAif(graph);
