@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.8](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.7...v1.8.8) (2023-10-04)
+
+
+### Bug Fixes
+
+* bump deps ([a24e4b9](https://github.com/recap-utr/arguebuf-typescript/commit/a24e4b9d9821b263ea36241670004a432491177e))
+
 ## [1.8.7](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.6...v1.8.7) (2023-07-13)
 
 
