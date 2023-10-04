@@ -13,7 +13,7 @@
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = import systems;
       perSystem = {pkgs, ...}: let
-        packages = with pkgs; [nodejs-18_x];
+        packages = with pkgs; [nodejs_20];
       in {
         packages.releaseEnv = pkgs.buildEnv {
           name = "release-env";
