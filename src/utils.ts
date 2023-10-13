@@ -4,7 +4,7 @@ import * as model from "./model";
 
 export function copy(
   graph: model.Graph,
-  data?: model.GraphConstructor
+  data?: model.GraphConstructor,
 ): model.Graph {
   const copy = new model.Graph(data);
   const dump = fromProto(toProto(graph));
