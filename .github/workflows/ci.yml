@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v6
@@ -32,6 +34,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v6
