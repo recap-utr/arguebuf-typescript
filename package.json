@@ -22,7 +22,7 @@
     "typescript": "^5.2",
     "vite": "^4.5",
     "vite-plugin-dts": "^3.6",
-    "vitest": "^0.34"
+    "vitest": "^1.0.0"
   },
   "optionalDependencies": {
     "@argdown/core": "^1.7"
