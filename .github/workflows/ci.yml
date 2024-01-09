@@ -11,23 +11,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v8
+      - uses: DeterminateSystems/nix-installer-action@v9
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: iterative/setup-dvc@v1
-        with:
-          version: "2.58.2"
-      # DVC hack
-      - uses: de-vri-es/setup-git-credentials@v2
-        if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
-        with:
-          credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
-      - uses: jacobtomlinson/gha-find-replace@v3
-        if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
-        with:
-          find: "git@github.com:"
-          replace: "https://github.com/"
-          regex: false
-          include: "**/*.dvc"
       - run: dvc pull --force
       - run: nix develop -c npm run test
   release:
@@ -39,7 +25,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v8
+      - uses: DeterminateSystems/nix-installer-action@v9
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - run: nix profile install .#releaseEnv
       - uses: cihelper/action-semanticrelease-npm@v1
