@@ -11,7 +11,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "arg-services": "^2.5",
+    "arg-services": "^3.0.0",
     "dayjs": "^1.11",
     "immer": "^10.0"
   },
