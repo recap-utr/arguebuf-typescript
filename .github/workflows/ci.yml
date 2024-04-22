@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v9
-      - uses: DeterminateSystems/magic-nix-cache-action@v3
+      - uses: DeterminateSystems/magic-nix-cache-action@v4
       - uses: iterative/setup-dvc@v1
       - run: dvc pull --force
       - run: nix develop -c npm run test
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v9
-      - uses: DeterminateSystems/magic-nix-cache-action@v3
+      - uses: DeterminateSystems/magic-nix-cache-action@v4
       - run: nix profile install .#releaseEnv
       - uses: cihelper/action-semanticrelease-npm@v1
         with:
