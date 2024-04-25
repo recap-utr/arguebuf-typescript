@@ -11,21 +11,21 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "arg-services": "^2.5",
-    "dayjs": "^1.11",
-    "immer": "^10.0"
+    "arg-services": "^3",
+    "dayjs": "^1",
+    "immer": "^10"
   },
   "devDependencies": {
-    "@argdown/core": "^1.7",
-    "@types/node": "^20.10",
-    "@vitest/coverage-v8": "^1.1",
-    "typescript": "^5.3",
-    "vite": "^5.0",
-    "vite-plugin-dts": "^3.7",
-    "vitest": "^1.1"
+    "@argdown/core": "^1",
+    "@types/node": "^20",
+    "@vitest/coverage-v8": "^1",
+    "typescript": "^5",
+    "vite": "^5",
+    "vite-plugin-dts": "^3",
+    "vitest": "^1"
   },
   "optionalDependencies": {
-    "@argdown/core": "^1.7"
+    "@argdown/core": "^1"
   },
   "files": [
     "dist"
