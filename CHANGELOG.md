@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.9.0...v1.10.0) (2024-09-09)
+
+
+### Features
+
+* **deps:** bump arg-services to v3 ([84c33fb](https://github.com/recap-utr/arguebuf-typescript/commit/84c33fb59c92d4180047f30034365074d7218843))
+
 ## [1.9.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.8.9...v1.9.0) (2024-05-12)
 
 
