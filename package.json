@@ -17,12 +17,12 @@
   },
   "devDependencies": {
     "@argdown/core": "^1",
-    "@types/node": "^20",
-    "@vitest/coverage-v8": "^2.0.0",
+    "@types/node": "^22",
+    "@vitest/coverage-v8": "^2",
     "typescript": "^5",
     "vite": "^5",
-    "vite-plugin-dts": "^4.0.0",
-    "vitest": "^2.0.0"
+    "vite-plugin-dts": "^4",
+    "vitest": "^2"
   },
   "optionalDependencies": {
     "@argdown/core": "^1"
