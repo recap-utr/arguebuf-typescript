@@ -7,6 +7,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "check": "vitest run --no-cache",
     "coverage": "vitest run --coverage",
     "prepack": "npm run build"
   },
