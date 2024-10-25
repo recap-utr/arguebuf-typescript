@@ -61,7 +61,7 @@ export function sadface(obj: sadfaceSchema.Graph): model.Graph {
         : undefined,
   });
   const analystId: string = model.uuid();
-  const analysts: { [key: string]: model.Analyst } = {};
+  const analysts: Record<string, model.Analyst> = {};
   analysts[analystId] = new model.Analyst({
     name: obj.metadata.core.analyst_name,
     email: obj.metadata.core.analyst_email,

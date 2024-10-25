@@ -1,8 +1,8 @@
 import * as model from "../model/index.js";
 
 export function kialo(input: string): model.Graph {
-  var nodes: model.Node[] = [];
-  var edges: model.Edge[] = [];
+  const nodes: model.Node[] = [];
+  const edges: model.Edge[] = [];
 
   const iter: IterableIterator<string> = input.split("\n").values();
 
@@ -20,16 +20,16 @@ export function kialo(input: string): model.Graph {
 
   // Example: 1.1. Pro: Gold is better than silver.
   // Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
-  const pattern: RegExp = /^(1\.(?:\d+\.)+) (?:(Con|Pro): )?(.*)/;
-  var current_line: string = iter.next().value;
-  var next_line: string = iter.next().value;
+  const pattern = /^(1\.(?:\d+\.)+) (?:(Con|Pro): )?(.*)/;
+  let current_line: string = iter.next().value;
+  let next_line: string = iter.next().value;
 
   const mc_match = current_line.match(/^((?:\d+\.)+) (.*)/);
   if (mc_match === null) {
     throw new Error("The major claim is not present in the third line!");
   }
   const mc_id = mc_match[1];
-  var mc_text = mc_match[2];
+  let mc_text = mc_match[2];
 
   // See in the following while loop for explanation of this block
   while (next_line !== undefined && next_line.match(pattern) === null) {
@@ -48,8 +48,8 @@ export function kialo(input: string): model.Graph {
     if (current_match !== null) {
       const source_id: string = current_match[1];
       const source_id_parts: string[] = source_id.slice(0, -1).split(".");
-      var stance: string = current_match[2];
-      var text: string = current_match[3];
+      let stance: string = current_match[2];
+      let text: string = current_match[3];
 
       /*
             The text of a node is allowed to span multiple lines.
@@ -69,17 +69,21 @@ export function kialo(input: string): model.Graph {
         throw new Error("text should not be undefined!");
       }
 
-      var source;
+      let source: model.Node | undefined;
       const id_ref_match = text.match(/^-> See ((?:\d+\.)+)/);
       if (id_ref_match !== null) {
         const id_ref = id_ref_match[1];
-        source = nodes.find((n) => n.id === id_ref)!;
+        source = nodes.find((n) => n.id === id_ref);
       } else {
         source = nodeFromKialo(source_id, text);
         nodes.push(source);
       }
 
-      var scheme: model.SchemeNode;
+      if (source === undefined) {
+        throw new Error("source should not be undefined!");
+      }
+
+      let scheme: model.SchemeNode;
       if (stance !== undefined) {
         stance = stance.toLowerCase();
         scheme = new model.SchemeNode({
@@ -106,7 +110,11 @@ export function kialo(input: string): model.Graph {
       }
 
       const target_id = source_id_parts.slice(0, -1).join(".") + ".";
-      const target = nodes.find((n) => n.id === target_id)!;
+      const target = nodes.find((n) => n.id === target_id);
+
+      if (target === undefined) {
+        throw new Error("source should not be undefined!");
+      }
 
       nodes.push(scheme);
       edges.push(
@@ -138,7 +146,7 @@ export function kialo(input: string): model.Graph {
 
 function nodeFromKialo(id: string, text: string): model.AtomNode {
   // Remove backslashes before parentheses/brackets
-  text = text.replaceAll(/\\([\[\]\(\)])/g, "$1");
+  text = text.replaceAll(/\\([[\]()])/g, "$1");
 
   // Remove markdown links
   text = text.replaceAll(/\[(.*?)\]\(.*?\)/g, "$1");

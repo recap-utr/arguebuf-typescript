@@ -12,16 +12,16 @@ export interface Ova {
   firstname: string;
   surname: string;
   url: string;
-  nodes: Array<OvaNode>;
-  edges: Array<OvaEdge>;
+  nodes: OvaNode[];
+  edges: OvaEdge[];
 }
 
 export interface Aif {
-  nodes: Array<AifNode>;
-  edges: Array<AifEdge>;
-  schemefulfillments: Array<AifSchemeFulfillment>;
-  locutions: Array<AifLocution>;
-  participants: Array<AifParticipant>;
+  nodes: AifNode[];
+  edges: AifEdge[];
+  schemefulfillments: AifSchemeFulfillment[];
+  locutions: AifLocution[];
+  participants: AifParticipant[];
 }
 
 export interface AifNode {

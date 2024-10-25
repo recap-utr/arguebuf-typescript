@@ -1,10 +1,10 @@
 import type { JsonObject } from "../model";
 
 export interface Graph {
-  nodes: Array<Node>;
-  edges: Array<Edge>;
+  nodes: Node[];
+  edges: Edge[];
   metadata: Metadata;
-  resources?: Array<any>;
+  resources?: unknown[];
 }
 export interface Edge {
   id: string;
@@ -17,7 +17,7 @@ export type Node = AtomNode | SchemeNode;
 export interface AtomNode {
   id: string;
   metadata: JsonObject;
-  sources: Array<any>;
+  sources: unknown[];
   text: string;
   type: "atom";
 }

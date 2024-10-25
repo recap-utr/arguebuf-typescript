@@ -8,7 +8,7 @@ import { Resource, ResourceInterface } from "./resource.js";
 import { Userdata, UserdataInterface } from "./userdata.js";
 import { Mapping } from "./utils.js";
 
-type ArrayOrMapping<T> = Array<T> | Mapping<string, T>;
+type ArrayOrMapping<T> = T[] | Mapping<string, T>;
 
 export interface GraphConstructor {
   nodes?: ArrayOrMapping<Node>;
@@ -116,6 +116,7 @@ export class Graph implements GraphInterface {
       throw new Error(`Analyst with id ${id} does not exist`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this._analysts[id];
   }
 
@@ -134,6 +135,7 @@ export class Graph implements GraphInterface {
       throw new Error(`Node with id ${id} does not exist`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this._nodes[id];
   }
 
@@ -152,6 +154,7 @@ export class Graph implements GraphInterface {
       throw new Error(`Edge with id ${id} does not exist`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this._edges[id];
   }
 
@@ -170,6 +173,7 @@ export class Graph implements GraphInterface {
       throw new Error(`Resource with id ${id} does not exist`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this._resources[id];
   }
 
@@ -188,6 +192,7 @@ export class Graph implements GraphInterface {
       throw new Error(`Participant with id ${id} does not exist`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this._participants[id];
   }
 }

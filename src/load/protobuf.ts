@@ -50,13 +50,13 @@ function nodeFromProtobuf(id: string, obj: pb.Node): model.Node {
 }
 
 export function protobuf(obj: pb.Graph): model.Graph {
-  const nodes: Array<model.Node> = Object.entries(obj.nodes).map(
+  const nodes: model.Node[] = Object.entries(obj.nodes).map(
     ([key, value]) => nodeFromProtobuf(key, value),
   );
-  const edges: Array<model.Edge> = Object.entries(obj.edges).map(
+  const edges: model.Edge[] = Object.entries(obj.edges).map(
     ([key, value]) => edgeFromProtobuf(key, value),
   );
-  const analysts: Array<model.Analyst> = Object.entries(obj.analysts).map(
+  const analysts: model.Analyst[] = Object.entries(obj.analysts).map(
     ([key, value]) =>
       new model.Analyst({
         id: key,
@@ -65,7 +65,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         userdata: value.userdata?.toJson() as JsonObject,
       }),
   );
-  const resources: Array<model.Resource> = Object.entries(obj.resources).map(
+  const resources: model.Resource[] = Object.entries(obj.resources).map(
     ([key, value]) =>
       new model.Resource({
         text: value.text,
@@ -77,7 +77,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         userdata: value.userdata?.toJson() as JsonObject,
       }),
   );
-  const participants: Array<model.Participant> = Object.entries(
+  const participants: model.Participant[] = Object.entries(
     obj.participants,
   ).map(
     ([key, value]) =>

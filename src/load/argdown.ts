@@ -41,7 +41,7 @@ export function argdown(obj: string) {
   if (response.map !== undefined) {
     const map: IMap = response.map;
     // Create and add the atom nodes
-    var nodes: { [key: string]: model.Node } = Object.fromEntries(
+    const nodes: Record<string, model.Node> = Object.fromEntries(
       map.nodes
         .filter((value) => inEdges(value, map.edges))
         .map((n) => {
@@ -50,7 +50,7 @@ export function argdown(obj: string) {
         }),
     );
 
-    var edges: { [key: string]: model.Edge } = {};
+    const edges: Record<string, model.Edge> = {};
     map.edges.forEach((e) => {
       // Create new scheme node and add it
       const schemeNode = schemeNodeFromEdge(e);
@@ -91,7 +91,7 @@ function nodefromArgdown(obj: IMapNode): model.Node {
   });
 }
 
-function inEdges(node: IMapNode, edges: Array<IMapEdge>): boolean {
+function inEdges(node: IMapNode, edges: IMapEdge[]): boolean {
   return (
     edges.find(
       (value) => value.from.id === node.id || value.to.id === node.id,
@@ -100,7 +100,7 @@ function inEdges(node: IMapNode, edges: Array<IMapEdge>): boolean {
 }
 
 function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {
-  var scheme: any = undefined;
+  let scheme: model.Scheme | undefined = undefined;
   if (obj.relationType === "attack") {
     scheme = {
       value: model.Attack.DEFAULT,
@@ -114,12 +114,12 @@ function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {
   } else if (obj.relationType == "contradictory") {
     scheme = {
       value: model.Attack.DEFAULT,
-      case: "support",
+      case: "attack",
     };
   } else if (obj.relationType == "undercut") {
     scheme = {
       value: model.Attack.DEFAULT,
-      case: "support",
+      case: "attack",
     };
   }
   return new model.SchemeNode({

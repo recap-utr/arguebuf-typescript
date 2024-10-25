@@ -5,9 +5,9 @@ export type SchemeType = "RA" | "CA" | "MA" | "PA" | "";
 export const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 export interface Graph {
-  nodes: Array<Node>;
-  edges: Array<Edge>;
-  locutions: Array<Locution>;
+  nodes: Node[];
+  edges: Edge[];
+  locutions: Locution[];
 }
 
 export interface Node {

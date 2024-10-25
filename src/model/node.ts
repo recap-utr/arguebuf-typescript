@@ -118,20 +118,20 @@ export class AtomNode extends AbstractNode implements AtomNodeInterface {
 
 export interface SchemeNodeConstructor extends AbstractNodeConstructor {
   scheme?: Scheme;
-  premise_descriptors?: Array<string>;
+  premise_descriptors?: string[];
 }
 
 export interface SchemeNodeInterface extends AbstractNodeInterface {
   type: "scheme";
   scheme: Scheme;
-  premise_descriptors?: Array<string>;
+  premise_descriptors?: string[];
 }
 
 export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
   [immerable] = true;
   declare readonly type: "scheme";
   scheme: Scheme;
-  premise_descriptors?: Array<string>;
+  premise_descriptors?: string[];
 
   constructor(data: SchemeNodeConstructor) {
     super("scheme", data);

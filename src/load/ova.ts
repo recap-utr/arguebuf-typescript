@@ -216,20 +216,20 @@ const text2support = (text: string) => {
 };
 
 export function ova(obj: ovaSchema.Graph): model.Graph {
-  var nodes: { [k: string]: model.Node } = {};
-  var edges: { [k: string]: model.Edge } = {};
+  const nodes: Record<string, model.Node> = {};
+  const edges: Record<string, model.Edge> = {};
 
   const participants = Object.entries(obj.participants).map(
-    ([_, p]) =>
+    ([, p]) =>
       new model.Participant({
         name: p.firstname + p.surname,
         id: p.id.toString(),
       }),
   );
 
-  var majorClaim;
+  let majorClaim;
   obj.nodes.forEach((n) => {
-    var node;
+    let node;
     if (n.type === "I") {
       node = atomFromOva(n);
     } else {
@@ -277,9 +277,9 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
   const ovaType = obj.type;
   const ovaScheme = obj.text;
 
-  var schemeType = aif2scheme(ovaType);
+  const schemeType = aif2scheme(ovaType);
   if (schemeType !== undefined) {
-    var scheme: model.Scheme;
+    let scheme: model.Scheme;
 
     switch (schemeType) {
       case "attack":
@@ -300,7 +300,8 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
           value: model.Rephrase.DEFAULT,
         };
         break;
-      default: // support
+      default: {
+        // support
         const foundScheme = text2support(ovaScheme);
         scheme = {
           case: "support",
@@ -308,13 +309,14 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
             foundScheme !== undefined ? foundScheme : model.Support.DEFAULT,
         };
         break;
+      }
     }
 
     const premise_descriptors = Object.entries(obj.descriptors)
-      .filter(([description, _]) =>
+      .filter(([description]) =>
         description.toLowerCase().startsWith("s_conclusion"),
       )
-      .map(([_, node_id]) => node_id.toString());
+      .map(([, node_id]) => node_id.toString());
 
     const timestamp =
       obj.date === undefined

@@ -13,7 +13,7 @@ export interface Node {
   type: NodeType;
   scheme: string;
   descriptors: { [key in string]: number };
-  cqdesc: { [key in string]: any };
+  cqdesc: { [key in string]: unknown };
   visible: boolean;
   participantID: string;
   w: number;
@@ -28,9 +28,9 @@ export interface Node {
   majorClaim?: boolean;
   is_check_worthy?: string;
   source?: string;
-  text_begin?: Array<number>;
-  text_end?: Array<number>;
-  text_length?: Array<number>;
+  text_begin?: number[];
+  text_end?: number[];
+  text_length?: number[];
   comment?: string;
   annotator?: string;
   date?: string;
@@ -66,8 +66,8 @@ export interface Analysis {
 }
 
 export interface Graph {
-  nodes: Array<Node>;
-  edges: Array<Edge>;
-  participants: Array<Participant>;
+  nodes: Node[];
+  edges: Edge[];
+  participants: Participant[];
   analysis: Analysis;
 }
