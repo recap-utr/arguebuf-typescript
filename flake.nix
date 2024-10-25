@@ -3,10 +3,6 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     systems.url = "github:nix-systems/default";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    npmlock2nix = {
-      url = "github:nix-community/npmlock2nix";
-      flake = false;
-    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -30,10 +26,6 @@
           config,
           ...
         }:
-        let
-          nodejs = pkgs.nodejs_20;
-          npmlock2nix = import inputs.npmlock2nix { inherit pkgs; };
-        in
         {
           treefmt = {
             projectRootFile = "flake.nix";
@@ -52,29 +44,42 @@
           };
           packages = {
             default = config.packages.arguebuf;
-            arguebuf = npmlock2nix.v2.build {
-              src = ./.;
-              installPhase = ''
-                runHook preInstall
+            arguebuf =
+              let
+                npmDeps = pkgs.importNpmLock {
+                  npmRoot = ./.;
+                };
+              in
+              pkgs.buildNpmPackage {
+                inherit npmDeps;
+                inherit (npmDeps) pname version;
+                inherit (pkgs.importNpmLock) npmConfigHook;
 
-                mkdir -p $out
-                cp -r dist/. $out
+                src = ./.;
+                installPhase = ''
+                  runHook preInstall
 
-                runHook postInstall
-              '';
-              doCheck = true;
-              checkPhase = ''
-                runHook preCheck
+                  mkdir -p $out
+                  cp -r dist/. $out
 
-                ${lib.getExe config.packages.link-arguebase}
-                npm run check
+                  runHook postInstall
+                '';
+                checkPhase = ''
+                  runHook preCheck
 
-                runHook postCheck
-              '';
-              node_modules_attrs = {
-                inherit nodejs;
+                  ${lib.getExe config.packages.link-arguebase}
+                  npm run check
+
+                  runHook postCheck
+                '';
+
+                meta = with lib; {
+                  description = "Create and analyze argument graphs and serialize them via Protobuf";
+                  license = licenses.mit;
+                  maintainers = with maintainers; [ mirkolenz ];
+                  homepage = "https://github.com/recap-utr/arguebuf-typescript";
+                };
               };
-            };
             arguebase = pkgs.fetchFromGitHub {
               owner = "recap-utr";
               repo = "arguebase-public";
@@ -88,16 +93,16 @@
             '';
             release-env = pkgs.buildEnv {
               name = "release-env";
-              paths = [ nodejs ];
+              paths = with pkgs; [ nodejs ];
             };
           };
           devShells.default = pkgs.mkShell {
             shellHook = ''
-              ${lib.getExe' nodejs "npm"} install
-              ${lib.getExe nodejs} --version > .node-version
+              ${lib.getExe' pkgs.nodejs "npm"} install
+              ${lib.getExe pkgs.nodejs} --version > .node-version
               ${lib.getExe config.packages.link-arguebase}
             '';
-            packages = [ nodejs ];
+            packages = with pkgs; [ nodejs ];
           };
         };
     };
