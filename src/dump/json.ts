@@ -8,7 +8,7 @@ export function json(
   format: "aif" | "arguebuf",
 ): JsonObject {
   if (format === "aif") {
-    return dumpAif(graph);
+    return dumpAif(graph) as unknown as JsonObject;
   }
 
   return dumpProtobuf(graph).toJson() as JsonObject;
