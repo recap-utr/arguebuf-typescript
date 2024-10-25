@@ -9,7 +9,8 @@
     "test": "vitest",
     "check": "vitest run --no-cache",
     "coverage": "vitest run --coverage",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "lint": "eslint ./src"
   },
   "dependencies": {
     "arg-services": "^3",
@@ -18,11 +19,16 @@
   },
   "devDependencies": {
     "@argdown/core": "^1",
+    "@eslint/js": "^9",
+    "@types/eslint__js": "^8",
     "@types/node": "^22",
     "@vitest/coverage-v8": "^2",
+    "eslint": "^9",
+    "typescript-eslint": "^8",
     "typescript": "^5",
-    "vite": "^5",
+    "vite-plugin-checker": "^0.8",
     "vite-plugin-dts": "^4",
+    "vite": "^5",
     "vitest": "^2"
   },
   "optionalDependencies": {
