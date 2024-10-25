@@ -50,11 +50,11 @@ function nodeFromProtobuf(id: string, obj: pb.Node): model.Node {
 }
 
 export function protobuf(obj: pb.Graph): model.Graph {
-  const nodes: model.Node[] = Object.entries(obj.nodes).map(
-    ([key, value]) => nodeFromProtobuf(key, value),
+  const nodes: model.Node[] = Object.entries(obj.nodes).map(([key, value]) =>
+    nodeFromProtobuf(key, value),
   );
-  const edges: model.Edge[] = Object.entries(obj.edges).map(
-    ([key, value]) => edgeFromProtobuf(key, value),
+  const edges: model.Edge[] = Object.entries(obj.edges).map(([key, value]) =>
+    edgeFromProtobuf(key, value),
   );
   const analysts: model.Analyst[] = Object.entries(obj.analysts).map(
     ([key, value]) =>
