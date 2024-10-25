@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.10.0...v1.10.1) (2024-10-25)
+
+
+### Bug Fixes
+
+* apply eslint suggestiont to improve code quality ([b913131](https://github.com/recap-utr/arguebuf-typescript/commit/b9131315f73d328de32a901c387c08e17d28680d))
+* type errors with new eslint config ([8242cff](https://github.com/recap-utr/arguebuf-typescript/commit/8242cff36b3167176dd8091e2403135e58099c82))
+
 ## [1.10.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.9.0...v1.10.0) (2024-09-09)
 
 
