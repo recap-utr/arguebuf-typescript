@@ -56,14 +56,6 @@
                 inherit (pkgs.importNpmLock) npmConfigHook;
 
                 src = ./.;
-                installPhase = ''
-                  runHook preInstall
-
-                  mkdir -p $out
-                  cp -r dist/. $out
-
-                  runHook postInstall
-                '';
                 checkPhase = ''
                   runHook preCheck
 
