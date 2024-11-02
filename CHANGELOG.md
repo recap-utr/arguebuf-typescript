@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.10.1...v1.10.2) (2024-11-02)
+
+
+### Bug Fixes
+
+* replace JsonObject and JsonValue with unknown ([dcb888b](https://github.com/recap-utr/arguebuf-typescript/commit/dcb888ba61cd289a365e4677fc5a629d4af6945e))
+* use correct types for protobuf dumps ([8a3f21b](https://github.com/recap-utr/arguebuf-typescript/commit/8a3f21b0eaf64ab194f6702075a4c497b2520fb8))
+
 ## [1.10.1](https://github.com/recap-utr/arguebuf-typescript/compare/v1.10.0...v1.10.1) (2024-10-25)
 
 
