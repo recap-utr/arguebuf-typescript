@@ -1,4 +1,4 @@
-import { Struct } from "@bufbuild/protobuf";
+import { JsonValue, Struct } from "@bufbuild/protobuf";
 import { version as libraryVersion } from "arg-services";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
@@ -12,7 +12,7 @@ function edgeToProtobuf(edge: model.EdgeInterface): pb.Edge {
       created: date.toProtobuf(edge.metadata.created),
       updated: date.toProtobuf(edge.metadata.updated),
     }),
-    userdata: Struct.fromJson(edge.userdata),
+    userdata: Struct.fromJson(edge.userdata as JsonValue),
   });
 }
 
@@ -23,7 +23,7 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
         created: date.toProtobuf(node.metadata.created),
         updated: date.toProtobuf(node.metadata.updated),
       }),
-      userdata: Struct.fromJson(node.userdata),
+      userdata: Struct.fromJson(node.userdata as JsonValue),
       type: {
         value: new pb.Atom({
           text: node.text,
@@ -45,7 +45,7 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
         created: date.toProtobuf(node.metadata.created),
         updated: date.toProtobuf(node.metadata.updated),
       }),
-      userdata: Struct.fromJson(node.userdata),
+      userdata: Struct.fromJson(node.userdata as JsonValue),
       type: {
         value: new pb.Scheme({
           premiseDescriptors: node.premise_descriptors,
@@ -64,6 +64,16 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
   const nodes: Record<string, pb.Node> = Object.fromEntries(
     Object.values(graph.nodes).map((n) => [n.id, nodeToProtobuf(n)]),
   );
+  const analysts: Record<string, pb.Analyst> = Object.fromEntries(
+    Object.entries(graph.analysts).map(([key, value]) => [
+      key,
+      new pb.Analyst({
+        name: value.name,
+        email: value.email,
+        userdata: Struct.fromJson(value.userdata as JsonValue),
+      }),
+    ]),
+  );
   const participants: Record<string, pb.Participant> = Object.fromEntries(
     Object.entries(graph.participants).map(([key, value]) => [
       key,
@@ -77,7 +87,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
           updated: date.toProtobuf(value.metadata.updated),
         }),
         url: value.url,
-        userdata: Struct.fromJson(value.userdata),
+        userdata: Struct.fromJson(value.userdata as JsonValue),
         username: value.username,
       }),
     ]),
@@ -97,7 +107,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
           created: date.toProtobuf(value.metadata.created),
           updated: date.toProtobuf(value.metadata.updated),
         }),
-        userdata: Struct.fromJson(value.userdata),
+        userdata: Struct.fromJson(value.userdata as JsonValue),
       }),
     ]),
   );
@@ -105,14 +115,14 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
     nodes: nodes,
     edges: edges,
     schemaVersion: 1,
-    analysts: graph.analysts,
+    analysts: analysts,
     libraryVersion: libraryVersion,
     majorClaim: graph.majorClaim,
     metadata: new pb.Metadata({
       created: date.toProtobuf(graph.metadata.created),
       updated: date.toProtobuf(graph.metadata.updated),
     }),
-    userdata: Struct.fromJson(graph.userdata),
+    userdata: Struct.fromJson(graph.userdata as JsonValue),
     participants: participants,
     resources: resources,
   });
