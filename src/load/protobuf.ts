@@ -1,6 +1,5 @@
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
-import type { JsonObject } from "../model";
 import * as model from "../model/index.js";
 
 function metadataFromProtobuf(obj?: pb.Metadata): model.Metadata | undefined {
@@ -28,7 +27,7 @@ function nodeFromProtobuf(id: string, obj: pb.Node): model.Node {
       id: id,
       text: obj.type.value.text,
       metadata: metadataFromProtobuf(obj.metadata),
-      userdata: obj.userdata?.toJson() as JsonObject,
+      userdata: obj.userdata?.toJson(),
       participant: obj.type.value.participant,
       reference: obj.type.value.reference
         ? new model.Reference({
@@ -42,7 +41,7 @@ function nodeFromProtobuf(id: string, obj: pb.Node): model.Node {
     return new model.SchemeNode({
       id: id,
       metadata: metadataFromProtobuf(obj.metadata),
-      userdata: obj.userdata?.toJson() as JsonObject,
+      userdata: obj.userdata?.toJson(),
       premise_descriptors: obj.type.value?.premiseDescriptors,
       scheme: obj.type.value?.type,
     });
@@ -62,7 +61,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         id: key,
         email: value.email,
         name: value.name,
-        userdata: value.userdata?.toJson() as JsonObject,
+        userdata: value.userdata?.toJson(),
       }),
   );
   const resources: model.Resource[] = Object.entries(obj.resources).map(
@@ -74,7 +73,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         metadata: metadataFromProtobuf(value.metadata),
         timestamp: date.fromProtobuf(value.timestamp),
         title: value.title,
-        userdata: value.userdata?.toJson() as JsonObject,
+        userdata: value.userdata?.toJson(),
       }),
   );
   const participants: model.Participant[] = Object.entries(
@@ -90,7 +89,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         url: value.url,
         username: value.username,
         metadata: metadataFromProtobuf(value.metadata),
-        userdata: value.userdata?.toJson() as JsonObject,
+        userdata: value.userdata?.toJson(),
       }),
   );
   return new model.Graph({
@@ -98,7 +97,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
     edges: edges,
     analysts: analysts,
     majorClaim: obj.majorClaim,
-    userdata: obj.userdata?.toJson() as JsonObject,
+    userdata: obj.userdata?.toJson(),
     resources: resources,
     metadata: metadataFromProtobuf(obj.metadata),
     participants: participants,

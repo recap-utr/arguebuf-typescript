@@ -1,4 +1,2 @@
-import type { JsonObject } from "../model";
-
-export type Userdata = JsonObject;
-export type UserdataInterface = JsonObject;
+export type Userdata = unknown;
+export type UserdataInterface = unknown;

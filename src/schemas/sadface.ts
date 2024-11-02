@@ -1,5 +1,3 @@
-import type { JsonObject } from "../model";
-
 export interface Graph {
   nodes: Node[];
   edges: Edge[];
@@ -16,7 +14,7 @@ export type Node = AtomNode | SchemeNode;
 
 export interface AtomNode {
   id: string;
-  metadata: JsonObject;
+  metadata: unknown;
   sources: unknown[];
   text: string;
   type: "atom";
@@ -26,7 +24,7 @@ export const DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss";
 
 export interface SchemeNode {
   id: string;
-  metadata: JsonObject;
+  metadata: unknown;
   name: string;
   type: "scheme";
 }
