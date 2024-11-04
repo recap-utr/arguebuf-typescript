@@ -12,8 +12,8 @@ export interface Node {
   text: string;
   type: NodeType;
   scheme: string;
-  descriptors: { [key in string]: number };
-  cqdesc: { [key in string]: unknown };
+  descriptors: Record<string, number>;
+  cqdesc: Record<string, unknown>;
   visible: boolean;
   participantID: string;
   w: number;

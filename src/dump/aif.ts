@@ -2,7 +2,7 @@ import * as date from "../date.js";
 import * as model from "../model/index.js";
 import * as aifSchema from "../schemas/aif.js";
 
-const scheme2aif: { [key in model.SchemeType]: aifSchema.SchemeType } = {
+const scheme2aif: Record<model.SchemeType, aifSchema.SchemeType> = {
   support: "RA",
   attack: "CA",
   rephrase: "MA",

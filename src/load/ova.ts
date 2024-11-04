@@ -354,7 +354,7 @@ function atomFromOva(obj: ovaSchema.Node): model.AtomNode {
 
 function edgeFromOva(
   obj: ovaSchema.Edge,
-  nodes: { [key in string]: model.Node },
+  nodes: Record<string, model.Node>,
 ): model.Edge | undefined {
   const source_id = obj.from.id;
   const target_id = obj.to.id;
