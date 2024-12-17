@@ -1,5 +1,5 @@
-import { JsonValue } from "@bufbuild/protobuf";
-import * as protoModel from "arg-services/graph/v1/graph_pb";
+import { fromJson } from "@bufbuild/protobuf";
+import { type GraphJson, GraphSchema } from "arg-services/graph/v1/graph_pb";
 import * as model from "../model/index.js";
 import * as schemas from "../schemas/index.js";
 import { aif as loadAif } from "./aif.js";
@@ -10,5 +10,5 @@ export function json(graph: unknown): model.Graph {
     return loadAif(graph as schemas.aif.Graph);
   }
 
-  return loadProtobuf(protoModel.Graph.fromJson(graph as JsonValue));
+  return loadProtobuf(fromJson(GraphSchema, graph as GraphJson));
 }

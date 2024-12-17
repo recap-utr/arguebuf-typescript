@@ -1,35 +1,35 @@
-import { JsonValue, Struct } from "@bufbuild/protobuf";
+import { create, type JsonObject } from "@bufbuild/protobuf";
 import { version as libraryVersion } from "arg-services";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
 import * as model from "../model/index.js";
 
 function edgeToProtobuf(edge: model.EdgeInterface): pb.Edge {
-  return new pb.Edge({
+  return create(pb.EdgeSchema, {
     source: edge.source,
     target: edge.target,
-    metadata: new pb.Metadata({
+    metadata: create(pb.MetadataSchema, {
       created: date.toProtobuf(edge.metadata.created),
       updated: date.toProtobuf(edge.metadata.updated),
     }),
-    userdata: Struct.fromJson(edge.userdata as JsonValue),
+    userdata: edge.userdata as JsonObject,
   });
 }
 
 function nodeToProtobuf(node: model.NodeInterface): pb.Node {
   if (node.type === "atom") {
-    return new pb.Node({
-      metadata: new pb.Metadata({
+    return create(pb.NodeSchema, {
+      metadata: create(pb.MetadataSchema, {
         created: date.toProtobuf(node.metadata.created),
         updated: date.toProtobuf(node.metadata.updated),
       }),
-      userdata: Struct.fromJson(node.userdata as JsonValue),
+      userdata: node.userdata as JsonObject,
       type: {
-        value: new pb.Atom({
+        value: create(pb.AtomSchema, {
           text: node.text,
           participant: node.participant,
           reference: node.reference
-            ? new pb.Reference({
+            ? create(pb.ReferenceSchema, {
                 offset: node.reference.offset,
                 resource: node.reference.resource,
                 text: node.reference.text,
@@ -40,14 +40,14 @@ function nodeToProtobuf(node: model.NodeInterface): pb.Node {
       },
     });
   } else {
-    return new pb.Node({
-      metadata: new pb.Metadata({
+    return create(pb.NodeSchema, {
+      metadata: create(pb.MetadataSchema, {
         created: date.toProtobuf(node.metadata.created),
         updated: date.toProtobuf(node.metadata.updated),
       }),
-      userdata: Struct.fromJson(node.userdata as JsonValue),
+      userdata: node.userdata as JsonObject,
       type: {
-        value: new pb.Scheme({
+        value: create(pb.SchemeSchema, {
           premiseDescriptors: node.premise_descriptors,
           type: node.scheme,
         }),
@@ -67,27 +67,27 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
   const analysts: Record<string, pb.Analyst> = Object.fromEntries(
     Object.entries(graph.analysts).map(([key, value]) => [
       key,
-      new pb.Analyst({
+      create(pb.AnalystSchema, {
         name: value.name,
         email: value.email,
-        userdata: Struct.fromJson(value.userdata as JsonValue),
+        userdata: value.userdata as JsonObject,
       }),
     ]),
   );
   const participants: Record<string, pb.Participant> = Object.fromEntries(
     Object.entries(graph.participants).map(([key, value]) => [
       key,
-      new pb.Participant({
+      create(pb.ParticipantSchema, {
         name: value.name,
         description: value.description,
         email: value.email,
         location: value.location,
-        metadata: new pb.Metadata({
+        metadata: create(pb.MetadataSchema, {
           created: date.toProtobuf(value.metadata.created),
           updated: date.toProtobuf(value.metadata.updated),
         }),
         url: value.url,
-        userdata: Struct.fromJson(value.userdata as JsonValue),
+        userdata: value.userdata as JsonObject,
         username: value.username,
       }),
     ]),
@@ -95,7 +95,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
   const resources: Record<string, pb.Resource> = Object.fromEntries(
     Object.entries(graph.resources).map(([key, value]) => [
       key,
-      new pb.Resource({
+      create(pb.ResourceSchema, {
         source: value.source,
         text: value.text,
         timestamp:
@@ -103,26 +103,26 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
             ? undefined
             : date.toProtobuf(value.timestamp),
         title: value.title,
-        metadata: new pb.Metadata({
+        metadata: create(pb.MetadataSchema, {
           created: date.toProtobuf(value.metadata.created),
           updated: date.toProtobuf(value.metadata.updated),
         }),
-        userdata: Struct.fromJson(value.userdata as JsonValue),
+        userdata: value.userdata as JsonObject,
       }),
     ]),
   );
-  return new pb.Graph({
+  return create(pb.GraphSchema, {
     nodes: nodes,
     edges: edges,
     schemaVersion: 1,
     analysts: analysts,
     libraryVersion: libraryVersion,
     majorClaim: graph.majorClaim,
-    metadata: new pb.Metadata({
+    metadata: create(pb.MetadataSchema, {
       created: date.toProtobuf(graph.metadata.created),
       updated: date.toProtobuf(graph.metadata.updated),
     }),
-    userdata: Struct.fromJson(graph.userdata as JsonValue),
+    userdata: graph.userdata as JsonObject,
     participants: participants,
     resources: resources,
   });

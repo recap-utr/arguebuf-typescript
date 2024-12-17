@@ -13,7 +13,7 @@
     "lint": "eslint ./src"
   },
   "dependencies": {
-    "arg-services": "^3",
+    "arg-services": "^4",
     "dayjs": "^1",
     "immer": "^10"
   },

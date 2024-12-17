@@ -1,4 +1,8 @@
-import { Timestamp } from "@bufbuild/protobuf";
+import {
+  type Timestamp,
+  timestampDate,
+  timestampFromDate,
+} from "@bufbuild/protobuf/wkt";
 import dayjs from "dayjs";
 
 export type DateType = Date;
@@ -17,14 +21,14 @@ export function format(data: DateType, format: string): string {
 
 export function fromProtobuf(timestamp: Timestamp | undefined): DateType {
   if (timestamp !== undefined) {
-    return timestamp.toDate();
+    return timestampDate(timestamp);
   }
 
   return now();
 }
 
 export function toProtobuf(date: DateType): Timestamp {
-  return Timestamp.fromDate(date);
+  return timestampFromDate(date);
 }
 
 export function dateFromJSON(value: string): DateType {
