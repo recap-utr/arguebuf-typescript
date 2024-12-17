@@ -91,7 +91,6 @@
           devShells.default = pkgs.mkShell {
             shellHook = ''
               ${lib.getExe' pkgs.nodejs "npm"} install
-              ${lib.getExe pkgs.nodejs} --version > .node-version
               ${lib.getExe config.packages.link-arguebase}
             '';
             packages = with pkgs; [ nodejs ];
