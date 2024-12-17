@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.10.2...v2.0.0) (2024-12-17)
+
+### ⚠ BREAKING CHANGES
+
+* migrate to arg-services v4
+
+### Features
+
+* migrate to arg-services v4 ([ab083fb](https://github.com/recap-utr/arguebuf-typescript/commit/ab083fb07b5c9dc1e979b52de99d93ec01f1f0fc))
+
 ## [1.10.2](https://github.com/recap-utr/arguebuf-typescript/compare/v1.10.1...v1.10.2) (2024-11-02)
 
 
