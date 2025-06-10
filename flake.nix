@@ -8,6 +8,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
+  nixConfig = {
+    extra-substituters = [
+      "https://recap.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "recap.cachix.org-1:KElwRDtaJbbQxmmS2SyxWHqs9bdJbaZHzb2iINTfQws="
+    ];
+  };
   outputs =
     inputs@{
       flake-parts,
