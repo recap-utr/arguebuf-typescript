@@ -15,7 +15,7 @@
   "dependencies": {
     "arg-services": "^4",
     "dayjs": "^1",
-    "immer": "^10"
+    "immer": "^11.0.0"
   },
   "devDependencies": {
     "@argdown/core": "^1",
