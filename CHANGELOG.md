@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1](https://github.com/recap-utr/arguebuf-typescript/compare/v2.0.0...v2.0.1) (2026-05-30)
+
+### Bug Fixes
+
+* **deps/npm:** update ([e759101](https://github.com/recap-utr/arguebuf-typescript/commit/e75910146d908e13851ed47422c96712fad3b97a))
+
 ## [2.0.0](https://github.com/recap-utr/arguebuf-typescript/compare/v1.10.2...v2.0.0) (2024-12-17)
 
 ### ⚠ BREAKING CHANGES
