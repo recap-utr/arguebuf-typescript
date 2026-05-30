@@ -15,23 +15,23 @@
   "dependencies": {
     "arg-services": "^4",
     "dayjs": "^1",
-    "immer": "^10"
+    "immer": "^11"
   },
   "devDependencies": {
-    "@argdown/core": "^1",
-    "@eslint/js": "^9",
-    "@types/node": "^24",
+    "@argdown/core": "^2",
+    "@eslint/js": "^10",
+    "@types/node": "^25",
     "@vitest/coverage-v8": "^4",
-    "eslint": "^9",
+    "eslint": "^10",
     "typescript-eslint": "^8",
-    "typescript": "^5",
-    "vite-plugin-checker": "^0.11",
-    "vite-plugin-dts": "^4",
-    "vite": "^7",
+    "typescript": "^6",
+    "vite-plugin-checker": "^0.14",
+    "vite-plugin-dts": "^5",
+    "vite": "^8",
     "vitest": "^4"
   },
   "optionalDependencies": {
-    "@argdown/core": "^1"
+    "@argdown/core": "^2"
   },
   "files": [
     "dist"
