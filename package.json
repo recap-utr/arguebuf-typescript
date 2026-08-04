@@ -1,7 +1,21 @@
 {
   "name": "arguebuf",
   "version": "2.0.1",
+  "repository": "github:recap-utr/arguebuf-typescript",
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -20,31 +34,17 @@
   "devDependencies": {
     "@argdown/core": "^2",
     "@eslint/js": "^10",
-    "@types/node": "^25",
+    "@types/node": "^26",
     "@vitest/coverage-v8": "^4",
     "eslint": "^10",
-    "typescript-eslint": "^8",
     "typescript": "^6",
+    "typescript-eslint": "^8",
+    "vite": "^8",
     "vite-plugin-checker": "^0.14",
     "vite-plugin-dts": "^5",
-    "vite": "^8",
     "vitest": "^4"
   },
   "optionalDependencies": {
     "@argdown/core": "^2"
-  },
-  "files": [
-    "dist"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
-  "repository": "github:recap-utr/arguebuf-typescript"
+  }
 }
