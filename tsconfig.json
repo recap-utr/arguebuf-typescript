@@ -6,6 +6,11 @@
     "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
 
+    // Declarations are emitted relative to this. Without it, unplugin-dts falls
+    // back to the tsconfig directory on TypeScript 6 and writes them to
+    // dist/src, where the dist/index.d.ts that `exports` points at never appears.
+    "rootDir": "src",
+
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
