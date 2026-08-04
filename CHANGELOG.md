@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.2](https://github.com/recap-utr/arguebuf-typescript/compare/v2.0.1...v2.0.2) (2026-08-04)
+
+### Bug Fixes
+
+* **build:** properly package type definitions ([794bb18](https://github.com/recap-utr/arguebuf-typescript/commit/794bb18cc7c6f5846e52cf24b003e7fff73fa466))
+
 ## [2.0.1](https://github.com/recap-utr/arguebuf-typescript/compare/v2.0.0...v2.0.1) (2026-05-30)
 
 ### Bug Fixes
