@@ -35,7 +35,7 @@
     "@argdown/core": "^2",
     "@eslint/js": "^10",
     "@types/node": "^26",
-    "@vitest/coverage-v8": "^4",
+    "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^10",
     "typescript": "^6",
     "typescript-eslint": "^8",
