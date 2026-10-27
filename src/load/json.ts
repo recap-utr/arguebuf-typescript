@@ -1,15 +1,15 @@
 import { fromJson } from "@bufbuild/protobuf";
 import { type GraphJson, GraphSchema } from "arg-services/graph/v1/graph_pb";
-import type * as model from "../model/index.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import type * as schemas from "../schemas/index.js";
-import { aif } from "./aif.js";
-import { argdown } from "./argdown.js";
-import * as helpers from "./helpers.js";
-import { ova } from "./ova.js";
-import { protobuf } from "./protobuf.js";
-import { sadface } from "./sadface.js";
-import { xaif } from "./xaif.js";
+import type * as model from "#/model/index.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import type * as schemas from "#/schemas/index.js";
+import { aif } from "#/load/aif.js";
+import { argdown } from "#/load/argdown.js";
+import * as helpers from "#/load/helpers.js";
+import { ova } from "#/load/ova.js";
+import { protobuf } from "#/load/protobuf.js";
+import { sadface } from "#/load/sadface.js";
+import { xaif } from "#/load/xaif.js";
 
 /** JSON objects of the supported formats. */
 export type JsonGraph =

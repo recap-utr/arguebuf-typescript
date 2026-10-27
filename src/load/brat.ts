@@ -1,7 +1,7 @@
-import * as model from "../model/index.js";
-import { defaultScheme } from "../model/scheme.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
+import * as model from "#/model/index.js";
+import { defaultScheme } from "#/model/scheme.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
 
 const relation2scheme: Readonly<Record<string, model.SchemeType>> = {
   supports: "support",

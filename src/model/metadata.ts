@@ -1,6 +1,6 @@
 import { immerable } from "immer";
 import type { Temporal } from "temporal-polyfill";
-import { now } from "../date.js";
+import { now } from "#/date.js";
 
 export interface MetadataInit {
   created?: Temporal.Instant;

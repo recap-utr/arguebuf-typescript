@@ -1,11 +1,11 @@
 import { immerable } from "immer";
-import { Metadata } from "./metadata.js";
+import { Metadata } from "#/model/metadata.js";
 import {
   initUserdata,
   type Userdata,
   type UserdataInit,
   type UserdataSchema,
-} from "./userdata.js";
+} from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
 export type EdgeInit<S extends UserdataSchema = {}> = {

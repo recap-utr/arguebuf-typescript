@@ -1,16 +1,16 @@
 import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
-import * as date from "../date.js";
+import * as date from "#/date.js";
 import type { JsonObject } from "@bufbuild/protobuf";
-import type * as model from "../model/index.js";
+import type * as model from "#/model/index.js";
 import {
   type Codec,
   type CodecArgs,
   type ResolvedCodecs,
   resolveCodecs,
   type UserdataSchema,
-} from "../model/userdata.js";
-import pkg from "../../package.json" with { type: "json" };
+} from "#/model/userdata.js";
+import pkg from "arguebuf/package.json" with { type: "json" };
 
 const LIBRARY_VERSION = `arguebuf-typescript:${pkg.version}`;
 const SCHEMA_VERSION = 1;

@@ -5,7 +5,7 @@ import {
   type Scheme as ProtobufScheme,
   Support,
 } from "arg-services/graph/v1/graph_pb";
-import type * as aif from "../schemas/aif.js";
+import type * as aif from "#/schemas/aif.js";
 
 export { Attack, Preference, Rephrase, Support };
 

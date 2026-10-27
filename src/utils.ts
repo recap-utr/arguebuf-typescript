@@ -9,8 +9,8 @@ import {
   Reference,
   Resource,
   SchemeNode,
-} from "./model/index.js";
-import type { UserdataSchema } from "./model/userdata.js";
+} from "#/model/index.js";
+import type { UserdataSchema } from "#/model/userdata.js";
 
 function copyMetadata(metadata: Metadata): Metadata {
   return new Metadata({ created: metadata.created, updated: metadata.updated });

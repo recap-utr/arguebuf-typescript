@@ -1,9 +1,9 @@
 import { Temporal } from "temporal-polyfill";
 import { assertType, expect, test } from "vitest";
-import aifGraph from "../data/arguebase/microtexts/format=aif,lang=en/nodeset6361.json" with { type: "json" };
-import * as arguebuf from "../src/index.js";
-import original from "../data/dialog-original.json" with { type: "json" };
-import reconstructed from "../data/dialog-reconstructed.json" with { type: "json" };
+import aifGraph from "#data/arguebase/microtexts/format=aif,lang=en/nodeset6361.json" with { type: "json" };
+import * as arguebuf from "#/index.js";
+import original from "#data/dialog-original.json" with { type: "json" };
+import reconstructed from "#data/dialog-reconstructed.json" with { type: "json" };
 
 test("graph: aif2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.aif(aifGraph as arguebuf.schemas.aif.Graph);

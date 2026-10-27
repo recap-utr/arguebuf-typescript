@@ -1,6 +1,6 @@
 import { applyPatches, enablePatches, produce, produceWithPatches } from "immer";
 import { expect, test } from "vitest";
-import * as arguebuf from "../src/index.js";
+import * as arguebuf from "#/index.js";
 
 type Custom = { atom: { label: string; embedding?: Float32Array } };
 

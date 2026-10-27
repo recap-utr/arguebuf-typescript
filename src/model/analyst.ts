@@ -5,7 +5,7 @@ import {
   type Userdata,
   type UserdataInit,
   type UserdataSchema,
-} from "./userdata.js";
+} from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
 export type AnalystInit<S extends UserdataSchema = {}> = {

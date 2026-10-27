@@ -1,9 +1,9 @@
-import * as model from "../model/index.js";
-import type * as xaifSchema from "../schemas/xaif.js";
-import { aif } from "./aif.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
-import { parseHtml } from "./html.js";
+import * as model from "#/model/index.js";
+import type * as xaifSchema from "#/schemas/xaif.js";
+import { aif } from "#/load/aif.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
+import { parseHtml } from "#/load/html.js";
 
 /**
  * Load a graph from the xAIF format.

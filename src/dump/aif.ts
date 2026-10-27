@@ -1,8 +1,8 @@
-import * as date from "../date.js";
-import * as model from "../model/index.js";
-import { isDefaultScheme, schemeValueLabel } from "../model/scheme.js";
-import type * as aifSchema from "../schemas/aif.js";
-import type { UserdataSchema } from "../model/userdata.js";
+import * as date from "#/date.js";
+import * as model from "#/model/index.js";
+import { isDefaultScheme, schemeValueLabel } from "#/model/scheme.js";
+import type * as aifSchema from "#/schemas/aif.js";
+import type { UserdataSchema } from "#/model/userdata.js";
 
 /** Export a graph to the AIF format, without locutions. */
 export function aif<S extends UserdataSchema>(obj: model.Graph<S>): aifSchema.Graph {

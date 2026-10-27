@@ -1,6 +1,6 @@
 import { assertType, expect, test } from "vitest";
-import xaifGraph from "../data/xaif.json" with { type: "json" };
-import * as arguebuf from "../src/index.js";
+import xaifGraph from "#data/xaif.json" with { type: "json" };
+import * as arguebuf from "#/index.js";
 
 test("graph: xaif2arguebuf", () => {
   const arguebufGraph: arguebuf.Graph = arguebuf.load.xaif(

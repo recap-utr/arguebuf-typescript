@@ -1,14 +1,14 @@
 import { immerable } from "immer";
-import { Metadata } from "./metadata.js";
-import type { Reference } from "./reference.js";
-import { type Scheme, type SchemeType, schemeLabel } from "./scheme.js";
+import { Metadata } from "#/model/metadata.js";
+import type { Reference } from "#/model/reference.js";
+import { type Scheme, type SchemeType, schemeLabel } from "#/model/scheme.js";
 import {
   initUserdata,
   type Userdata,
   type OptionalInit,
   type UserdataInit,
   type UserdataSchema,
-} from "./userdata.js";
+} from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
 export interface Color {

@@ -1,7 +1,7 @@
 import type { GraphJson } from "arg-services/graph/v1/graph_pb";
 import { expect, expectTypeOf, test } from "vitest";
 import * as z from "zod";
-import * as arguebuf from "../src/index.js";
+import * as arguebuf from "#/index.js";
 
 interface AtomData {
   label: string;

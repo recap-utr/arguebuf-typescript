@@ -1,10 +1,10 @@
 // Regression tests for the format loaders and dumpers, mirroring tests/test_formats.py of arguebuf-python.
 import { Temporal } from "temporal-polyfill";
 import { expect, test, vi } from "vitest";
-import { dumpGraphology } from "../src/graphology.js";
-import * as arguebuf from "../src/index.js";
-import { newReference, stringId } from "../src/load/helpers.js";
-import { parseHtml } from "../src/load/html.js";
+import { dumpGraphology } from "#/graphology.js";
+import * as arguebuf from "#/index.js";
+import { newReference, stringId } from "#/load/helpers.js";
+import { parseHtml } from "#/load/html.js";
 
 const KIALO = `Discussion Title: Title
 

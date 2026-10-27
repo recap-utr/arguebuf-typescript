@@ -3,7 +3,7 @@ import * as pb from "arg-services/graph/v1/graph_pb";
 import { produce } from "immer";
 import { Temporal } from "temporal-polyfill";
 import { expect, test, vi } from "vitest";
-import * as arguebuf from "../src/index.js";
+import * as arguebuf from "#/index.js";
 
 function sampleGraph() {
   const resource = new arguebuf.Resource({ id: "r", text: "Resource" });

@@ -1,13 +1,13 @@
 // Shared helpers for loaders that skip dangling data with a warning.
 import type { JsonObject } from "@bufbuild/protobuf";
-import * as model from "../model/index.js";
+import * as model from "#/model/index.js";
 import {
   type CodecArgs,
   type ResolvedCodecs,
   resolveCodecs,
   type UserdataSchema,
-} from "../model/userdata.js";
-import type * as argdownSchema from "../schemas/argdown.js";
+} from "#/model/userdata.js";
+import type * as argdownSchema from "#/schemas/argdown.js";
 
 /**
  * Options accepted by all loaders, together with the `codecs` of `CodecArgs`.

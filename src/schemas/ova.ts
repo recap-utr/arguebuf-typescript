@@ -1,4 +1,4 @@
-import type { NodeType } from "./aif.js";
+import type { NodeType } from "#/schemas/aif.js";
 
 export interface Node {
   id: number;

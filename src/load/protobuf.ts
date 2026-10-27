@@ -1,9 +1,9 @@
 import type * as pb from "arg-services/graph/v1/graph_pb";
-import * as date from "../date.js";
-import * as model from "../model/index.js";
-import { isKnownScheme } from "../model/scheme.js";
-import type { ResolvedCodecs, UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
+import * as date from "#/date.js";
+import * as model from "#/model/index.js";
+import { isKnownScheme } from "#/model/scheme.js";
+import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
 
 function metadataFromProtobuf(obj: pb.Metadata | undefined): model.Metadata {
   return new model.Metadata({

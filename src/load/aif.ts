@@ -1,9 +1,9 @@
-import * as date from "../date.js";
-import * as model from "../model/index.js";
-import { defaultScheme, isAifSchemeType } from "../model/scheme.js";
-import * as aifSchema from "../schemas/aif.js";
-import type { ResolvedCodecs, UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
+import * as date from "#/date.js";
+import * as model from "#/model/index.js";
+import { defaultScheme, isAifSchemeType } from "#/model/scheme.js";
+import * as aifSchema from "#/schemas/aif.js";
+import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
 
 /**
  * Load a graph from the AIF format.

@@ -1,12 +1,12 @@
 import { immerable } from "immer";
 import type { Temporal } from "temporal-polyfill";
-import { Metadata } from "./metadata.js";
+import { Metadata } from "#/model/metadata.js";
 import {
   initUserdata,
   type Userdata,
   type UserdataInit,
   type UserdataSchema,
-} from "./userdata.js";
+} from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
 export type ResourceInit<S extends UserdataSchema = {}> = {

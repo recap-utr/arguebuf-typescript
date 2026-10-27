@@ -1,4 +1,4 @@
-import type { Graph as AifGraph, Id } from "./aif.js";
+import type { Graph as AifGraph, Id } from "#/schemas/aif.js";
 
 export interface SchemeFulfillment {
   nodeID: Id;

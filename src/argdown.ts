@@ -7,10 +7,10 @@ import {
   stringifyArgdownData,
 } from "@argdown/core";
 import type { JsonValue } from "@bufbuild/protobuf";
-import { argdown } from "./load/argdown.js";
-import { isArgdown, type LoadArgs } from "./load/helpers.js";
-import type { Graph } from "./model/index.js";
-import type { UserdataSchema } from "./model/userdata.js";
+import { argdown } from "#/load/argdown.js";
+import { isArgdown, type LoadArgs } from "#/load/helpers.js";
+import type { Graph } from "#/model/index.js";
+import type { UserdataSchema } from "#/model/userdata.js";
 
 const app = new ArgdownApplication();
 app.addPlugin(new ParserPlugin(), "parse-input");

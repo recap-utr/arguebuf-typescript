@@ -1,9 +1,9 @@
-import * as date from "../date.js";
-import * as model from "../model/index.js";
-import { defaultScheme, normalizeSchemeLabel } from "../model/scheme.js";
-import type * as sadfaceSchema from "../schemas/sadface.js";
-import type { ResolvedCodecs, UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
+import * as date from "#/date.js";
+import * as model from "#/model/index.js";
+import { defaultScheme, normalizeSchemeLabel } from "#/model/scheme.js";
+import type * as sadfaceSchema from "#/schemas/sadface.js";
+import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
 
 // names of generic `scheme` nodes that denote a scheme type instead of a specific scheme
 const name2schemeType: ReadonlyMap<string, model.SchemeType> = new Map([

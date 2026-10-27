@@ -1,6 +1,6 @@
-import type * as model from "../model/index.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import type { D2Options } from "./d2.js";
+import type * as model from "#/model/index.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import type { D2Options } from "#/dump/d2.js";
 
 /** Graphviz `splines`: bezier curves, straight lines, or orthogonal steps. */
 export type EdgeStyle = "curved" | "line" | "ortho";

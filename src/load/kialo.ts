@@ -1,7 +1,7 @@
-import * as model from "../model/index.js";
-import { defaultScheme } from "../model/scheme.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
+import * as model from "#/model/index.js";
+import { defaultScheme } from "#/model/scheme.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
 
 // Example: 1.1. Pro: Gold is better than silver.
 // Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}

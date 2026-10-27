@@ -1,7 +1,7 @@
 // the default export of graphology is mistyped, so only named imports are used
 import { DirectedGraph } from "graphology";
-import type { AtomNode, Edge, Graph, SchemeNode } from "./model/index.js";
-import type { UserdataSchema } from "./model/userdata.js";
+import type { AtomNode, Edge, Graph, SchemeNode } from "#/model/index.js";
+import type { UserdataSchema } from "#/model/userdata.js";
 
 type AttributeFunctions<T> = Readonly<Record<string, (element: T) => unknown>>;
 

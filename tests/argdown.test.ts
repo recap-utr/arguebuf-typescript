@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { loadArgdown } from "../src/argdown.js";
-import * as arguebuf from "../src/index.js";
+import { loadArgdown } from "#/argdown.js";
+import * as arguebuf from "#/index.js";
 
 type Export = arguebuf.schemas.argdown.Graph;
 

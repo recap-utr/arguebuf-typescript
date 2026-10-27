@@ -1,12 +1,12 @@
 import { toJson } from "@bufbuild/protobuf";
 import { type GraphJson, GraphSchema } from "arg-services/graph/v1/graph_pb";
-import type * as model from "../model/index.js";
-import type { CodecArgs, UserdataSchema } from "../model/userdata.js";
-import type * as aifSchema from "../schemas/aif.js";
-import type * as xaifSchema from "../schemas/xaif.js";
-import { aif } from "./aif.js";
-import { protobuf } from "./protobuf.js";
-import { xaif } from "./xaif.js";
+import type * as model from "#/model/index.js";
+import type { CodecArgs, UserdataSchema } from "#/model/userdata.js";
+import type * as aifSchema from "#/schemas/aif.js";
+import type * as xaifSchema from "#/schemas/xaif.js";
+import { aif } from "#/dump/aif.js";
+import { protobuf } from "#/dump/protobuf.js";
+import { xaif } from "#/dump/xaif.js";
 
 /** JSON objects by export format. */
 export interface Formats {

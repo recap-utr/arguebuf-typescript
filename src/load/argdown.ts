@@ -1,9 +1,9 @@
 import type { JsonObject, JsonValue } from "@bufbuild/protobuf";
-import * as model from "../model/index.js";
-import { defaultScheme } from "../model/scheme.js";
-import type * as schema from "../schemas/argdown.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
+import * as model from "#/model/index.js";
+import { defaultScheme } from "#/model/scheme.js";
+import type * as schema from "#/schemas/argdown.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
 
 // symmetric relations are added in both directions
 const relations: Readonly<Record<schema.RelationType, [model.SchemeType, boolean]>> = {

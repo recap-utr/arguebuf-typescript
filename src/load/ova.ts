@@ -1,11 +1,11 @@
-import * as date from "../date.js";
-import * as model from "../model/index.js";
-import { isAifSchemeType } from "../model/scheme.js";
-import { DIALOG_TYPES } from "../schemas/aif.js";
-import type * as ovaSchema from "../schemas/ova.js";
-import type { ResolvedCodecs, UserdataSchema } from "../model/userdata.js";
-import * as helpers from "./helpers.js";
-import { parseHtml } from "./html.js";
+import * as date from "#/date.js";
+import * as model from "#/model/index.js";
+import { isAifSchemeType } from "#/model/scheme.js";
+import { DIALOG_TYPES } from "#/schemas/aif.js";
+import type * as ovaSchema from "#/schemas/ova.js";
+import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
+import * as helpers from "#/load/helpers.js";
+import { parseHtml } from "#/load/html.js";
 
 /**
  * Load a graph from the OVA format (http://ova.uni-trier.de/).

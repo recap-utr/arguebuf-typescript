@@ -1,12 +1,12 @@
 import { immerable } from "immer";
-import { dfs } from "../traverse.js";
-import type { Analyst } from "./analyst.js";
-import { Edge } from "./edge.js";
-import { Metadata } from "./metadata.js";
-import type { AtomNode, Node, SchemeNode } from "./node.js";
-import type { Participant } from "./participant.js";
-import { Reference } from "./reference.js";
-import type { Resource } from "./resource.js";
+import { dfs } from "#/traverse.js";
+import type { Analyst } from "#/model/analyst.js";
+import { Edge } from "#/model/edge.js";
+import { Metadata } from "#/model/metadata.js";
+import type { AtomNode, Node, SchemeNode } from "#/model/node.js";
+import type { Participant } from "#/model/participant.js";
+import { Reference } from "#/model/reference.js";
+import type { Resource } from "#/model/resource.js";
 import {
   type OptionalInit,
   initUserdata,
@@ -14,7 +14,7 @@ import {
   type UserdataFactoryArgs,
   type UserdataInit,
   type UserdataSchema,
-} from "./userdata.js";
+} from "#/model/userdata.js";
 
 export type GraphInit<S extends UserdataSchema = {}> = {
   name?: string;

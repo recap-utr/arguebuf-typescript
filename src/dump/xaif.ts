@@ -1,8 +1,8 @@
-import type * as model from "../model/index.js";
-import type * as aifSchema from "../schemas/aif.js";
-import type * as xaifSchema from "../schemas/xaif.js";
-import type { UserdataSchema } from "../model/userdata.js";
-import { edgeToAif, nodeToAif } from "./aif.js";
+import type * as model from "#/model/index.js";
+import type * as aifSchema from "#/schemas/aif.js";
+import type * as xaifSchema from "#/schemas/xaif.js";
+import type { UserdataSchema } from "#/model/userdata.js";
+import { edgeToAif, nodeToAif } from "#/dump/aif.js";
 
 const escapeHtml = (text: string) =>
   text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");

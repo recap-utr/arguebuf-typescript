@@ -1,11 +1,11 @@
-export * from "./analyst.js";
-export * from "./edge.js";
-export * from "./graph.js";
-export * from "./metadata.js";
-export * from "./node.js";
-export * from "./participant.js";
-export * from "./reference.js";
-export * from "./resource.js";
+export * from "#/model/analyst.js";
+export * from "#/model/edge.js";
+export * from "#/model/graph.js";
+export * from "#/model/metadata.js";
+export * from "#/model/node.js";
+export * from "#/model/participant.js";
+export * from "#/model/reference.js";
+export * from "#/model/resource.js";
 export {
   aif2scheme,
   Attack,
@@ -19,7 +19,7 @@ export {
   scheme2aifDefault,
   type SchemeType,
   Support,
-} from "./scheme.js";
+} from "#/model/scheme.js";
 export type {
   Codec,
   CodecArgs,
@@ -29,5 +29,5 @@ export type {
   Userdata,
   UserdataKind,
   UserdataSchema,
-} from "./userdata.js";
+} from "#/model/userdata.js";
 export { uuid } from "arg-services";

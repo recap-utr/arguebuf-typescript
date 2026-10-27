@@ -1,5 +1,5 @@
-import type * as model from "../model/index.js";
-import type { UserdataSchema } from "../model/userdata.js";
+import type * as model from "#/model/index.js";
+import type { UserdataSchema } from "#/model/userdata.js";
 
 /** Options of the D2 export, shared with the Graphviz export. */
 export interface D2Options<S extends UserdataSchema = {}> {
