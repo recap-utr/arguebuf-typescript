@@ -3,12 +3,8 @@ import * as model from "../model/index.js";
 import * as aifSchema from "../schemas/aif.js";
 
 export function aif(obj: aifSchema.Graph): model.Graph {
-  const nodes = Object.fromEntries(
-    obj.nodes.map((node) => [node.nodeID, nodeFromAif(node)]),
-  );
-  const edges = Object.fromEntries(
-    obj.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)]),
-  );
+  const nodes = Object.fromEntries(obj.nodes.map((node) => [node.nodeID, nodeFromAif(node)]));
+  const edges = Object.fromEntries(obj.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)]));
 
   return new model.Graph({
     nodes,

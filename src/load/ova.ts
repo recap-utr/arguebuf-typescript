@@ -305,23 +305,18 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
         const foundScheme = text2support(ovaScheme);
         scheme = {
           case: "support",
-          value:
-            foundScheme !== undefined ? foundScheme : model.Support.DEFAULT,
+          value: foundScheme !== undefined ? foundScheme : model.Support.DEFAULT,
         };
         break;
       }
     }
 
     const premise_descriptors = Object.entries(obj.descriptors)
-      .filter(([description]) =>
-        description.toLowerCase().startsWith("s_conclusion"),
-      )
+      .filter(([description]) => description.toLowerCase().startsWith("s_conclusion"))
       .map(([, node_id]) => node_id.toString());
 
     const timestamp =
-      obj.date === undefined
-        ? date.now()
-        : date.parse(obj.date, ovaSchema.DATE_FORMAT);
+      obj.date === undefined ? date.now() : date.parse(obj.date, ovaSchema.DATE_FORMAT);
 
     return new model.SchemeNode({
       id: obj.id.toString(),
@@ -339,9 +334,7 @@ function schemeFromOva(obj: ovaSchema.Node): model.SchemeNode | undefined {
 
 function atomFromOva(obj: ovaSchema.Node): model.AtomNode {
   const timestamp =
-    obj.date === undefined
-      ? date.now()
-      : date.parse(obj.date, ovaSchema.DATE_FORMAT);
+    obj.date === undefined ? date.now() : date.parse(obj.date, ovaSchema.DATE_FORMAT);
   return new model.AtomNode({
     id: obj.id.toString(),
     text: obj.text,
@@ -359,9 +352,7 @@ function edgeFromOva(
   const source_id = obj.from.id;
   const target_id = obj.to.id;
   const timestamp =
-    obj.date === undefined
-      ? date.now()
-      : date.parse(obj.date, ovaSchema.DATE_FORMAT);
+    obj.date === undefined ? date.now() : date.parse(obj.date, ovaSchema.DATE_FORMAT);
 
   if (nodes[source_id] !== undefined && nodes[target_id] !== undefined) {
     return new model.Edge({

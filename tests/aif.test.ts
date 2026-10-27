@@ -3,9 +3,7 @@ import aifGraph from "../data/arguebase/microtexts/format=aif,lang=en/nodeset636
 import * as arguebuf from "../src/index.js";
 
 test("graph: aif2arguebuf", () => {
-  const arguebufGraph: arguebuf.Graph = arguebuf.load.aif(
-    aifGraph as arguebuf.schemas.aif.Graph,
-  );
+  const arguebufGraph: arguebuf.Graph = arguebuf.load.aif(aifGraph as arguebuf.schemas.aif.Graph);
 
   // Test some graph properties
   assertType<arguebuf.Graph>(arguebufGraph);

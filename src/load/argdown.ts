@@ -28,12 +28,7 @@ export function argdown(obj: string) {
 
   const request: IArgdownRequest = {
     input: obj,
-    process: [
-      "parse-input",
-      "build-model",
-      "preselection-plugin",
-      "map-plugin",
-    ],
+    process: ["parse-input", "build-model", "preselection-plugin", "map-plugin"],
     logLevel: "verbose",
   };
   const response = app.run(request);
@@ -92,11 +87,7 @@ function nodefromArgdown(obj: IMapNode): model.Node {
 }
 
 function inEdges(node: IMapNode, edges: IMapEdge[]): boolean {
-  return (
-    edges.find(
-      (value) => value.from.id === node.id || value.to.id === node.id,
-    ) !== undefined
-  );
+  return edges.find((value) => value.from.id === node.id || value.to.id === node.id) !== undefined;
 }
 
 function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {

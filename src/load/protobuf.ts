@@ -5,10 +5,8 @@ import * as model from "../model/index.js";
 function metadataFromProtobuf(obj?: pb.Metadata): model.Metadata | undefined {
   const timestamp = date.now();
   return new model.Metadata({
-    created:
-      obj?.created === undefined ? timestamp : date.fromProtobuf(obj?.created),
-    updated:
-      obj?.updated === undefined ? timestamp : date.fromProtobuf(obj?.updated),
+    created: obj?.created === undefined ? timestamp : date.fromProtobuf(obj?.created),
+    updated: obj?.updated === undefined ? timestamp : date.fromProtobuf(obj?.updated),
   });
 }
 
@@ -76,9 +74,7 @@ export function protobuf(obj: pb.Graph): model.Graph {
         userdata: value.userdata,
       }),
   );
-  const participants: model.Participant[] = Object.entries(
-    obj.participants,
-  ).map(
+  const participants: model.Participant[] = Object.entries(obj.participants).map(
     ([key, value]) =>
       new model.Participant({
         id: key,

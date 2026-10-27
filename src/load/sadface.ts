@@ -43,12 +43,8 @@ function nodeFromSadface(obj: sadfaceSchema.Node): model.Node {
 }
 
 export function sadface(obj: sadfaceSchema.Graph): model.Graph {
-  const nodes = Object.fromEntries(
-    obj.nodes.map((node) => [node.id, nodeFromSadface(node)]),
-  );
-  const edges = Object.fromEntries(
-    obj.edges.map((edge) => [edge.id, edgeFromSadface(edge)]),
-  );
+  const nodes = Object.fromEntries(obj.nodes.map((node) => [node.id, nodeFromSadface(node)]));
+  const edges = Object.fromEntries(obj.edges.map((edge) => [edge.id, edgeFromSadface(edge)]));
 
   const metadata = new model.Metadata({
     created:
@@ -69,13 +65,9 @@ export function sadface(obj: sadfaceSchema.Graph): model.Graph {
 
   const userdata = {
     notes: obj.metadata.core.notes === undefined ? "" : obj.metadata.core.notes,
-    description:
-      obj.metadata.core.description === undefined
-        ? ""
-        : obj.metadata.core.description,
+    description: obj.metadata.core.description === undefined ? "" : obj.metadata.core.description,
     title: obj.metadata.core.title === undefined ? "" : obj.metadata.core.title,
-    version:
-      obj.metadata.core.version === undefined ? "" : obj.metadata.core.version,
+    version: obj.metadata.core.version === undefined ? "" : obj.metadata.core.version,
   };
 
   return new model.Graph({

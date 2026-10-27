@@ -98,10 +98,7 @@ export function protobuf(graph: model.GraphInterface): pb.Graph {
       create(pb.ResourceSchema, {
         source: value.source,
         text: value.text,
-        timestamp:
-          value.timestamp === undefined
-            ? undefined
-            : date.toProtobuf(value.timestamp),
+        timestamp: value.timestamp === undefined ? undefined : date.toProtobuf(value.timestamp),
         title: value.title,
         metadata: create(pb.MetadataSchema, {
           created: date.toProtobuf(value.metadata.created),

@@ -2,12 +2,8 @@ import * as model from "../model/index.js";
 import * as xaifSchema from "../schemas/xaif.js";
 
 export function xaif(obj: xaifSchema.Graph): model.Graph {
-  const nodes = Object.fromEntries(
-    obj.AIF.nodes.map((node) => [node.nodeID, nodeFromAif(node)]),
-  );
-  const edges = Object.fromEntries(
-    obj.AIF.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)]),
-  );
+  const nodes = Object.fromEntries(obj.AIF.nodes.map((node) => [node.nodeID, nodeFromAif(node)]));
+  const edges = Object.fromEntries(obj.AIF.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)]));
   const participants = Object.fromEntries(
     obj.AIF.participants.map((participant) => [
       participant.participantID.toString(),

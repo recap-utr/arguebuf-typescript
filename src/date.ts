@@ -1,8 +1,4 @@
-import {
-  type Timestamp,
-  timestampDate,
-  timestampFromDate,
-} from "@bufbuild/protobuf/wkt";
+import { type Timestamp, timestampDate, timestampFromDate } from "@bufbuild/protobuf/wkt";
 import dayjs from "dayjs";
 
 export type DateType = Date;
