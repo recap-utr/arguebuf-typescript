@@ -1,32 +1,30 @@
 import { immerable } from "immer";
-import { Userdata, UserdataInterface } from "./userdata.js";
-import { uuid } from "./utils.js";
+import {
+  initUserdata,
+  type OptionalInit,
+  type Userdata,
+  type UserdataInit,
+  type UserdataSchema,
+} from "./userdata.js";
+import { uuid } from "arg-services";
 
-export interface AnalystConstructor {
+export type AnalystInit<S extends UserdataSchema = {}> = {
   id?: string;
   name?: string;
   email?: string;
-  userdata?: Userdata;
-}
+} & UserdataInit<Userdata<S, "analyst">>;
 
-export interface AnalystInterface {
-  id: string;
-  name?: string;
-  email?: string;
-  userdata: UserdataInterface;
-}
-
-export class Analyst implements AnalystInterface {
-  [immerable] = true;
+export class Analyst<S extends UserdataSchema = {}> {
+  static [immerable] = true;
   readonly id: string;
   name?: string;
   email?: string;
-  userdata: Userdata;
+  userdata: Userdata<S, "analyst">;
 
-  constructor(data?: AnalystConstructor) {
-    this.id = data?.id ?? uuid();
-    this.name = data?.name;
-    this.email = data?.email;
-    this.userdata = data?.userdata ?? {};
+  constructor(...[init]: OptionalInit<AnalystInit<S>>) {
+    this.id = init?.id ?? uuid();
+    this.name = init?.name;
+    this.email = init?.email;
+    this.userdata = initUserdata<Userdata<S, "analyst">>(init);
   }
 }

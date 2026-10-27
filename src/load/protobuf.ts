@@ -1,101 +1,140 @@
-import * as pb from "arg-services/graph/v1/graph_pb";
+import type * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
 import * as model from "../model/index.js";
+import { isKnownScheme } from "../model/scheme.js";
+import type { ResolvedCodecs, UserdataSchema } from "../model/userdata.js";
+import * as helpers from "./helpers.js";
 
-function metadataFromProtobuf(obj?: pb.Metadata): model.Metadata | undefined {
-  const timestamp = date.now();
+function metadataFromProtobuf(obj: pb.Metadata | undefined): model.Metadata {
   return new model.Metadata({
-    created: obj?.created === undefined ? timestamp : date.fromProtobuf(obj?.created),
-    updated: obj?.updated === undefined ? timestamp : date.fromProtobuf(obj?.updated),
+    created: date.fromProtobuf(obj?.created),
+    updated: date.fromProtobuf(obj?.updated),
   });
 }
 
-function edgeFromProtobuf(id: string, obj: pb.Edge): model.Edge {
-  return new model.Edge({
-    id: id,
-    source: obj.source,
-    target: obj.target,
-    metadata: metadataFromProtobuf(obj.metadata),
-  });
-}
+function nodeFromProtobuf<S extends UserdataSchema>(
+  id: string,
+  obj: pb.Node,
+  graph: model.Graph<S>,
+  codecs: ResolvedCodecs<S>,
+): model.Node<S> {
+  const metadata = metadataFromProtobuf(obj.metadata);
+  const userdata = obj.userdata ?? {};
 
-function nodeFromProtobuf(id: string, obj: pb.Node): model.Node {
-  if (obj.type.case === "atom") {
-    return new model.AtomNode({
-      id: id,
-      text: obj.type.value.text,
-      metadata: metadataFromProtobuf(obj.metadata),
-      userdata: obj.userdata,
-      participant: obj.type.value.participant,
-      reference: obj.type.value.reference
-        ? new model.Reference({
-            text: obj.type.value.reference.text,
-            offset: obj.type.value.reference.offset,
-            resource: obj.type.value.reference.resource,
-          })
-        : undefined,
-    });
-  } else {
-    return new model.SchemeNode({
-      id: id,
-      metadata: metadataFromProtobuf(obj.metadata),
-      userdata: obj.userdata,
-      premise_descriptors: obj.type.value?.premiseDescriptors,
-      scheme: obj.type.value?.type,
-    });
+  switch (obj.type.case) {
+    case "atom": {
+      const { text, participant, reference } = obj.type.value;
+      const owner = `atom node '${id}'`;
+
+      return new model.AtomNode<S>({
+        id,
+        text,
+        participant: helpers.lookup(graph.participants, participant, "participant", owner)?.id,
+        reference:
+          reference &&
+          helpers.newReference(
+            reference.text,
+            reference.resource,
+            reference.offset,
+            graph.resources,
+            owner,
+          ),
+        metadata,
+        userdata: codecs.atom.decode(userdata),
+      });
+    }
+    case "scheme": {
+      const scheme = obj.type.value.type;
+
+      if (!isKnownScheme(scheme)) {
+        throw new Error(`Node '${id}' has the unknown ${scheme.case} scheme ${scheme.value}.`);
+      }
+
+      return new model.SchemeNode<S>({
+        id,
+        scheme,
+        premiseDescriptors: obj.type.value.premiseDescriptors,
+        metadata,
+        userdata: codecs.scheme.decode(userdata),
+      });
+    }
+    case undefined:
+      throw new Error(`Node '${id}' is neither an atom nor a scheme.`);
   }
 }
 
-export function protobuf(obj: pb.Graph): model.Graph {
-  const nodes: model.Node[] = Object.entries(obj.nodes).map(([key, value]) =>
-    nodeFromProtobuf(key, value),
-  );
-  const edges: model.Edge[] = Object.entries(obj.edges).map(([key, value]) =>
-    edgeFromProtobuf(key, value),
-  );
-  const analysts: model.Analyst[] = Object.entries(obj.analysts).map(
-    ([key, value]) =>
-      new model.Analyst({
-        id: key,
-        email: value.email,
-        name: value.name,
-        userdata: value.userdata,
-      }),
-  );
-  const resources: model.Resource[] = Object.entries(obj.resources).map(
-    ([key, value]) =>
-      new model.Resource({
-        text: value.text,
-        id: key,
-        source: value.source,
-        metadata: metadataFromProtobuf(value.metadata),
-        timestamp: date.fromProtobuf(value.timestamp),
-        title: value.title,
-        userdata: value.userdata,
-      }),
-  );
-  const participants: model.Participant[] = Object.entries(obj.participants).map(
-    ([key, value]) =>
-      new model.Participant({
-        id: key,
-        description: value.description,
-        email: value.email,
-        location: value.location,
-        name: value.name,
-        url: value.url,
-        username: value.username,
-        metadata: metadataFromProtobuf(value.metadata),
-        userdata: value.userdata,
-      }),
-  );
-  return new model.Graph({
-    nodes: nodes,
-    edges: edges,
-    analysts: analysts,
-    majorClaim: obj.majorClaim,
-    userdata: obj.userdata,
-    resources: resources,
+/** Load a graph from a protobuf message. */
+export function protobuf<S extends UserdataSchema = {}>(
+  obj: pb.Graph,
+  ...args: helpers.LoadArgs<S>
+): model.Graph<S> {
+  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const graph = new model.Graph<S>({
+    name,
     metadata: metadataFromProtobuf(obj.metadata),
-    participants: participants,
+    userdata: codecs.graph.decode(obj.userdata ?? {}),
   });
+
+  for (const [id, resource] of Object.entries(obj.resources)) {
+    graph.addResource(
+      new model.Resource<S>({
+        id,
+        text: resource.text,
+        title: resource.title,
+        source: resource.source,
+        timestamp: date.fromProtobuf(resource.timestamp),
+        metadata: metadataFromProtobuf(resource.metadata),
+        userdata: codecs.resource.decode(resource.userdata ?? {}),
+      }),
+    );
+  }
+
+  for (const [id, participant] of Object.entries(obj.participants)) {
+    graph.addParticipant(
+      new model.Participant<S>({
+        id,
+        name: participant.name || undefined,
+        username: participant.username,
+        email: participant.email,
+        url: participant.url,
+        location: participant.location,
+        description: participant.description,
+        metadata: metadataFromProtobuf(participant.metadata),
+        userdata: codecs.participant.decode(participant.userdata ?? {}),
+      }),
+    );
+  }
+
+  for (const [id, analyst] of Object.entries(obj.analysts)) {
+    graph.addAnalyst(
+      new model.Analyst<S>({
+        id,
+        name: analyst.name || undefined,
+        email: analyst.email || undefined,
+        userdata: codecs.analyst.decode(analyst.userdata ?? {}),
+      }),
+    );
+  }
+
+  for (const [id, node] of Object.entries(obj.nodes)) {
+    graph.addNode(nodeFromProtobuf(id, node, graph, codecs));
+  }
+
+  for (const [id, edge] of Object.entries(obj.edges)) {
+    helpers.addEdge(graph, codecs, {
+      id,
+      source: edge.source,
+      target: edge.target,
+      metadata: metadataFromProtobuf(edge.metadata),
+      userdata: edge.userdata,
+    });
+  }
+
+  const majorClaim = helpers.lookup(graph.atomNodes, obj.majorClaim, "major claim", "the graph");
+
+  if (majorClaim !== undefined) {
+    graph.majorClaim = majorClaim;
+  }
+
+  return graph;
 }

@@ -1,149 +1,130 @@
-import {
-  Attack,
-  Preference,
-  Scheme as RawScheme,
-  Rephrase,
-  Support,
-} from "arg-services/graph/v1/graph_pb";
 import { immerable } from "immer";
-import { Metadata, MetadataInterface } from "./metadata.js";
-import { Reference, ReferenceInterface } from "./reference.js";
-import { Userdata, UserdataInterface } from "./userdata.js";
-import { uuid } from "./utils.js";
+import { Metadata } from "./metadata.js";
+import type { Reference } from "./reference.js";
+import { type Scheme, type SchemeType, schemeLabel } from "./scheme.js";
+import {
+  initUserdata,
+  type Userdata,
+  type OptionalInit,
+  type UserdataInit,
+  type UserdataSchema,
+} from "./userdata.js";
+import { uuid } from "arg-services";
 
-export type Scheme = RawScheme["type"];
-export type SchemeType = Exclude<Scheme["case"], undefined>;
-export { Attack, Preference, Rephrase, Support };
-
-const FALLBACK_LABEL = "unknown";
-
-export function nodeLabel(node: NodeInterface): string {
-  if (node.type === "atom") {
-    return node.text;
-  } else if (node.type === "scheme" && node.scheme.case !== undefined) {
-    const schemeType = node.scheme.case;
-    const schemeValue = scheme2string(node.scheme);
-
-    if (schemeValue !== "default") {
-      return schemeValue;
-    }
-
-    return schemeType;
-  }
-
-  return FALLBACK_LABEL;
+export interface Color {
+  readonly bg: string;
+  readonly fg: string;
+  readonly border: string;
 }
 
-export function scheme2string(scheme: Scheme) {
-  switch (scheme.case) {
-    case "attack":
-      return Attack[scheme.value].toLowerCase();
-    case "support":
-      return Support[scheme.value].toLowerCase();
-    case "rephrase":
-      return Rephrase[scheme.value].toLowerCase();
-    case "preference":
-      return Preference[scheme.value].toLowerCase();
-    default:
-      return FALLBACK_LABEL;
-  }
+function filledColor(bg: string): Color {
+  return { bg, fg: "#ffffff", border: bg };
 }
 
-export interface AbstractNodeConstructor {
+const COLOR_MONOCHROME_LIGHT: Color = { bg: "#ffffff", fg: "#000000", border: "#000000" };
+const COLOR_MONOCHROME_DARK: Color = { bg: "#000000", fg: "#ffffff", border: "#000000" };
+const COLOR_SCHEME_FALLBACK = filledColor("#009688");
+const COLOR_ATOM = filledColor("#2196F3");
+const COLOR_MAJOR_CLAIM = filledColor("#0D47A1");
+
+const scheme2color: Readonly<Record<SchemeType, Color>> = {
+  support: filledColor("#4CAF50"),
+  attack: filledColor("#F44336"),
+  rephrase: filledColor("#009688"),
+  preference: filledColor("#009688"),
+};
+
+interface NodeInit {
   id?: string;
   metadata?: Metadata;
-  userdata?: Userdata;
 }
 
-interface AbstractNodeInterface {
-  id: string;
-  type: "atom" | "scheme";
-  metadata: MetadataInterface;
-  userdata: UserdataInterface;
-}
-
-abstract class AbstractNode implements AbstractNodeInterface {
-  [immerable] = true;
+abstract class AbstractNode<S extends UserdataSchema, K extends Node["type"]> {
+  static [immerable] = true;
   readonly id: string;
-  readonly type: "atom" | "scheme";
+  abstract readonly type: K;
   metadata: Metadata;
-  userdata: Userdata;
+  userdata: Userdata<S, K>;
 
-  constructor(type: "atom" | "scheme", data: AbstractNodeConstructor) {
-    this.id = data.id ?? uuid();
-    this.type = type;
-    this.metadata = data?.metadata ?? new Metadata();
-    this.userdata = data.userdata ?? {};
+  constructor(init: (NodeInit & UserdataInit<Userdata<S, K>>) | undefined) {
+    this.id = init?.id ?? uuid();
+    this.metadata = init?.metadata ?? new Metadata();
+    this.userdata = initUserdata<Userdata<S, K>>(init);
   }
 
-  // get id(): string {
-  //   return "this._id";
-  // }
+  /** Label used when rendering the node. */
+  abstract get label(): string;
 
-  abstract label(): string;
+  /** Color used when rendering the node. */
+  abstract color(majorClaim: boolean, monochrome: boolean): Color;
 }
 
-export interface AtomNodeConstructor extends AbstractNodeConstructor {
+export type AtomNodeInit<S extends UserdataSchema = {}> = NodeInit & {
   text: string;
   reference?: Reference;
   participant?: string;
-}
+} & UserdataInit<Userdata<S, "atom">>;
 
-export interface AtomNodeInterface extends AbstractNodeInterface {
-  type: "atom";
-  text: string;
-  reference?: ReferenceInterface;
-  participant?: string;
-}
-
-export class AtomNode extends AbstractNode implements AtomNodeInterface {
-  [immerable] = true;
-  declare readonly type: "atom";
+/**
+ * Node containing a claim or premise of an argument.
+ *
+ * The participant and the resource of the reference must be registered
+ * in the graph before the node is added to it, later assignments are not checked.
+ */
+export class AtomNode<S extends UserdataSchema = {}> extends AbstractNode<S, "atom"> {
+  readonly type = "atom";
   text: string;
   reference?: Reference;
   participant?: string;
 
-  constructor(data: AtomNodeConstructor) {
-    super("atom", data);
-
-    this.text = data.text;
-    this.reference = data.reference;
-    this.participant = data.participant;
+  constructor(init: AtomNodeInit<S>) {
+    super(init);
+    this.text = init.text;
+    this.reference = init.reference;
+    this.participant = init.participant;
   }
 
-  label(): string {
-    return nodeLabel(this);
+  get label(): string {
+    return this.text;
+  }
+
+  color(majorClaim: boolean, monochrome: boolean): Color {
+    if (monochrome) {
+      return COLOR_MONOCHROME_LIGHT;
+    }
+
+    return majorClaim ? COLOR_MAJOR_CLAIM : COLOR_ATOM;
   }
 }
 
-export interface SchemeNodeConstructor extends AbstractNodeConstructor {
+export type SchemeNodeInit<S extends UserdataSchema = {}> = NodeInit & {
   scheme?: Scheme;
-  premise_descriptors?: string[];
-}
+  premiseDescriptors?: readonly string[];
+} & UserdataInit<Userdata<S, "scheme">>;
 
-export interface SchemeNodeInterface extends AbstractNodeInterface {
-  type: "scheme";
+/** Node describing the relation between atom nodes. */
+export class SchemeNode<S extends UserdataSchema = {}> extends AbstractNode<S, "scheme"> {
+  readonly type = "scheme";
   scheme: Scheme;
-  premise_descriptors?: string[];
-}
+  premiseDescriptors: string[];
 
-export class SchemeNode extends AbstractNode implements SchemeNodeInterface {
-  [immerable] = true;
-  declare readonly type: "scheme";
-  scheme: Scheme;
-  premise_descriptors?: string[];
-
-  constructor(data: SchemeNodeConstructor) {
-    super("scheme", data);
-    this.scheme = data.scheme ?? { case: undefined, value: undefined };
-    this.premise_descriptors = data?.premise_descriptors;
+  constructor(...[init]: OptionalInit<SchemeNodeInit<S>>) {
+    super(init);
+    this.scheme = { ...(init?.scheme ?? { case: undefined }) };
+    this.premiseDescriptors = [...(init?.premiseDescriptors ?? [])];
   }
 
-  label(): string {
-    return nodeLabel(this);
+  get label(): string {
+    return schemeLabel(this.scheme);
+  }
+
+  color(_majorClaim: boolean, monochrome: boolean): Color {
+    if (monochrome) {
+      return COLOR_MONOCHROME_DARK;
+    }
+
+    return this.scheme.case === undefined ? COLOR_SCHEME_FALLBACK : scheme2color[this.scheme.case];
   }
 }
 
-export type Node = AtomNode | SchemeNode;
-export type NodeInterface = AtomNodeInterface | SchemeNodeInterface;
-export type NodeConstructor = AtomNodeConstructor | SchemeNodeConstructor;
+export type Node<S extends UserdataSchema = {}> = AtomNode<S> | SchemeNode<S>;

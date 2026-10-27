@@ -1,26 +1,21 @@
 import { immerable } from "immer";
 
-export interface ReferenceConstructor {
+export interface ReferenceInit {
+  text: string;
   resource?: string;
   offset?: number;
-  text: string;
 }
 
-export interface ReferenceInterface {
+/** Text span of a resource that an atom node is based on. */
+export class Reference {
+  static [immerable] = true;
+  text: string;
   resource?: string;
   offset?: number;
-  text: string;
-}
 
-export class Reference implements ReferenceInterface {
-  [immerable] = true;
-  readonly resource?: string;
-  offset?: number;
-  text: string;
-
-  constructor(data: ReferenceConstructor) {
-    this.resource = data?.resource;
-    this.offset = data?.offset;
-    this.text = data.text;
+  constructor(init: ReferenceInit) {
+    this.text = init.text;
+    this.resource = init.resource;
+    this.offset = init.offset;
   }
 }

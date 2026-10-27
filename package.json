@@ -6,11 +6,17 @@
     "dist"
   ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./argdown": {
+      "types": "./dist/argdown.d.ts",
+      "default": "./dist/argdown.js"
+    },
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "access": "public",
@@ -25,16 +31,23 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2",
     "arg-services": "^4",
-    "dayjs": "^1",
-    "immer": "^11"
+    "immer": "^11",
+    "parse5": "^8",
+    "temporal-polyfill": "^0.3"
   },
   "devDependencies": {
     "@argdown/core": "^2",
     "typescript": "^7",
     "vite": "^8",
-    "vitest": "^5"
+    "vitest": "^5",
+    "zod": "^4"
   },
-  "optionalDependencies": {
+  "peerDependencies": {
     "@argdown/core": "^2"
+  },
+  "peerDependenciesMeta": {
+    "@argdown/core": {
+      "optional": true
+    }
   }
 }

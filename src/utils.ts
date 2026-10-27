@@ -1,47 +1,102 @@
-import { protobuf as toProto } from "./dump/index.js";
-import { protobuf as fromProto } from "./load/index.js";
-import * as model from "./model/index.js";
+import {
+  Analyst,
+  AtomNode,
+  Edge,
+  Graph,
+  Metadata,
+  type Node,
+  Participant,
+  Reference,
+  Resource,
+  SchemeNode,
+} from "./model/index.js";
+import type { UserdataSchema } from "./model/userdata.js";
 
-export function copy(graph: model.Graph, data?: model.GraphConstructor): model.Graph {
-  const copy = new model.Graph(data);
-  const dump = fromProto(toProto(graph));
+function copyMetadata(metadata: Metadata): Metadata {
+  return new Metadata({ created: metadata.created, updated: metadata.updated });
+}
 
-  if (data?.nodes === undefined) {
-    Object.values(dump.nodes).forEach((x) => {
-      copy.addNode(x);
+function copyNode<S extends UserdataSchema>(node: Node<S>): Node<S> {
+  const { id } = node;
+  const metadata = copyMetadata(node.metadata);
+
+  if (node.type === "scheme") {
+    return new SchemeNode<S>({
+      id,
+      scheme: node.scheme,
+      premiseDescriptors: node.premiseDescriptors,
+      metadata,
+      userdata: structuredClone(node.userdata),
     });
-  }
-  if (data?.edges === undefined) {
-    Object.values(dump.edges).forEach((x) => {
-      copy.addEdge(x);
-    });
-  }
-  if (data?.resources === undefined) {
-    Object.values(dump.resources).forEach((x) => {
-      copy.addResource(x);
-    });
-  }
-  if (data?.participants === undefined) {
-    Object.values(dump.participants).forEach((x) => {
-      copy.addParticipant(x);
-    });
-  }
-  if (data?.analysts === undefined) {
-    Object.values(dump.analysts).forEach((x) => {
-      copy.addAnalyst(x);
-    });
-  }
-  if (data?.majorClaim === undefined) {
-    copy.majorClaim = dump.majorClaim;
-  }
-  if (data?.userdata === undefined) {
-    copy.userdata = dump.userdata;
-  }
-  if (data?.metadata === undefined) {
-    copy.metadata = dump.metadata;
   }
 
-  copy.metadata.update();
+  return new AtomNode<S>({
+    id,
+    text: node.text,
+    reference: node.reference && new Reference(node.reference),
+    participant: node.participant,
+    metadata,
+    userdata: structuredClone(node.userdata),
+  });
+}
 
-  return copy;
+/**
+ * Create a deep copy of a graph without changing the input.
+ *
+ * Userdata is copied with `structuredClone` instead of its codec, so in-memory data is kept.
+ * It must be structured-cloneable: typed arrays are copied, but class instances become plain objects.
+ */
+export function copy<S extends UserdataSchema>(graph: Graph<S>): Graph<S> {
+  return new Graph<S>({
+    name: graph.name,
+    metadata: copyMetadata(graph.metadata),
+    userdata: structuredClone(graph.userdata),
+    resources: Object.values(graph.resources).map(
+      (resource) =>
+        new Resource<S>({
+          id: resource.id,
+          text: resource.text,
+          title: resource.title,
+          source: resource.source,
+          timestamp: resource.timestamp,
+          metadata: copyMetadata(resource.metadata),
+          userdata: structuredClone(resource.userdata),
+        }),
+    ),
+    participants: Object.values(graph.participants).map(
+      (participant) =>
+        new Participant<S>({
+          id: participant.id,
+          name: participant.name,
+          username: participant.username,
+          email: participant.email,
+          url: participant.url,
+          location: participant.location,
+          description: participant.description,
+          metadata: copyMetadata(participant.metadata),
+          userdata: structuredClone(participant.userdata),
+        }),
+    ),
+    analysts: Object.values(graph.analysts).map(
+      (analyst) =>
+        new Analyst<S>({
+          id: analyst.id,
+          name: analyst.name,
+          email: analyst.email,
+          userdata: structuredClone(analyst.userdata),
+        }),
+    ),
+    nodes: Object.values(graph.nodes).map(copyNode),
+    edges: Object.values(graph.edges).map(
+      (edge) =>
+        new Edge<S>({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          metadata: copyMetadata(edge.metadata),
+          userdata: structuredClone(edge.userdata),
+        }),
+    ),
+    majorClaim: graph.majorClaim,
+  });
 }

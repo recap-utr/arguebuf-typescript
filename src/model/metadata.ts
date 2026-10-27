@@ -1,28 +1,20 @@
 import { immerable } from "immer";
-import { DateType, now } from "../date.js";
+import type { Temporal } from "temporal-polyfill";
+import { now } from "../date.js";
 
-export interface MetadataConstructor {
-  created?: DateType;
-  updated?: DateType;
+export interface MetadataInit {
+  created?: Temporal.Instant;
+  updated?: Temporal.Instant;
 }
 
-export interface MetadataInterface {
-  created: DateType;
-  updated: DateType;
-}
+/** Creation and modification timestamps, `updated` defaults to `created` which defaults to now. */
+export class Metadata {
+  static [immerable] = true;
+  created: Temporal.Instant;
+  updated: Temporal.Instant;
 
-export class Metadata implements MetadataInterface {
-  [immerable] = true;
-  created: DateType;
-  updated: DateType;
-
-  constructor(data?: MetadataConstructor) {
-    const fallback = now();
-    this.created = data?.created ?? fallback;
-    this.updated = data?.updated ?? fallback;
-  }
-
-  update() {
-    this.updated = now();
+  constructor(init: MetadataInit = {}) {
+    this.created = init.created ?? now();
+    this.updated = init.updated ?? this.created;
   }
 }

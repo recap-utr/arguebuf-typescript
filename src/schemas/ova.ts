@@ -1,8 +1,4 @@
-import { NodeType } from "./aif.js";
-
-export const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
-
-export const DATE_FORMAT_ANALYSIS = "DD/MM/YYYY";
+import type { NodeType } from "./aif.js";
 
 export interface Node {
   id: number;
@@ -12,39 +8,33 @@ export interface Node {
   text: string;
   type: NodeType;
   scheme: string;
-  descriptors: Record<string, number>;
+  descriptors: Record<string, number | null>;
   cqdesc: Record<string, unknown>;
   visible: boolean;
   participantID: string;
   w: number;
   h: number;
-  /*
-    Specific to original OVA
-    */
-  imgurl?: string;
-  /*
-    Specific to ReCAP OVA
-    */
-  majorClaim?: boolean;
-  is_check_worthy?: string;
-  source?: string;
-  text_begin?: number[];
-  text_end?: number[];
-  text_length?: number[];
-  comment?: string;
-  annotator?: string;
-  date?: string;
+  // specific to original OVA
+  imgurl?: string | null;
+  // specific to ReCAP OVA
+  majorClaim?: boolean | null;
+  is_check_worthy?: string | null;
+  source?: string | null;
+  text_begin?: number[] | null;
+  text_end?: number[] | null;
+  text_length?: number[] | null;
+  comment?: string | null;
+  annotator?: string | null;
+  date?: string | null;
 }
 
 export interface Edge {
   from: Node;
   to: Node;
   visible: boolean;
-  /*
-    Specific to ReCAP OVA
-    */
-  annotator?: string;
-  date?: string;
+  // specific to ReCAP OVA
+  annotator?: string | null;
+  date?: string | null;
 }
 
 export interface Participant {
@@ -55,14 +45,13 @@ export interface Participant {
 
 export interface Analysis {
   txt: string;
-  /*
-    Specific to ReCAP OVA
-    */
-  plain_txt?: string;
-  annotatorName?: string;
-  documentSource?: string;
-  documentTitle?: string;
-  ovaVersion?: string;
+  // specific to ReCAP OVA
+  plain_txt?: string | null;
+  documentDate?: string | null;
+  annotatorName?: string | null;
+  documentSource?: string | null;
+  documentTitle?: string | null;
+  ovaVersion?: string | null;
 }
 
 export interface Graph {

@@ -1,9 +1,9 @@
 {
   "include": ["src", "tests"],
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2025",
     "module": "NodeNext",
-    "lib": ["ES2022"],
+    "lib": ["ES2025", "DOM"],
     "types": ["vite/client"],
     "resolveJsonModule": true,
     "noEmit": true,

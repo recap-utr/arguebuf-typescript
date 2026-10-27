@@ -1,37 +1,33 @@
 import { immerable } from "immer";
-import { Metadata, MetadataInterface } from "./metadata.js";
-import { Userdata, UserdataInterface } from "./userdata.js";
-import { uuid } from "./utils.js";
+import { Metadata } from "./metadata.js";
+import {
+  initUserdata,
+  type Userdata,
+  type UserdataInit,
+  type UserdataSchema,
+} from "./userdata.js";
+import { uuid } from "arg-services";
 
-export interface EdgeConstructor {
+export type EdgeInit<S extends UserdataSchema = {}> = {
   id?: string;
   source: string;
   target: string;
   metadata?: Metadata;
-  userdata?: Userdata;
-}
+} & UserdataInit<Userdata<S, "edge">>;
 
-export interface EdgeInterface {
-  id: string;
-  source: string;
-  target: string;
-  metadata: MetadataInterface;
-  userdata: UserdataInterface;
-}
-
-export class Edge implements EdgeInterface {
-  [immerable] = true;
+export class Edge<S extends UserdataSchema = {}> {
+  static [immerable] = true;
   readonly id: string;
-  source: string;
-  target: string;
+  readonly source: string;
+  readonly target: string;
   metadata: Metadata;
-  userdata: Userdata;
+  userdata: Userdata<S, "edge">;
 
-  constructor(data: EdgeConstructor) {
-    this.id = data?.id ?? uuid();
-    this.source = data.source;
-    this.target = data.target;
-    this.metadata = data?.metadata ?? new Metadata();
-    this.userdata = data?.userdata ?? {};
+  constructor(init: EdgeInit<S>) {
+    this.id = init.id ?? uuid();
+    this.source = init.source;
+    this.target = init.target;
+    this.metadata = init.metadata ?? new Metadata();
+    this.userdata = initUserdata<Userdata<S, "edge">>(init);
   }
 }

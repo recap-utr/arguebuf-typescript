@@ -1,76 +1,215 @@
 import * as date from "../date.js";
 import * as model from "../model/index.js";
+import { defaultScheme, isAifSchemeType } from "../model/scheme.js";
 import * as aifSchema from "../schemas/aif.js";
+import type { ResolvedCodecs, UserdataSchema } from "../model/userdata.js";
+import * as helpers from "./helpers.js";
 
-export function aif(obj: aifSchema.Graph): model.Graph {
-  const nodes = Object.fromEntries(obj.nodes.map((node) => [node.nodeID, nodeFromAif(node)]));
-  const edges = Object.fromEntries(obj.edges.map((edge) => [edge.edgeID, edgeFromAif(edge)]));
+/**
+ * Load a graph from the AIF format.
+ *
+ * Dialog nodes (L, TA, YA) are skipped.
+ * All listed participants and the speakers of locutions become participants.
+ * An atom asserted by locutions gets their speaker as participant if they share exactly one,
+ * and the locution text as reference if there is exactly one.
+ * Numeric ids are stringified.
+ * See `AifOptions.reconstructDialog` to keep the atoms that dialog nodes connect.
+ */
+export function aif<S extends UserdataSchema = {}>(
+  obj: aifSchema.Graph,
+  ...args: helpers.LoadArgs<S, helpers.AifOptions>
+): model.Graph<S> {
+  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
+  const index = new Index(obj);
 
-  return new model.Graph({
-    nodes,
-    edges,
-  });
-}
+  for (const participant of obj.participants ?? []) {
+    graph.addParticipant(
+      helpers.newParticipant(
+        codecs,
+        helpers.stringId(participant.participantID),
+        participant.firstname,
+        participant.surname,
+      ),
+    );
+  }
 
-function nodeFromAif(obj: aifSchema.Node): model.Node {
-  if (obj.type === "I") {
-    return new model.AtomNode({
-      id: obj.nodeID,
-      text: obj.text,
-      metadata: new model.Metadata({
-        created: date.parse(obj.timestamp, aifSchema.DATE_FORMAT),
-        updated: date.parse(obj.timestamp, aifSchema.DATE_FORMAT),
-      }),
-    });
-  } else {
-    const aifType = obj.type as aifSchema.SchemeType;
-    const schemeNode = new model.SchemeNode({
-      id: obj.nodeID,
-      metadata: new model.Metadata({
-        created: date.parse(obj.timestamp, aifSchema.DATE_FORMAT),
-        updated: date.parse(obj.timestamp, aifSchema.DATE_FORMAT),
-      }),
-    });
+  const locutionSpeakers = (obj.locutions ?? []).map((locution) => ({
+    node: helpers.stringId(locution.nodeID),
+    person: helpers.stringId(locution.personID),
+  }));
 
-    switch (aifType) {
-      case "RA": {
-        schemeNode.scheme = {
-          case: "support",
-          value: model.Support.DEFAULT,
-        };
-        break;
+  for (const { person } of locutionSpeakers) {
+    if (!Object.hasOwn(graph.participants, person)) {
+      graph.addParticipant(helpers.newParticipant(codecs, person));
+    }
+  }
+
+  // a locution may have several speakers
+  const speakers = Map.groupBy(locutionSpeakers, ({ node }) => node);
+
+  // edges of skipped dialog nodes are expected to be missing, unlike dangling ones
+  const dialog = new Set<string>();
+
+  for (const aifNode of obj.nodes) {
+    const node = nodeFromAif(aifNode, codecs);
+
+    if (aifSchema.DIALOG_TYPES.has(aifNode.type)) {
+      dialog.add(helpers.stringId(aifNode.nodeID));
+    }
+
+    if (node?.type === "atom") {
+      const locutions = new Set(index.locutions(node.id));
+      const persons = new Set(
+        locutions
+          .values()
+          .flatMap((locution) => speakers.get(locution) ?? [])
+          .map(({ person }) => person),
+      );
+      const [locution] = locutions;
+      const [person] = persons;
+      const text = locutions.size === 1 ? index.nodes.get(locution)?.text : undefined;
+
+      if (persons.size === 1) {
+        node.participant = person;
       }
-      case "CA": {
-        schemeNode.scheme = {
-          case: "attack",
-          value: model.Attack.DEFAULT,
-        };
-        break;
-      }
-      case "MA": {
-        schemeNode.scheme = {
-          case: "rephrase",
-          value: model.Rephrase.DEFAULT,
-        };
-        break;
-      }
-      case "PA": {
-        schemeNode.scheme = {
-          case: "preference",
-          value: model.Preference.DEFAULT,
-        };
-        break;
+
+      if (text !== undefined) {
+        node.reference = new model.Reference({ text });
       }
     }
 
-    return schemeNode;
+    if (node !== undefined) {
+      graph.addNode(node);
+    }
+  }
+
+  for (const [id, source, target] of index.edges) {
+    helpers.addEdge(graph, codecs, { id, source, target }, dialog);
+  }
+
+  if (args[0]?.reconstructDialog) {
+    reconstructDialog(graph, codecs, index);
+  }
+
+  return graph;
+}
+
+/** Create an atom or scheme node from an AIF node, undefined for dialog nodes. */
+function nodeFromAif<S extends UserdataSchema>(
+  obj: aifSchema.Node,
+  codecs: ResolvedCodecs<S>,
+): model.Node<S> | undefined {
+  if (obj.type !== "I" && !isAifSchemeType(obj.type)) {
+    return undefined;
+  }
+
+  const id = helpers.stringId(obj.nodeID);
+  const metadata = new model.Metadata({ created: date.parseAif(obj.timestamp) });
+
+  if (obj.type === "I") {
+    return new model.AtomNode<S>({
+      id,
+      text: obj.text,
+      metadata,
+      userdata: codecs.atom.decode({}),
+    });
+  }
+
+  return new model.SchemeNode<S>({
+    id,
+    // a missing or empty scheme name falls back to the text
+    scheme: model.resolveAifScheme(obj.type, obj.scheme || obj.text),
+    metadata,
+    userdata: codecs.scheme.decode({}),
+  });
+}
+
+// id, source, and target
+type Edge = readonly [string, string, string];
+
+/** Nodes and edges of an AIF graph with string ids. */
+class Index {
+  readonly nodes: ReadonlyMap<string, aifSchema.Node>;
+  readonly edges: readonly Edge[];
+  readonly successors: ReadonlyMap<string, readonly Edge[]>;
+  readonly predecessors: ReadonlyMap<string, readonly Edge[]>;
+
+  constructor(obj: aifSchema.Graph) {
+    this.nodes = new Map(obj.nodes.map((node) => [helpers.stringId(node.nodeID), node]));
+    this.edges = obj.edges.map((edge): Edge => [
+      helpers.stringId(edge.edgeID),
+      helpers.stringId(edge.fromID),
+      helpers.stringId(edge.toID),
+    ]);
+
+    this.successors = Map.groupBy(this.edges, ([, source]) => source);
+    this.predecessors = Map.groupBy(this.edges, ([, , target]) => target);
+  }
+
+  type(id: string): aifSchema.NodeType | undefined {
+    return this.nodes.get(id)?.type;
+  }
+
+  /** Neighbors of the given type in the direction of the edges. */
+  follow(ids: readonly string[], forward: boolean, type: aifSchema.NodeType): string[] {
+    const adjacency = forward ? this.successors : this.predecessors;
+
+    return ids.flatMap((id) =>
+      (adjacency.get(id) ?? [])
+        .map(([, source, target]) => (forward ? target : source))
+        .filter((neighbor) => this.type(neighbor) === type),
+    );
+  }
+
+  /** Locutions asserting an atom via illocutions. */
+  locutions(atomId: string): string[] {
+    return this.follow(this.follow([atomId], false, "YA"), false, "L");
   }
 }
 
-function edgeFromAif(obj: aifSchema.Edge): model.Edge {
-  return new model.Edge({
-    id: obj.edgeID,
-    source: obj.fromID,
-    target: obj.toID,
-  });
+/**
+ * Connect isolated atoms to the atoms of adjacent turns via rephrase nodes.
+ *
+ * In AIF+, a locution (L) asserts an atom (I) via an illocution (YA)
+ * and is linked to the locutions before and after it via transitions (TA).
+ */
+function reconstructDialog<S extends UserdataSchema>(
+  graph: model.Graph<S>,
+  codecs: ResolvedCodecs<S>,
+  index: Index,
+): void {
+  const isolated = Object.values(graph.nodes).filter(
+    (node) =>
+      node.type === "atom" &&
+      graph.incomingEdges(node).length === 0 &&
+      graph.outgoingEdges(node).length === 0,
+  );
+  // connected pairs regardless of their order
+  const pairs = new Set<string>();
+
+  for (const atom of isolated) {
+    const locutions = index.locutions(atom.id);
+
+    // turns before (backward) and after (forward) the locutions
+    for (const forward of [false, true]) {
+      const transitions = index.follow(locutions, forward, "TA");
+      const turns = index.follow(transitions, forward, "L");
+      const illocutions = index.follow(turns, true, "YA");
+
+      for (const target of index.follow(illocutions, true, "I")) {
+        const pair = JSON.stringify([atom.id, target].sort());
+
+        if (target !== atom.id && !pairs.has(pair)) {
+          pairs.add(pair);
+          const scheme = new model.SchemeNode<S>({
+            scheme: defaultScheme("rephrase"),
+            userdata: codecs.scheme.decode({}),
+          });
+          graph.addNode(scheme);
+          helpers.connect(graph, codecs, [atom.id], scheme.id, target);
+        }
+      }
+    }
+  }
 }

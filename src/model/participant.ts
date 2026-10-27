@@ -1,9 +1,15 @@
 import { immerable } from "immer";
-import { Metadata, MetadataInterface } from "./metadata.js";
-import { Userdata, UserdataInterface } from "./userdata.js";
-import { uuid } from "./utils.js";
+import { Metadata } from "./metadata.js";
+import {
+  initUserdata,
+  type OptionalInit,
+  type Userdata,
+  type UserdataInit,
+  type UserdataSchema,
+} from "./userdata.js";
+import { uuid } from "arg-services";
 
-export interface ParticipantConstructor {
+export type ParticipantInit<S extends UserdataSchema = {}> = {
   id?: string;
   name?: string;
   username?: string;
@@ -12,23 +18,10 @@ export interface ParticipantConstructor {
   location?: string;
   description?: string;
   metadata?: Metadata;
-  userdata?: Userdata;
-}
+} & UserdataInit<Userdata<S, "participant">>;
 
-export interface ParticipantInterface {
-  id: string;
-  name?: string;
-  username?: string;
-  email?: string;
-  url?: string;
-  location?: string;
-  description?: string;
-  metadata: MetadataInterface;
-  userdata: UserdataInterface;
-}
-
-export class Participant {
-  [immerable] = true;
+export class Participant<S extends UserdataSchema = {}> {
+  static [immerable] = true;
   readonly id: string;
   name?: string;
   username?: string;
@@ -37,17 +30,17 @@ export class Participant {
   location?: string;
   description?: string;
   metadata: Metadata;
-  userdata: Userdata;
+  userdata: Userdata<S, "participant">;
 
-  constructor(data?: ParticipantConstructor) {
-    this.id = data?.id ?? uuid();
-    this.name = data?.name;
-    this.username = data?.username;
-    this.email = data?.email;
-    this.url = data?.url;
-    this.location = data?.location;
-    this.description = data?.description;
-    this.metadata = data?.metadata ?? new Metadata();
-    this.userdata = data?.userdata ?? {};
+  constructor(...[init]: OptionalInit<ParticipantInit<S>>) {
+    this.id = init?.id ?? uuid();
+    this.name = init?.name;
+    this.username = init?.username;
+    this.email = init?.email;
+    this.url = init?.url;
+    this.location = init?.location;
+    this.description = init?.description;
+    this.metadata = init?.metadata ?? new Metadata();
+    this.userdata = initUserdata<Userdata<S, "participant">>(init);
   }
 }

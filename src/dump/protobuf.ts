@@ -1,126 +1,129 @@
-import { create, type JsonObject } from "@bufbuild/protobuf";
-import { version as libraryVersion } from "arg-services";
+import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "../date.js";
-import * as model from "../model/index.js";
+import type { JsonObject } from "@bufbuild/protobuf";
+import type * as model from "../model/index.js";
+import {
+  type Codec,
+  type CodecArgs,
+  type ResolvedCodecs,
+  resolveCodecs,
+  type UserdataSchema,
+} from "../model/userdata.js";
+import pkg from "../../package.json" with { type: "json" };
 
-function edgeToProtobuf(edge: model.EdgeInterface): pb.Edge {
-  return create(pb.EdgeSchema, {
-    source: edge.source,
-    target: edge.target,
-    metadata: create(pb.MetadataSchema, {
-      created: date.toProtobuf(edge.metadata.created),
-      updated: date.toProtobuf(edge.metadata.updated),
-    }),
-    userdata: edge.userdata as JsonObject,
+const LIBRARY_VERSION = `arguebuf-typescript:${pkg.version}`;
+const SCHEMA_VERSION = 1;
+
+// empty userdata is omitted
+function userdataToProtobuf<T>(codec: Codec<T>, userdata: T): JsonObject | undefined {
+  const data = codec.encode(userdata);
+
+  return Object.keys(data).length > 0 ? data : undefined;
+}
+
+function metadataToProtobuf(metadata: model.Metadata): pb.Metadata {
+  return create(pb.MetadataSchema, {
+    created: date.toProtobuf(metadata.created),
+    updated: date.toProtobuf(metadata.updated),
   });
 }
 
-function nodeToProtobuf(node: model.NodeInterface): pb.Node {
+function nodeToProtobuf<S extends UserdataSchema>(
+  node: model.Node<S>,
+  codecs: ResolvedCodecs<S>,
+): pb.Node {
+  const metadata = metadataToProtobuf(node.metadata);
+
   if (node.type === "atom") {
     return create(pb.NodeSchema, {
-      metadata: create(pb.MetadataSchema, {
-        created: date.toProtobuf(node.metadata.created),
-        updated: date.toProtobuf(node.metadata.updated),
-      }),
-      userdata: node.userdata as JsonObject,
+      metadata,
+      userdata: userdataToProtobuf(codecs.atom, node.userdata),
       type: {
+        case: "atom",
         value: create(pb.AtomSchema, {
           text: node.text,
           participant: node.participant,
-          reference: node.reference
-            ? create(pb.ReferenceSchema, {
-                offset: node.reference.offset,
-                resource: node.reference.resource,
-                text: node.reference.text,
-              })
-            : undefined,
+          reference:
+            node.reference &&
+            create(pb.ReferenceSchema, {
+              text: node.reference.text,
+              resource: node.reference.resource,
+              offset: node.reference.offset,
+            }),
         }),
-        case: "atom",
-      },
-    });
-  } else {
-    return create(pb.NodeSchema, {
-      metadata: create(pb.MetadataSchema, {
-        created: date.toProtobuf(node.metadata.created),
-        updated: date.toProtobuf(node.metadata.updated),
-      }),
-      userdata: node.userdata as JsonObject,
-      type: {
-        value: create(pb.SchemeSchema, {
-          premiseDescriptors: node.premise_descriptors,
-          type: node.scheme,
-        }),
-        case: "scheme",
       },
     });
   }
+
+  return create(pb.NodeSchema, {
+    metadata,
+    userdata: userdataToProtobuf(codecs.scheme, node.userdata),
+    type: {
+      case: "scheme",
+      value: create(pb.SchemeSchema, {
+        type: { ...node.scheme },
+        premiseDescriptors: [...node.premiseDescriptors],
+      }),
+    },
+  });
 }
 
-export function protobuf(graph: model.GraphInterface): pb.Graph {
-  const edges: Record<string, pb.Edge> = Object.fromEntries(
-    Object.values(graph.edges).map((e) => [e.id, edgeToProtobuf(e)]),
-  );
-  const nodes: Record<string, pb.Node> = Object.fromEntries(
-    Object.values(graph.nodes).map((n) => [n.id, nodeToProtobuf(n)]),
-  );
-  const analysts: Record<string, pb.Analyst> = Object.fromEntries(
-    Object.entries(graph.analysts).map(([key, value]) => [
-      key,
-      create(pb.AnalystSchema, {
-        name: value.name,
-        email: value.email,
-        userdata: value.userdata as JsonObject,
-      }),
-    ]),
-  );
-  const participants: Record<string, pb.Participant> = Object.fromEntries(
-    Object.entries(graph.participants).map(([key, value]) => [
-      key,
-      create(pb.ParticipantSchema, {
-        name: value.name,
-        description: value.description,
-        email: value.email,
-        location: value.location,
-        metadata: create(pb.MetadataSchema, {
-          created: date.toProtobuf(value.metadata.created),
-          updated: date.toProtobuf(value.metadata.updated),
-        }),
-        url: value.url,
-        userdata: value.userdata as JsonObject,
-        username: value.username,
-      }),
-    ]),
-  );
-  const resources: Record<string, pb.Resource> = Object.fromEntries(
-    Object.entries(graph.resources).map(([key, value]) => [
-      key,
-      create(pb.ResourceSchema, {
-        source: value.source,
-        text: value.text,
-        timestamp: value.timestamp === undefined ? undefined : date.toProtobuf(value.timestamp),
-        title: value.title,
-        metadata: create(pb.MetadataSchema, {
-          created: date.toProtobuf(value.metadata.created),
-          updated: date.toProtobuf(value.metadata.updated),
-        }),
-        userdata: value.userdata as JsonObject,
-      }),
-    ]),
-  );
+/**
+ * Export a graph to a protobuf message, writing the library and schema version.
+ * Userdata is encoded by the codec of its kind, the codecs are required if `S` customizes userdata.
+ */
+export function protobuf<S extends UserdataSchema>(
+  graph: model.Graph<S>,
+  ...[options]: CodecArgs<S>
+): pb.Graph {
+  const codecs = resolveCodecs(options?.codecs);
+  const entries = <T, U>(record: Readonly<Record<string, T>>, convert: (value: T) => U) =>
+    Object.fromEntries(Object.entries(record).map(([id, value]) => [id, convert(value)]));
+
   return create(pb.GraphSchema, {
-    nodes: nodes,
-    edges: edges,
-    schemaVersion: 1,
-    analysts: analysts,
-    libraryVersion: libraryVersion,
+    schemaVersion: SCHEMA_VERSION,
+    libraryVersion: LIBRARY_VERSION,
+    metadata: metadataToProtobuf(graph.metadata),
+    userdata: userdataToProtobuf(codecs.graph, graph.userdata),
     majorClaim: graph.majorClaim,
-    metadata: create(pb.MetadataSchema, {
-      created: date.toProtobuf(graph.metadata.created),
-      updated: date.toProtobuf(graph.metadata.updated),
-    }),
-    userdata: graph.userdata as JsonObject,
-    participants: participants,
-    resources: resources,
+    nodes: entries(graph.nodes, (node) => nodeToProtobuf(node, codecs)),
+    edges: entries(graph.edges, (edge) =>
+      create(pb.EdgeSchema, {
+        source: edge.source,
+        target: edge.target,
+        metadata: metadataToProtobuf(edge.metadata),
+        userdata: userdataToProtobuf(codecs.edge, edge.userdata),
+      }),
+    ),
+    resources: entries(graph.resources, (resource) =>
+      create(pb.ResourceSchema, {
+        text: resource.text,
+        title: resource.title,
+        source: resource.source,
+        timestamp: resource.timestamp && date.toProtobuf(resource.timestamp),
+        metadata: metadataToProtobuf(resource.metadata),
+        userdata: userdataToProtobuf(codecs.resource, resource.userdata),
+      }),
+    ),
+    participants: entries(graph.participants, (participant) =>
+      create(pb.ParticipantSchema, {
+        name: participant.name,
+        username: participant.username,
+        email: participant.email,
+        url: participant.url,
+        location: participant.location,
+        description: participant.description,
+        metadata: metadataToProtobuf(participant.metadata),
+        userdata: userdataToProtobuf(codecs.participant, participant.userdata),
+      }),
+    ),
+    analysts: entries(graph.analysts, (analyst) =>
+      create(pb.AnalystSchema, {
+        name: analyst.name,
+        email: analyst.email,
+        userdata: userdataToProtobuf(codecs.analyst, analyst.userdata),
+      }),
+    ),
   });
 }

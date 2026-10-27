@@ -1,120 +1,220 @@
-import {
-  ArgdownApplication,
-  IArgdownRequest,
-  IMap,
-  IMapEdge,
-  IMapNode,
-  MapPlugin,
-  ModelPlugin,
-  ParserPlugin,
-  PreselectionPlugin,
-} from "@argdown/core";
+import type { JsonObject, JsonValue } from "@bufbuild/protobuf";
 import * as model from "../model/index.js";
+import { defaultScheme } from "../model/scheme.js";
+import type * as schema from "../schemas/argdown.js";
+import type { UserdataSchema } from "../model/userdata.js";
+import * as helpers from "./helpers.js";
 
-export function argdown(obj: string) {
-  const app = new ArgdownApplication();
+// symmetric relations are added in both directions
+const relations: Readonly<Record<schema.RelationType, [model.SchemeType, boolean]>> = {
+  support: ["support", false],
+  entails: ["support", false],
+  attack: ["attack", false],
+  undercut: ["attack", false],
+  contrary: ["attack", true],
+  contradictory: ["attack", true],
+};
 
-  const parserPlugin = new ParserPlugin();
-  app.addPlugin(parserPlugin, "parse-input");
+function argdownUserdata(fields: Readonly<Record<string, JsonValue | undefined>>): JsonObject {
+  return { argdown: helpers.compact(fields) };
+}
 
-  const modelPlugin = new ModelPlugin();
-  app.addPlugin(modelPlugin, "build-model");
+/** Text of the last defining member, preferring members marked as canonical (upstream rule). */
+function canonicalText(members: readonly schema.Statement[]): string | undefined {
+  const definitions = members.filter((member) => !member.isReference);
+  const canonical =
+    definitions.findLast((member) => member.data?.isCanonical === true) ?? definitions.at(-1);
 
-  const preselectionPlugin = new PreselectionPlugin();
-  app.addPlugin(preselectionPlugin, "preselection-plugin");
+  return canonical?.text?.trim();
+}
 
-  const mapPlugin = new MapPlugin();
-  app.addPlugin(mapPlugin, "map-plugin");
+function isConclusion(statement: schema.Statement): boolean {
+  return (
+    statement.inference !== undefined &&
+    (statement.role === "intermediary-conclusion" || statement.role === "main-conclusion")
+  );
+}
 
-  const request: IArgdownRequest = {
-    input: obj,
-    process: ["parse-input", "build-model", "preselection-plugin", "map-plugin"],
-    logLevel: "verbose",
-  };
-  const response = app.run(request);
+/** Premises of the conclusion at `index`, its `uses` or all statements back to the previous conclusion. */
+function premises(argument: schema.Argument, index: number): schema.Statement[] {
+  const { pcs } = argument;
+  const conclusion = pcs[index];
+  const uses = conclusion.inference?.data?.uses ?? conclusion.data?.uses;
 
-  if (response.map !== undefined) {
-    const map: IMap = response.map;
-    // Create and add the atom nodes
-    const nodes: Record<string, model.Node> = Object.fromEntries(
-      map.nodes
-        .filter((value) => inEdges(value, map.edges))
-        .map((n) => {
-          const argdownNode = nodefromArgdown(n);
-          return [argdownNode.id, argdownNode];
-        }),
+  if (uses === undefined || uses === null) {
+    let start = index - 1;
+
+    while (start > 0 && !isConclusion(pcs[start])) {
+      start--;
+    }
+
+    return pcs.slice(Math.max(start, 0), index);
+  }
+
+  if (
+    !Array.isArray(uses) ||
+    !uses.every(
+      (n): n is number => typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= index,
+    )
+  ) {
+    throw new Error(
+      `Invalid 'uses' ${JSON.stringify(uses)} of statement ${index + 1} in argument '${argument.title}'.`,
     );
-
-    const edges: Record<string, model.Edge> = {};
-    map.edges.forEach((e) => {
-      // Create new scheme node and add it
-      const schemeNode = schemeNodeFromEdge(e);
-      nodes[schemeNode.id] = schemeNode;
-
-      // Create the two edges to and from the schemeNode
-      const e1 = new model.Edge({
-        source: e.from.id,
-        target: schemeNode.id,
-        metadata: new model.Metadata(),
-      });
-      edges[e1.id] = e1;
-      const e2 = new model.Edge({
-        source: schemeNode.id,
-        target: e.to.id,
-        metadata: new model.Metadata(),
-      });
-      edges[e2.id] = e2;
-    });
-
-    return new model.Graph({
-      metadata: new model.Metadata(),
-      nodes: nodes,
-      edges: edges,
-    });
-  } else {
-    // Empty graph
-    return new model.Graph({
-      metadata: new model.Metadata(),
-    });
   }
+
+  return uses.map((n) => pcs[n - 1]);
 }
 
-function nodefromArgdown(obj: IMapNode): model.Node {
-  return new model.AtomNode({
-    text: obj.labelText === undefined ? "" : obj.labelText,
-    metadata: new model.Metadata(),
-  });
-}
+/** Load a graph from the Argdown JSON export, use `arguebuf/argdown` for Argdown source text. */
+export function argdown<S extends UserdataSchema = {}>(
+  obj: schema.Graph,
+  ...args: helpers.LoadArgs<S>
+): model.Graph<S> {
+  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode(obj.frontMatter ?? {}) });
+  // inference schemes by argument title and conclusion index
+  const inferences = new Map<string, Map<number, model.SchemeNode<S>>>();
 
-function inEdges(node: IMapNode, edges: IMapEdge[]): boolean {
-  return edges.find((value) => value.from.id === node.id || value.to.id === node.id) !== undefined;
-}
+  const link = (source: model.Node<S>, target: model.Node<S>) => {
+    graph.addEdge(
+      new model.Edge<S>({ source: source.id, target: target.id, userdata: codecs.edge.decode({}) }),
+    );
+  };
 
-function schemeNodeFromEdge(obj: IMapEdge): model.SchemeNode {
-  let scheme: model.Scheme | undefined = undefined;
-  if (obj.relationType === "attack") {
-    scheme = {
-      value: model.Attack.DEFAULT,
-      case: "attack",
-    };
-  } else if (obj.relationType == "support") {
-    scheme = {
-      value: model.Support.DEFAULT,
-      case: "support",
-    };
-  } else if (obj.relationType == "contradictory") {
-    scheme = {
-      value: model.Attack.DEFAULT,
-      case: "attack",
-    };
-  } else if (obj.relationType == "undercut") {
-    scheme = {
-      value: model.Attack.DEFAULT,
-      case: "attack",
-    };
+  const addAtom = (
+    element: schema.EquivalenceClass | schema.Argument,
+    fields: Readonly<Record<string, JsonValue>> = {},
+  ) => {
+    const node = new model.AtomNode<S>({
+      text: canonicalText(element.members) || element.title,
+      userdata: codecs.atom.decode(
+        argdownUserdata({
+          title: element.title,
+          tags: element.tags,
+          data: element.data,
+          ...fields,
+        }),
+      ),
+    });
+    graph.addNode(node);
+
+    return node;
+  };
+
+  const statements = Object.fromEntries(
+    Object.entries(obj.statements).map(([title, ec]) => [title, addAtom(ec)]),
+  );
+
+  const addInferences = (title: string, argument: schema.Argument) => {
+    let main: model.SchemeNode<S> | undefined;
+    const owner = `argument '${title}'`;
+    const conclusions = new Map<number, model.SchemeNode<S>>();
+    inferences.set(title, conclusions);
+
+    for (const [index, statement] of argument.pcs.entries()) {
+      if (!isConclusion(statement)) {
+        continue;
+      }
+
+      const scheme = new model.SchemeNode<S>({
+        scheme: defaultScheme("support"),
+        userdata: codecs.scheme.decode(
+          argdownUserdata({
+            title,
+            description: canonicalText(argument.members),
+            inferenceRules: statement.inference?.inferenceRules,
+            data: statement.inference?.data,
+          }),
+        ),
+      });
+      graph.addNode(scheme);
+
+      for (const premise of premises(argument, index)) {
+        const node = helpers.lookup(statements, premise.title, "equivalence-class", owner);
+
+        if (node !== undefined) {
+          link(node, scheme);
+        }
+      }
+
+      const conclusion = helpers.lookup(statements, statement.title, "equivalence-class", owner);
+
+      if (conclusion !== undefined) {
+        link(scheme, conclusion);
+      }
+
+      conclusions.set(index, scheme);
+      main = scheme;
+    }
+
+    return main;
+  };
+
+  // Reconstructed arguments are represented by their main inference
+  const argumentNodes = Object.fromEntries(
+    Object.entries(obj.arguments).map(([title, argument]) => [
+      title,
+      addInferences(title, argument) ?? addAtom(argument, { argument: true }),
+    ]),
+  );
+
+  const members: Partial<Record<schema.MemberType, Readonly<Record<string, model.Node<S>>>>> = {
+    "equivalence-class": statements,
+    argument: argumentNodes,
+  };
+
+  const member = (
+    title: string,
+    type: schema.MemberType,
+    index: number | undefined,
+    owner: string,
+  ): model.Node<S> | undefined => {
+    if (type !== "inference") {
+      return helpers.lookup(members[type] ?? {}, title, type, owner);
+    }
+
+    const node = index === undefined ? undefined : inferences.get(title)?.get(index);
+
+    if (node === undefined) {
+      helpers.warn(
+        `Skipping unknown inference ${index} of argument '${title}' referenced by ${owner}.`,
+      );
+    }
+
+    return node;
+  };
+
+  for (const relation of obj.relations) {
+    const owner = `${relation.relationType} relation`;
+    const mapping = helpers.lookup(relations, relation.relationType, "relation type", owner);
+
+    if (mapping === undefined) {
+      continue;
+    }
+
+    const [type, symmetric] = mapping;
+    const source = member(relation.from, relation.fromType, undefined, owner);
+    const target = member(relation.to, relation.toType, relation.conclusionIndex, owner);
+
+    if (source === undefined || target === undefined) {
+      continue;
+    }
+
+    const directions: [model.Node<S>, model.Node<S>][] = [[source, target]];
+
+    if (symmetric) {
+      directions.push([target, source]);
+    }
+
+    for (const [start, end] of directions) {
+      const node = new model.SchemeNode<S>({
+        scheme: defaultScheme(type),
+        userdata: codecs.scheme.decode(argdownUserdata({ relationType: relation.relationType })),
+      });
+      graph.addNode(node);
+      helpers.connect(graph, codecs, [start.id], node.id, end.id);
+    }
   }
-  return new model.SchemeNode({
-    scheme: scheme,
-    metadata: new model.Metadata(),
-  });
+
+  return graph;
 }

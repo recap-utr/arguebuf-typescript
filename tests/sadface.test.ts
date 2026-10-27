@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { assertType, expect, test } from "vitest";
 import sadfaceGraph from "../data/sadface.json" with { type: "json" };
 import * as arguebuf from "../src/index.js";
@@ -9,10 +10,10 @@ test("graph: sadface2arguebuf", () => {
 
   // Test some graph properties
   assertType<arguebuf.Graph>(arguebufGraph);
-  expect(arguebufGraph.resources).toStrictEqual({});
+  expect(Object.keys(arguebufGraph.resources)).toStrictEqual([]);
   expect(Object.values(arguebufGraph.analysts)[0].name).toStrictEqual("Simon Wells");
   expect(Object.values(arguebufGraph.analysts)[0].email).toStrictEqual("siwells@gmail.com");
-  const comparisonDate = new Date(2019, 3, 22, 23, 52, 30);
+  const comparisonDate = Temporal.Instant.from("2019-04-22T23:52:30Z");
   expect(arguebufGraph.metadata.created).toStrictEqual(comparisonDate);
   expect(arguebufGraph.metadata.updated).toStrictEqual(comparisonDate);
   const userdata = {
@@ -21,7 +22,7 @@ test("graph: sadface2arguebuf", () => {
     description:
       "An example SADFace document showing an argument analysis of the Hangback cycle safety campaign from the STCD corpora.",
     title: "Hangback Example",
-    version: "0.2",
+    sadfaceVersion: "0.2",
   };
   expect(arguebufGraph.userdata).toStrictEqual(userdata);
 

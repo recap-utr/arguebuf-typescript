@@ -10,7 +10,7 @@ test("graph: xaif2arguebuf", () => {
   // Test some graph properties
   assertType<arguebuf.Graph>(arguebufGraph);
   expect(Object.keys(arguebufGraph.resources).length).toStrictEqual(1);
-  expect(arguebufGraph.analysts).toStrictEqual({});
+  expect(Object.keys(arguebufGraph.analysts)).toStrictEqual([]);
   expect(arguebufGraph.metadata).not.toStrictEqual({});
 
   // Test a specific node in the graph
@@ -20,9 +20,11 @@ test("graph: xaif2arguebuf", () => {
     text: "A",
   });
 
-  // Test a specific Edge in the graph
-  const e1: arguebuf.Edge = arguebufGraph.edges["1"];
-  expect(e1.source).toStrictEqual("4_164926129380455983");
-  expect(e1.target).toStrictEqual("3_164926129380455983");
-  expect(e1.metadata).not.toStrictEqual({});
+  // Edges of dialog nodes are skipped, locutions become participants and references
+  const e1: arguebuf.Edge = arguebufGraph.edges["11"];
+  expect(e1.source).toStrictEqual("15_164926162804546033");
+  expect(e1.target).toStrictEqual("21_164926162804546033");
+  expect(Object.keys(arguebufGraph.edges)).toStrictEqual(["11", "12"]);
+  expect(n1).toMatchObject({ participant: "1", reference: { text: "Participant Rachel: A" } });
+  expect(Object.values(arguebufGraph.resources)[0].text).toStrictEqual("A because B\n");
 });

@@ -1,46 +1,56 @@
-export interface Graph {
-  nodes: Node[];
-  edges: Edge[];
-  metadata: Metadata;
-  resources?: unknown[];
+import type { JsonObject } from "@bufbuild/protobuf";
+
+// `scheme` is the generic type of older versions, it is refined by its name
+export type NodeType = "atom" | "scheme" | "inference" | "conflict";
+
+export interface Source {
+  resource_id: string;
+  text: string;
+  offset?: number;
+  length?: number;
 }
+
+export interface Node {
+  id: string;
+  type: NodeType;
+  text?: string;
+  name?: string;
+  sources?: Source[];
+  metadata?: JsonObject;
+}
+
 export interface Edge {
   id: string;
   source_id: string;
   target_id: string;
 }
 
-export type Node = AtomNode | SchemeNode;
-
-export interface AtomNode {
+export interface Resource {
   id: string;
-  metadata: unknown;
-  sources: unknown[];
-  text: string;
-  type: "atom";
-}
-
-export const DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss";
-
-export interface SchemeNode {
-  id: string;
-  metadata: unknown;
-  name: string;
-  type: "scheme";
+  content?: string;
+  type?: string;
+  metadata?: JsonObject;
 }
 
 export interface Core {
+  id: string;
+  version: string;
   analyst_email?: string;
   analyst_name?: string;
   created?: string;
-  description?: string;
   edited?: string;
-  id?: string;
+  description?: string;
   notes?: string;
   title?: string;
-  version?: string;
 }
 
 export interface Metadata {
   core: Core;
+}
+
+export interface Graph {
+  nodes: Node[];
+  edges: Edge[];
+  metadata: Metadata;
+  resources?: Resource[];
 }

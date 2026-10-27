@@ -1,5 +1,7 @@
 export * from "./aif.js";
 export * from "./argdown.js";
+export * from "./brat.js";
+export type { AifOptions, LoadArgs, LoadOptions } from "./helpers.js";
 export * from "./json.js";
 export * from "./kialo.js";
 export * from "./ova.js";

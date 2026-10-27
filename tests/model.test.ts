@@ -1,0 +1,265 @@
+import { create } from "@bufbuild/protobuf";
+import * as pb from "arg-services/graph/v1/graph_pb";
+import { produce } from "immer";
+import { Temporal } from "temporal-polyfill";
+import { expect, test, vi } from "vitest";
+import * as arguebuf from "../src/index.js";
+
+function sampleGraph() {
+  const resource = new arguebuf.Resource({ id: "r", text: "Resource" });
+  const participant = new arguebuf.Participant({ id: "p", name: "Bob" });
+  const claim = new arguebuf.AtomNode({
+    id: "c",
+    text: "Claim",
+    participant: "p",
+    reference: new arguebuf.Reference({ text: "Res", resource: "r", offset: 0 }),
+  });
+  const premise = new arguebuf.AtomNode({ id: "p1", text: "Premise" });
+  const scheme = new arguebuf.SchemeNode({
+    id: "s",
+    scheme: { case: "support", value: arguebuf.Support.EXPERT_OPINION },
+    premiseDescriptors: ["p1"],
+  });
+
+  return new arguebuf.Graph({
+    resources: [resource],
+    participants: [participant],
+    nodes: [claim, premise, scheme],
+    edges: [
+      new arguebuf.Edge({ id: "e1", source: "p1", target: "s", userdata: { weight: 1 } }),
+      new arguebuf.Edge({ id: "e2", source: "s", target: "c" }),
+    ],
+    majorClaim: "c",
+  });
+}
+
+test("removals cascade", () => {
+  const graph = sampleGraph();
+  graph.removeNode("p1");
+
+  expect(Object.keys(graph.edges)).toStrictEqual(["e2"]);
+  expect(graph.schemeNodes.s.premiseDescriptors).toStrictEqual([]);
+
+  graph.addEdge(new arguebuf.Edge({ source: "c", target: "c" }));
+  graph.removeNode("c");
+  expect(graph.majorClaim).toBeUndefined();
+  expect(Object.keys(graph.edges)).toStrictEqual([]);
+
+  const other = sampleGraph();
+  other.removeResource("r");
+  other.removeParticipant("p");
+  expect(other.atomNodes.c.reference).toStrictEqual(new arguebuf.Reference({ text: "Res" }));
+  expect(other.atomNodes.c.participant).toBeUndefined();
+  expect(() => other.removeEdge("missing")).toThrow(/does not exist/);
+  expect(() => other.removeAnalyst("missing")).toThrow(/does not exist/);
+});
+
+test("additions validate references", () => {
+  const graph = sampleGraph();
+
+  expect(() => graph.addEdge(graph.edges.e1)).toThrow(/already exists/);
+  expect(() => graph.addResource(graph.resources.r)).toThrow(/already exists/);
+  expect(() => graph.addParticipant(graph.participants.p)).toThrow(/already exists/);
+  expect(() => graph.addEdge(new arguebuf.Edge({ source: "c", target: "missing" }))).toThrow(
+    /does not exist/,
+  );
+  expect(() => (graph.majorClaim = "missing")).toThrow(/does not exist/);
+  expect(() => (graph.majorClaim = "s")).toThrow(/Only atom nodes/);
+  expect(() => graph.addNode(new arguebuf.AtomNode({ text: "", participant: "x" }))).toThrow(
+    /Participant/,
+  );
+  expect(() =>
+    graph.addNode(
+      new arguebuf.AtomNode({
+        text: "",
+        reference: new arguebuf.Reference({ text: "", resource: "x" }),
+      }),
+    ),
+  ).toThrow(/Resource/);
+  expect(
+    () =>
+      new arguebuf.Graph({
+        nodes: [
+          new arguebuf.AtomNode({ id: "a", text: "" }),
+          new arguebuf.AtomNode({ id: "a", text: "" }),
+        ],
+      }),
+  ).toThrow(/already exists/);
+  expect(() => new arguebuf.Graph({ majorClaim: "missing" })).toThrow(/does not exist/);
+});
+
+test("prototype property names are ordinary entity ids", () => {
+  const id = "__proto__";
+  const graph = new arguebuf.Graph({
+    resources: [new arguebuf.Resource({ id, text: "" })],
+    participants: [new arguebuf.Participant({ id })],
+    analysts: [new arguebuf.Analyst({ id })],
+    nodes: [
+      new arguebuf.AtomNode({
+        id,
+        text: "",
+        participant: id,
+        reference: new arguebuf.Reference({ text: "", resource: id }),
+      }),
+    ],
+    edges: [new arguebuf.Edge({ id, source: id, target: id })],
+  });
+
+  expect(Object.keys(graph.nodes)).toStrictEqual([id]);
+  expect(graph.incomingEdges(id)).toStrictEqual([graph.edges[id]]);
+  expect(graph.outgoingNodes(id)).toStrictEqual([graph.nodes[id]]);
+
+  const removed = produce(graph, (draft) => {
+    draft.removeParticipant(id);
+    draft.removeResource(id);
+    draft.removeAnalyst(id);
+    draft.removeNode(id);
+  });
+
+  expect(
+    [
+      removed.nodes,
+      removed.edges,
+      removed.resources,
+      removed.participants,
+      removed.analysts,
+    ].flatMap(Object.keys),
+  ).toStrictEqual([]);
+});
+
+test("cleanup retains only referenced resources and participants", () => {
+  const graph = sampleGraph();
+  graph.addResource(new arguebuf.Resource({ text: "Unused" }));
+  graph.addParticipant(new arguebuf.Participant());
+  graph.cleanResources();
+  graph.cleanParticipants();
+
+  expect(Object.keys(graph.resources)).toStrictEqual(["r"]);
+  expect(Object.keys(graph.participants)).toStrictEqual(["p"]);
+});
+
+test("node labels and colors", () => {
+  const graph = sampleGraph();
+
+  expect(graph.nodes.c.label).toBe("Claim");
+  expect(graph.nodes.s.label).toBe("Support: Expert Opinion");
+  expect(
+    new arguebuf.SchemeNode({ scheme: { case: "attack", value: arguebuf.Attack.DEFAULT } }).label,
+  ).toBe("Attack");
+  expect(new arguebuf.SchemeNode().label).toBe("Unknown");
+  expect(graph.nodes.s.color(false, false).bg).toBe("#4CAF50");
+  expect(graph.nodes.c.color(true, false).bg).toBe("#0D47A1");
+});
+
+test("metadata describes a single instant", () => {
+  const metadata = new arguebuf.Metadata();
+  expect(metadata.updated).toBe(metadata.created);
+
+  const created = Temporal.Instant.from("1970-01-01T00:00Z");
+  expect(new arguebuf.Metadata({ created }).updated).toBe(created);
+});
+
+test("resolve schemes", () => {
+  expect(arguebuf.resolveScheme("support", "ExpertOpinion")).toStrictEqual({
+    case: "support",
+    value: arguebuf.Support.EXPERT_OPINION,
+  });
+  expect(arguebuf.resolveScheme("support", "From-analogy")).toStrictEqual({
+    case: "support",
+    value: arguebuf.Support.ANALOGY,
+  });
+  expect(arguebuf.resolveScheme("support", "Unknown Scheme").value).toBe(arguebuf.Support.DEFAULT);
+  expect(arguebuf.resolveAifScheme("CA", "Default Conflict")).toStrictEqual({
+    case: "attack",
+    value: arguebuf.Attack.DEFAULT,
+  });
+  expect(arguebuf.resolveAifScheme("", "")).toStrictEqual({ case: undefined });
+});
+
+test("dates are parsed and formatted in UTC", () => {
+  const value = Temporal.Instant.from("2019-03-23T15:57:30Z");
+
+  expect(arguebuf.date.parseAif("2019-03-23 15:57:30")).toStrictEqual(value);
+  expect(arguebuf.date.parseAif("2019-3-23 15:57:30")).toStrictEqual(value);
+  expect(arguebuf.date.parseIso("2019-03-23T16:57:30+01:00")).toStrictEqual(value);
+  expect(arguebuf.date.parseIso("2019-03-23T15:57:30")).toStrictEqual(value);
+  expect(arguebuf.date.parseIso("2019-03-23T15:57:30Z[Europe/Berlin]")).toStrictEqual(value);
+  expect(arguebuf.date.parseOva("23/03/2019 - 15:57:30")).toStrictEqual(value);
+  expect(arguebuf.date.parseOva("23/3/2019 - 15:57:30")).toStrictEqual(value);
+  expect(arguebuf.date.parseOvaDate("1/2/2019")).toStrictEqual(
+    Temporal.Instant.from("2019-02-01T00:00Z"),
+  );
+  expect(arguebuf.date.formatAif(value)).toBe("2019-03-23 15:57:30");
+  expect(arguebuf.date.parseAif(undefined)).toBeUndefined();
+  expect(arguebuf.date.parseOva("")).toBeUndefined();
+
+  for (const [parse, text] of [
+    [arguebuf.date.parseAif, "2019-13-01 00:00:00"],
+    [arguebuf.date.parseAif, "2019-03-23T15:57:30"],
+    [arguebuf.date.parseIso, "yesterday"],
+    [arguebuf.date.parseOva, "23/03/2019"],
+    [arguebuf.date.parseOvaDate, "23/03/2019 - 15:57:30"],
+  ] as const) {
+    expect(() => parse(text)).toThrow(RangeError);
+  }
+});
+
+test("instants survive immer drafts and the protobuf round trip", () => {
+  const graph = sampleGraph();
+  const created = Temporal.Instant.from("1969-12-31T23:59:59.123456789Z");
+  const result = produce(graph, (draft) => {
+    draft.metadata.created = created;
+    draft.resources.r.timestamp = created;
+  });
+
+  expect(Object.isFrozen(result.metadata)).toBe(true);
+  expect(result.metadata.created).toBe(created);
+  expect(graph.metadata.created).not.toBe(created);
+  expect(arguebuf.date.toProtobuf(created)).toMatchObject({ seconds: -1n, nanos: 123456789 });
+
+  const copy = arguebuf.copy(result);
+  expect(copy.metadata.created.epochNanoseconds).toBe(created.epochNanoseconds);
+  expect(copy.resources.r.timestamp?.epochNanoseconds).toBe(created.epochNanoseconds);
+});
+
+test("copy is lossless and does not mutate the input", () => {
+  const graph = sampleGraph();
+  graph.name = "sample";
+  graph.userdata = { nested: { values: [1, 2.5, "x", null, true] } };
+  const metadata = new arguebuf.Metadata({
+    created: graph.metadata.created,
+    updated: graph.metadata.updated,
+  });
+  const copy = arguebuf.copy(graph);
+
+  expect(copy).toStrictEqual(graph);
+  expect(copy.edges.e1.userdata).toStrictEqual({ weight: 1 });
+  expect(copy.resources.r.timestamp).toBeUndefined();
+  expect(graph.metadata).toStrictEqual(metadata);
+
+  copy.edges.e1.userdata.weight = 2;
+  expect(graph.edges.e1.userdata.weight).toBe(1);
+});
+
+test("protobuf dump writes the library version", () => {
+  expect(arguebuf.dump.protobuf(sampleGraph()).libraryVersion).toMatch(
+    /^arguebuf-typescript:\d+\.\d+\.\d+/,
+  );
+});
+
+test("protobuf load skips dangling references with a warning", () => {
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  const message = arguebuf.dump.protobuf(sampleGraph());
+  message.edges.dangling = create(pb.EdgeSchema, { source: "c", target: "missing" });
+  message.majorClaim = "missing";
+  message.resources = {};
+  message.participants = {};
+  const graph = arguebuf.load.protobuf(message);
+
+  expect(Object.keys(graph.edges)).toStrictEqual(["e1", "e2"]);
+  expect(graph.majorClaim).toBeUndefined();
+  expect(graph.atomNodes.c.participant).toBeUndefined();
+  expect(graph.atomNodes.c.reference).toStrictEqual(new arguebuf.Reference({ text: "Res" }));
+  expect(warn).toHaveBeenCalledTimes(4);
+  warn.mockRestore();
+});
