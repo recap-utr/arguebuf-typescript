@@ -16,6 +16,10 @@
       "types": "./dist/argdown.d.ts",
       "default": "./dist/argdown.js"
     },
+    "./graphology": {
+      "types": "./dist/graphology.d.ts",
+      "default": "./dist/graphology.js"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -37,16 +41,21 @@
   },
   "devDependencies": {
     "@argdown/core": "^2",
+    "graphology": "^0.26",
     "typescript": "^7",
     "vite": "^8",
     "vitest": "^5",
     "zod": "^4"
   },
   "peerDependencies": {
-    "@argdown/core": "^2"
+    "@argdown/core": "^2",
+    "graphology": "^0.26"
   },
   "peerDependenciesMeta": {
     "@argdown/core": {
+      "optional": true
+    },
+    "graphology": {
       "optional": true
     }
   }

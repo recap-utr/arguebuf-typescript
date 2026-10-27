@@ -1,6 +1,7 @@
 // Regression tests for the format loaders and dumpers, mirroring tests/test_formats.py of arguebuf-python.
 import { Temporal } from "temporal-polyfill";
 import { expect, test, vi } from "vitest";
+import { dumpGraphology } from "../src/graphology.js";
 import * as arguebuf from "../src/index.js";
 import { newReference, stringId } from "../src/load/helpers.js";
 import { parseHtml } from "../src/load/html.js";
@@ -225,6 +226,22 @@ test("dump d2 and graphviz", () => {
     `"a" [label="${"x".repeat(33)}\n\\"y\\"", fontcolor="#ffffff", fillcolor="#0D47A1", color="#0D47A1", root="true"];`,
   );
   expect(arguebuf.dump.graphviz(graph)).toContain('[label="a b back\\\\slash \\"q\\" $x\\\\"');
+});
+
+test("dump graphology", () => {
+  const atom = new arguebuf.AtomNode({ text: "a" });
+  const scheme = new arguebuf.SchemeNode({
+    scheme: { case: "support", value: arguebuf.Support.DEFAULT },
+  });
+  const graph = new arguebuf.Graph({
+    nodes: [atom, scheme],
+    edges: [new arguebuf.Edge({ source: atom.id, target: scheme.id })],
+  });
+  const result = dumpGraphology(graph, { schemeAttrs: { kind: (node) => node.label } });
+
+  expect(result.getNodeAttributes(scheme.id)).toStrictEqual({ label: "Support", kind: "Support" });
+  expect(result.getNodeAttributes(atom.id)).toStrictEqual({ label: "a" });
+  expect(result.size).toBe(1);
 });
 
 test("lenient json loaders", () => {
