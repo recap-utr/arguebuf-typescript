@@ -244,3 +244,6 @@ $RECYCLE.BIN/
 *.timestamp*.mjs
 .envrc
 .direnv/
+
+# Nix
+result*
