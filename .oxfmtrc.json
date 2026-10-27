@@ -1,0 +1,4 @@
+{
+  "$schema": "https://github.com/oxc-project/oxc/raw/refs/heads/main/npm/oxfmt/configuration_schema.json",
+  "ignorePatterns": ["CHANGELOG.md"]
+}

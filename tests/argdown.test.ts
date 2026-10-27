@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-// @ts-ignore
 import graph from "../data/arguebase/argdown-examples/format=argdown,lang=en/argdown-primer.argdown?raw";
 import * as arguebuf from "../src/index.js";
 

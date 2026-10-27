@@ -1,6 +1,6 @@
-import { protobuf as toProto } from "./dump";
-import { protobuf as fromProto } from "./load";
-import * as model from "./model";
+import { protobuf as toProto } from "./dump/index.js";
+import { protobuf as fromProto } from "./load/index.js";
+import * as model from "./model/index.js";
 
 export function copy(
   graph: model.Graph,

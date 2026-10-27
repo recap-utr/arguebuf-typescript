@@ -1,0 +1,4 @@
+{
+  "$schema": "https://github.com/oxc-project/oxc/raw/refs/heads/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "import", "node", "oxc", "promise", "typescript", "unicorn", "vitest"]
+}

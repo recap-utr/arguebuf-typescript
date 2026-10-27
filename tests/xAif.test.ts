@@ -1,5 +1,5 @@
 import { assertType, expect, test } from "vitest";
-import xaifGraph from "../data/xaif.json";
+import xaifGraph from "../data/xaif.json" with { type: "json" };
 import * as arguebuf from "../src/index.js";
 
 test("graph: xaif2arguebuf", () => {
@@ -15,10 +15,10 @@ test("graph: xaif2arguebuf", () => {
 
   // Test a specific node in the graph
   const n1: arguebuf.Node = arguebufGraph.nodes["2_164926129380455983"];
-  expect(n1.type).toStrictEqual("atom");
-  if (n1.type === "atom") {
-    expect(n1.text).toStrictEqual("A");
-  }
+  expect(n1).toMatchObject({
+    type: "atom",
+    text: "A",
+  });
 
   // Test a specific Edge in the graph
   const e1: arguebuf.Edge = arguebufGraph.edges["1"];

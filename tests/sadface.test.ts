@@ -1,5 +1,5 @@
 import { assertType, expect, test } from "vitest";
-import sadfaceGraph from "../data/sadface.json";
+import sadfaceGraph from "../data/sadface.json" with { type: "json" };
 import * as arguebuf from "../src/index.js";
 
 test("graph: sadface2arguebuf", () => {
@@ -32,22 +32,20 @@ test("graph: sadface2arguebuf", () => {
   // Test a specific atom node in the graph
   let n1: arguebuf.Node =
     arguebufGraph.nodes["51775eb3-70c0-4d8e-95a5-b34ffba8a280"];
-  expect(n1.type).toStrictEqual("atom");
-  if (n1.type === "atom") {
-    expect(n1.text).toStrictEqual(
-      "Road users have a responsibility to make our roads safer by being more vigilant.",
-    );
-  }
+  expect(n1).toMatchObject({
+    type: "atom",
+    text: "Road users have a responsibility to make our roads safer by being more vigilant.",
+  });
   expect(n1.metadata.created).not.toStrictEqual(undefined);
   expect(n1.metadata.updated).not.toStrictEqual(undefined);
 
   // Test a specific scheme node in the graph
   let n2: arguebuf.Node =
     arguebufGraph.nodes["45199aa0-1556-4b94-8940-3ba30aa08e38"];
-  expect(n2.type).toStrictEqual("scheme");
-  if (n2.type === "scheme") {
-    expect(n2.scheme.case).toStrictEqual("attack");
-  }
+  expect(n2).toMatchObject({
+    type: "scheme",
+    scheme: { case: "attack" },
+  });
   expect(n2.metadata.created).not.toStrictEqual(undefined);
   expect(n2.metadata.updated).not.toStrictEqual(undefined);
 

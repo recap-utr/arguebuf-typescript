@@ -17,14 +17,10 @@
     "provenance": true
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test": "vitest",
-    "check": "vitest run --no-cache",
-    "coverage": "vitest run --coverage",
-    "prepack": "npm run build",
-    "lint": "eslint ./src"
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --dir tests",
+    "tsc": "tsc --noEmit",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2",
@@ -34,16 +30,9 @@
   },
   "devDependencies": {
     "@argdown/core": "^2",
-    "@eslint/js": "^10",
-    "@types/node": "^26",
-    "@vitest/coverage-v8": "^4",
-    "eslint": "^10",
-    "typescript": "^6",
-    "typescript-eslint": "^8",
+    "typescript": "^7",
     "vite": "^8",
-    "vite-plugin-checker": "^0.14",
-    "vite-plugin-dts": "^5",
-    "vitest": "^4"
+    "vitest": "^5"
   },
   "optionalDependencies": {
     "@argdown/core": "^2"

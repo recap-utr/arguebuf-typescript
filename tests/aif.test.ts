@@ -1,5 +1,5 @@
 import { assertType, expect, test } from "vitest";
-import aifGraph from "../data/arguebase/microtexts/format=aif,lang=en/nodeset6361.json";
+import aifGraph from "../data/arguebase/microtexts/format=aif,lang=en/nodeset6361.json" with { type: "json" };
 import * as arguebuf from "../src/index.js";
 
 test("graph: aif2arguebuf", () => {
@@ -15,12 +15,10 @@ test("graph: aif2arguebuf", () => {
 
   // Test a specific node in the graph
   const n1: arguebuf.Node = arguebufGraph.nodes["119928"];
-  expect(n1.type).toStrictEqual("atom");
-  if (n1.type === "atom") {
-    expect(n1.text).toStrictEqual(
-      "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins.",
-    );
-  }
+  expect(n1).toMatchObject({
+    type: "atom",
+    text: "Three different bin bags stink away in the kitchen and have to be sorted into different wheelie bins.",
+  });
   const comparisonDate = new Date(2015, 11, 14, 12, 9, 14);
   expect(n1.metadata.created).toStrictEqual(comparisonDate);
   expect(n1.metadata.updated).toStrictEqual(comparisonDate);
