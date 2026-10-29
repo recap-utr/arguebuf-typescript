@@ -3,10 +3,12 @@ import type { UserdataSchema } from "#/model/userdata.js";
 
 /** Options of the D2 export, shared with the Graphviz export. */
 export interface D2Options<S extends UserdataSchema = {}> {
-  atomLabel?: (node: model.AtomNode<S>) => string;
-  schemeLabel?: (node: model.SchemeNode<S>) => string;
+  atomLabel?: (node: model.AtomNodeOf<S>) => string;
+  schemeLabel?: (node: model.SchemeNodeOf<S>) => string;
   maxNodes?: number;
   monochrome?: boolean;
+  /** If false, scheme nodes are collapsed into edges between atoms colored by their scheme. */
+  schemeNodes?: boolean;
 }
 
 // d2 double-quoted strings use the same escapes as JSON, `$` starts a substitution
@@ -33,7 +35,7 @@ export function d2<S extends UserdataSchema>(
   graph: model.Graph<S>,
   options: D2Options<S> = {},
 ): string | undefined {
-  const { atomLabel, schemeLabel, maxNodes = 1000, monochrome = false } = options;
+  const { atomLabel, schemeLabel, maxNodes = 1000, monochrome = false, schemeNodes = true } = options;
 
   const nodes = Object.values(graph.nodes);
 
@@ -50,14 +52,19 @@ export function d2<S extends UserdataSchema>(
         node.color(graph.majorClaim === node.id, monochrome),
       ),
     );
-  const schemes = nodes
+  const schemes = (schemeNodes ? nodes : [])
     .filter((node) => node.type === "scheme")
     .map((node) =>
       nodeToD2(node, schemeLabel?.(node) ?? node.label, node.color(false, monochrome)),
     );
-  const edges = Object.values(graph.edges).map(
-    (edge) => `${quote(edge.source)} -> ${quote(edge.target)}\n`,
-  );
+  const edges = schemeNodes
+    ? Object.values(graph.edges).map((edge) => `${quote(edge.source)} -> ${quote(edge.target)}\n`)
+    : graph
+        .atomRelations()
+        .map(
+          ({ source, target, scheme }) =>
+            `${quote(source.id)} -> ${quote(target.id)}: {style.stroke: ${quote(scheme.color(false, monochrome).bg)}}\n`,
+        );
 
   return [...atoms, ...schemes, ...edges].join("");
 }

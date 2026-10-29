@@ -1,6 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import * as date from "#/date.js";
+import { offsets } from "#/offset.js";
 import type { JsonObject } from "@bufbuild/protobuf";
 import type * as model from "#/model/index.js";
 import {
@@ -29,8 +30,21 @@ function metadataToProtobuf(metadata: model.Metadata): pb.Metadata {
   });
 }
 
+/** Serialized offsets count code points instead of UTF-16 code units. */
+function offsetToProtobuf<S extends UserdataSchema>(
+  reference: model.Reference,
+  resources: Readonly<Record<string, model.ResourceOf<S>>>,
+): number | undefined {
+  const { offset, resource } = reference;
+
+  return offset === undefined || resource === undefined
+    ? offset
+    : offsets(resources[resource].text).toCodePoints(offset);
+}
+
 function nodeToProtobuf<S extends UserdataSchema>(
   node: model.Node<S>,
+  graph: model.Graph<S>,
   codecs: ResolvedCodecs<S>,
 ): pb.Node {
   const metadata = metadataToProtobuf(node.metadata);
@@ -49,7 +63,7 @@ function nodeToProtobuf<S extends UserdataSchema>(
             create(pb.ReferenceSchema, {
               text: node.reference.text,
               resource: node.reference.resource,
-              offset: node.reference.offset,
+              offset: offsetToProtobuf(node.reference, graph.resources),
             }),
         }),
       },
@@ -87,7 +101,7 @@ export function protobuf<S extends UserdataSchema>(
     metadata: metadataToProtobuf(graph.metadata),
     userdata: userdataToProtobuf(codecs.graph, graph.userdata),
     majorClaim: graph.majorClaim,
-    nodes: entries(graph.nodes, (node) => nodeToProtobuf(node, codecs)),
+    nodes: entries(graph.nodes, (node) => nodeToProtobuf(node, graph, codecs)),
     edges: entries(graph.edges, (edge) =>
       create(pb.EdgeSchema, {
         source: edge.source,

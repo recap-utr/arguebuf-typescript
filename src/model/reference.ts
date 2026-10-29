@@ -1,17 +1,17 @@
-import { immerable } from "immer";
 
 export interface ReferenceInit {
   text: string;
   resource?: string;
+  /** UTF-16 index of the text in the resource, serialized formats count code points. */
   offset?: number;
 }
 
 /** Text span of a resource that an atom node is based on. */
 export class Reference {
-  static [immerable] = true;
-  text: string;
-  resource?: string;
-  offset?: number;
+  readonly text: string;
+  readonly resource?: string;
+  /** UTF-16 index of the text in the resource, like JavaScript string indices. */
+  readonly offset?: number;
 
   constructor(init: ReferenceInit) {
     this.text = init.text;

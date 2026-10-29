@@ -1,30 +1,43 @@
-import { immerable } from "immer";
 import {
   initUserdata,
+  type JsonObject,
   type OptionalInit,
-  type Userdata,
   type UserdataInit,
+  type Userdata,
   type UserdataSchema,
 } from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
-export type AnalystInit<S extends UserdataSchema = {}> = {
+/** Fields of an analyst that `Analyst.with` and `Graph.updateAnalyst` change. */
+export type AnalystChanges<U = JsonObject> = Partial<Pick<Analyst<U>, "name" | "email" | "userdata">>;
+
+export type AnalystInit<U = JsonObject> = {
   id?: string;
   name?: string;
   email?: string;
-} & UserdataInit<Userdata<S, "analyst">>;
+} & UserdataInit<U>;
 
-export class Analyst<S extends UserdataSchema = {}> {
-  static [immerable] = true;
+/** Person who annotated the graph, see `Graph.updateAnalyst` to change it. */
+export class Analyst<U = JsonObject> {
   readonly id: string;
-  name?: string;
-  email?: string;
-  userdata: Userdata<S, "analyst">;
+  readonly name?: string;
+  readonly email?: string;
+  readonly userdata: U;
 
-  constructor(...[init]: OptionalInit<AnalystInit<S>>) {
+  constructor(...[init]: OptionalInit<AnalystInit<U>>) {
     this.id = init?.id ?? uuid();
     this.name = init?.name;
     this.email = init?.email;
-    this.userdata = initUserdata<Userdata<S, "analyst">>(init);
+    this.userdata = initUserdata<U>(init);
+  }
+
+  /** Copy of the analyst with the given fields changed. */
+  with(changes: AnalystChanges<U>): Analyst<U> {
+    const { id, name, email, userdata } = this;
+
+    return new Analyst<U>({ id, name, email, userdata, ...changes });
   }
 }
+
+/** Analyst with the userdata of the schema `S`. */
+export type AnalystOf<S extends UserdataSchema = {}> = Analyst<Userdata<S, "analyst">>;

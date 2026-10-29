@@ -1,33 +1,46 @@
-import { immerable } from "immer";
 import { Metadata } from "#/model/metadata.js";
 import {
   initUserdata,
-  type Userdata,
+  type JsonObject,
   type UserdataInit,
+  type Userdata,
   type UserdataSchema,
 } from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
-export type EdgeInit<S extends UserdataSchema = {}> = {
+/** Fields of an edge that `Edge.with` and `Graph.updateEdge` change, its nodes are fixed. */
+export type EdgeChanges<U = JsonObject> = Partial<Pick<Edge<U>, "metadata" | "userdata">>;
+
+export type EdgeInit<U = JsonObject> = {
   id?: string;
   source: string;
   target: string;
   metadata?: Metadata;
-} & UserdataInit<Userdata<S, "edge">>;
+} & UserdataInit<U>;
 
-export class Edge<S extends UserdataSchema = {}> {
-  static [immerable] = true;
+/** Directed connection between two nodes, see `Graph.updateEdge` to change it. */
+export class Edge<U = JsonObject> {
   readonly id: string;
   readonly source: string;
   readonly target: string;
-  metadata: Metadata;
-  userdata: Userdata<S, "edge">;
+  readonly metadata: Metadata;
+  readonly userdata: U;
 
-  constructor(init: EdgeInit<S>) {
+  constructor(init: EdgeInit<U>) {
     this.id = init.id ?? uuid();
     this.source = init.source;
     this.target = init.target;
     this.metadata = init.metadata ?? new Metadata();
-    this.userdata = initUserdata<Userdata<S, "edge">>(init);
+    this.userdata = initUserdata<U>(init);
+  }
+
+  /** Copy of the edge with the given fields changed. */
+  with(changes: EdgeChanges<U>): Edge<U> {
+    const { id, source, target, metadata, userdata } = this;
+
+    return new Edge<U>({ id, source, target, metadata, userdata, ...changes });
   }
 }
+
+/** Edge with the userdata of the schema `S`. */
+export type EdgeOf<S extends UserdataSchema = {}> = Edge<Userdata<S, "edge">>;

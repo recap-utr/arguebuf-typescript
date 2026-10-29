@@ -1,6 +1,16 @@
-// Shared helpers for loaders that skip dangling data with a warning.
+// Shared helpers for loaders that repair or skip malformed data and report it.
 import type { JsonObject } from "@bufbuild/protobuf";
+import {
+  catchGraphError,
+  GraphError,
+  type Issue,
+  type IssueCode,
+  issue,
+  type Reporter,
+  warn,
+} from "#/issue.js";
 import * as model from "#/model/index.js";
+import { offsets } from "#/offset.js";
 import {
   type CodecArgs,
   type ResolvedCodecs,
@@ -19,6 +29,10 @@ import type * as argdownSchema from "#/schemas/argdown.js";
 export interface LoadOptions {
   /** Name of the graph, a Kialo discussion title takes precedence. */
   readonly name?: string;
+  /** Receives the repairs and skipped elements as warnings, defaults to `console.warn`. */
+  readonly onIssue?: Reporter;
+  /** Throw a `GraphError` instead of repairing or skipping malformed data. */
+  readonly strict?: boolean;
 }
 
 /** Options of the AIF, xAIF, and JSON loaders. */
@@ -36,15 +50,65 @@ export type LoadArgs<S extends UserdataSchema, O extends LoadOptions = LoadOptio
   O
 >;
 
-/** Options of a loader with the codecs of all kinds. */
-export function loadOptions<S extends UserdataSchema>(
-  ...[options]: LoadArgs<S>
-): LoadOptions & { readonly codecs: ResolvedCodecs<S> } {
-  return { ...options, codecs: resolveCodecs(options?.codecs) };
+/** Reports a repaired or skipped element as warning. */
+export interface Reporting {
+  readonly report: (code: IssueCode, message: string, elements?: readonly string[]) => void;
 }
 
-export function warn(message: string): void {
-  console.warn(`arguebuf: ${message}`);
+/** Codecs of all kinds and the reporter of a loader. */
+export interface Context<S extends UserdataSchema> extends Reporting {
+  readonly codecs: ResolvedCodecs<S>;
+}
+
+/** Options of a loader with its context. */
+export function loadOptions<S extends UserdataSchema>(
+  ...[options]: LoadArgs<S>
+): LoadOptions & Context<S> {
+  const onIssue = options?.onIssue ?? warn;
+  const forward = (item: Issue) => {
+    if (options?.strict) {
+      throw new GraphError({ ...item, severity: "error" });
+    }
+
+    onIssue(item);
+  };
+
+  return {
+    ...options,
+    codecs: resolveCodecs(options?.codecs),
+    report: (code, message, elements) => forward(issue(code, message, elements, "warning")),
+  };
+}
+
+/** Run the action, reporting the issue of its `GraphError` with the consequence for the input. */
+function attempt<S extends UserdataSchema>(
+  ctx: Context<S>,
+  action: () => void,
+  consequence: (code: IssueCode) => string,
+): Issue | undefined {
+  const error = catchGraphError(action);
+
+  if (error !== undefined) {
+    ctx.report(error.code, `${error.message} ${consequence(error.code)}`, error.elements);
+  }
+
+  return error;
+}
+
+/** Add a node, skipping it with a warning if its id is taken. */
+export function addNode<S extends UserdataSchema>(
+  graph: model.Graph<S>,
+  ctx: Context<S>,
+  node: model.Node<S>,
+): void {
+  attempt(ctx, () => graph.addNode(node), () => "The node was skipped.");
+}
+
+/** Re-anchor references that do not match their resource, see `Graph.relocateReferences`. */
+export function relocate<S extends UserdataSchema>(graph: model.Graph<S>, ctx: Context<S>): void {
+  for (const { code, message, elements } of graph.relocateReferences()) {
+    ctx.report(code, message, elements);
+  }
 }
 
 /**
@@ -68,8 +132,8 @@ export function newParticipant<S extends UserdataSchema>(
   codecs: ResolvedCodecs<S>,
   id: string,
   ...names: (string | undefined)[]
-): model.Participant<S> {
-  return new model.Participant<S>({
+): model.ParticipantOf<S> {
+  return new model.Participant({
     id,
     name: names.filter(Boolean).join(" ") || undefined,
     userdata: codecs.participant.decode({}),
@@ -81,6 +145,7 @@ export function newParticipant<S extends UserdataSchema>(
  * Missing ids (undefined, null, or empty) return undefined without a warning.
  */
 export function lookup<V>(
+  ctx: Reporting,
   elements: Readonly<Record<string, V>>,
   id: string | undefined | null,
   kind: string,
@@ -91,7 +156,7 @@ export function lookup<V>(
   }
 
   if (!Object.hasOwn(elements, id)) {
-    warn(`Skipping unknown ${kind} '${id}' referenced by ${owner}.`);
+    ctx.report("unknown-element", `Skipping unknown ${kind} '${id}' referenced by ${owner}.`, [id]);
 
     return undefined;
   }
@@ -117,23 +182,28 @@ export function lines(text: string): string[] {
 
 /**
  * Create a reference to the resource with the id `resourceId`.
+ * The offset counts code points and is converted to a UTF-16 index of the resource text.
  * An empty or missing id means no resource and keeps the offset,
  * an unknown id is skipped with a warning together with the offset.
  */
 export function newReference(
+  ctx: Reporting,
   text: string,
   resourceId: string | undefined | null,
   offset: number | undefined | null,
-  resources: Readonly<Record<string, { readonly id: string }>>,
+  resources: Readonly<Record<string, { readonly id: string; readonly text: string }>>,
   owner: string,
 ): model.Reference {
-  const resource = lookup(resources, resourceId, "resource", owner);
-  const dangling = Boolean(resourceId) && resource === undefined;
+  const resource = lookup(ctx, resources, resourceId, "resource", owner);
+
+  if (offset == null || (Boolean(resourceId) && resource === undefined)) {
+    return new model.Reference({ text, resource: resource?.id });
+  }
 
   return new model.Reference({
     text,
     resource: resource?.id,
-    offset: dangling ? undefined : (offset ?? undefined),
+    offset: resource === undefined ? offset : offsets(resource.text).toUtf16(offset),
   });
 }
 
@@ -147,12 +217,13 @@ export interface EdgeData {
 }
 
 /**
- * Add an edge between two nodes of the graph, skipping it with a warning if one is missing.
+ * Add an edge between two nodes of the graph, repairing or skipping it with a warning if it is invalid.
+ * An edge between two atoms gets an untyped scheme in between, other invalid edges are skipped.
  * Edges of `ignore`d nodes (e.g. skipped dialog nodes) are skipped silently.
  */
 export function addEdge<S extends UserdataSchema>(
   graph: model.Graph<S>,
-  codecs: ResolvedCodecs<S>,
+  ctx: Context<S>,
   { userdata = {}, ...init }: EdgeData,
   ignore: ReadonlySet<string> = new Set(),
 ): void {
@@ -162,31 +233,37 @@ export function addEdge<S extends UserdataSchema>(
     return;
   }
 
-  if (!Object.hasOwn(graph.nodes, source) || !Object.hasOwn(graph.nodes, target)) {
-    const id = init.id ?? model.uuid();
-    warn(`Skipping edge '${id}': Source '${source}' or target '${target}' not found.`);
+  const edge = new model.Edge({ ...init, userdata: ctx.codecs.edge.decode(userdata) });
+  const error = attempt(
+    ctx,
+    () => graph.addEdge(edge),
+    (code) => (code === "atom-edge" ? "An untyped scheme was inserted." : "The edge was skipped."),
+  );
 
-    return;
+  if (error?.code === "atom-edge") {
+    const scheme = new model.SchemeNode({ userdata: ctx.codecs.scheme.decode({}) });
+    graph.addNode(scheme);
+    const { id, metadata, userdata } = edge;
+    graph.addEdge(new model.Edge({ id, source, target: scheme.id, metadata, userdata }));
+    graph.addEdge(new model.Edge({ source: scheme.id, target, metadata, userdata }));
   }
-
-  graph.addEdge(new model.Edge<S>({ ...init, userdata: codecs.edge.decode(userdata) }));
 }
 
 /**
  * Connect the sources to the target via the scheme node, all given by their ids.
  * The scheme node must already be part of the graph.
  * Edge ids are derived from the node ids as `source->target`,
- * edges of missing nodes are skipped with a warning.
+ * invalid edges are skipped with a warning.
  */
 export function connect<S extends UserdataSchema>(
   graph: model.Graph<S>,
-  codecs: ResolvedCodecs<S>,
+  ctx: Context<S>,
   sourceIds: readonly string[],
   schemeId: string,
   targetId: string,
 ): void {
   const link = (source: string, target: string) =>
-    addEdge(graph, codecs, { id: `${source}->${target}`, source, target });
+    addEdge(graph, ctx, { id: `${source}->${target}`, source, target });
 
   for (const sourceId of sourceIds) {
     link(sourceId, schemeId);

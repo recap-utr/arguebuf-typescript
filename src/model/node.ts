@@ -1,11 +1,11 @@
-import { immerable } from "immer";
 import { Metadata } from "#/model/metadata.js";
 import type { Reference } from "#/model/reference.js";
 import { type Scheme, type SchemeType, schemeLabel } from "#/model/scheme.js";
 import {
   initUserdata,
-  type Userdata,
+  type JsonObject,
   type OptionalInit,
+  type Userdata,
   type UserdataInit,
   type UserdataSchema,
 } from "#/model/userdata.js";
@@ -39,17 +39,16 @@ interface NodeInit {
   metadata?: Metadata;
 }
 
-abstract class AbstractNode<S extends UserdataSchema, K extends Node["type"]> {
-  static [immerable] = true;
+abstract class AbstractNode<U, K extends Node["type"]> {
   readonly id: string;
   abstract readonly type: K;
-  metadata: Metadata;
-  userdata: Userdata<S, K>;
+  readonly metadata: Metadata;
+  readonly userdata: U;
 
-  constructor(init: (NodeInit & UserdataInit<Userdata<S, K>>) | undefined) {
+  constructor(init: (NodeInit & UserdataInit<U>) | undefined) {
     this.id = init?.id ?? uuid();
     this.metadata = init?.metadata ?? new Metadata();
-    this.userdata = initUserdata<Userdata<S, K>>(init);
+    this.userdata = initUserdata<U>(init);
   }
 
   /** Label used when rendering the node. */
@@ -59,29 +58,41 @@ abstract class AbstractNode<S extends UserdataSchema, K extends Node["type"]> {
   abstract color(majorClaim: boolean, monochrome: boolean): Color;
 }
 
-export type AtomNodeInit<S extends UserdataSchema = {}> = NodeInit & {
+/** Fields of an atom node that `AtomNode.with` and `Graph.updateAtom` change. */
+export type AtomChanges<U = JsonObject> = Partial<
+  Pick<AtomNode<U>, "text" | "reference" | "participant" | "metadata" | "userdata">
+>;
+
+export type AtomNodeInit<U = JsonObject> = NodeInit & {
   text: string;
   reference?: Reference;
   participant?: string;
-} & UserdataInit<Userdata<S, "atom">>;
+} & UserdataInit<U>;
 
 /**
  * Node containing a claim or premise of an argument.
  *
- * The participant and the resource of the reference must be registered
- * in the graph before the node is added to it, later assignments are not checked.
+ * The participant and the resource of the reference must be registered in the graph
+ * before the node is added to it, see `Graph.updateAtom` to change it.
  */
-export class AtomNode<S extends UserdataSchema = {}> extends AbstractNode<S, "atom"> {
+export class AtomNode<U = JsonObject> extends AbstractNode<U, "atom"> {
   readonly type = "atom";
-  text: string;
-  reference?: Reference;
-  participant?: string;
+  readonly text: string;
+  readonly reference?: Reference;
+  readonly participant?: string;
 
-  constructor(init: AtomNodeInit<S>) {
+  constructor(init: AtomNodeInit<U>) {
     super(init);
     this.text = init.text;
     this.reference = init.reference;
     this.participant = init.participant;
+  }
+
+  /** Copy of the node with the given fields changed. */
+  with(changes: AtomChanges<U>): AtomNode<U> {
+    const { id, text, reference, participant, metadata, userdata } = this;
+
+    return new AtomNode<U>({ id, text, reference, participant, metadata, userdata, ...changes });
   }
 
   get label(): string {
@@ -97,21 +108,33 @@ export class AtomNode<S extends UserdataSchema = {}> extends AbstractNode<S, "at
   }
 }
 
-export type SchemeNodeInit<S extends UserdataSchema = {}> = NodeInit & {
+/** Fields of a scheme node that `SchemeNode.with` and `Graph.updateScheme` change. */
+export type SchemeChanges<U = JsonObject> = Partial<
+  Pick<SchemeNode<U>, "scheme" | "premiseDescriptors" | "metadata" | "userdata">
+>;
+
+export type SchemeNodeInit<U = JsonObject> = NodeInit & {
   scheme?: Scheme;
   premiseDescriptors?: readonly string[];
-} & UserdataInit<Userdata<S, "scheme">>;
+} & UserdataInit<U>;
 
-/** Node describing the relation between atom nodes. */
-export class SchemeNode<S extends UserdataSchema = {}> extends AbstractNode<S, "scheme"> {
+/** Node describing the relation between atom nodes, see `Graph.updateScheme` to change it. */
+export class SchemeNode<U = JsonObject> extends AbstractNode<U, "scheme"> {
   readonly type = "scheme";
-  scheme: Scheme;
-  premiseDescriptors: string[];
+  readonly scheme: Scheme;
+  readonly premiseDescriptors: readonly string[];
 
-  constructor(...[init]: OptionalInit<SchemeNodeInit<S>>) {
+  constructor(...[init]: OptionalInit<SchemeNodeInit<U>>) {
     super(init);
     this.scheme = { ...(init?.scheme ?? { case: undefined }) };
     this.premiseDescriptors = [...(init?.premiseDescriptors ?? [])];
+  }
+
+  /** Copy of the node with the given fields changed. */
+  with(changes: SchemeChanges<U>): SchemeNode<U> {
+    const { id, scheme, premiseDescriptors, metadata, userdata } = this;
+
+    return new SchemeNode<U>({ id, scheme, premiseDescriptors, metadata, userdata, ...changes });
   }
 
   get label(): string {
@@ -127,4 +150,25 @@ export class SchemeNode<S extends UserdataSchema = {}> extends AbstractNode<S, "
   }
 }
 
-export type Node<S extends UserdataSchema = {}> = AtomNode<S> | SchemeNode<S>;
+/** Atom node with the userdata of the schema `S`. */
+export type AtomNodeOf<S extends UserdataSchema = {}> = AtomNode<Userdata<S, "atom">>;
+
+/** Scheme node with the userdata of the schema `S`. */
+export type SchemeNodeOf<S extends UserdataSchema = {}> = SchemeNode<Userdata<S, "scheme">>;
+
+/** Atom or scheme node with the userdata of the schema `S`. */
+export type Node<S extends UserdataSchema = {}> = AtomNodeOf<S> | SchemeNodeOf<S>;
+
+/** Whether the node has the given type, narrowing it. */
+export function isType<N extends Node<UserdataSchema>, T extends N["type"]>(
+  node: N,
+  type: T,
+): node is Extract<N, { type: T }> {
+  return node.type === type;
+}
+
+/** Node types with their article, e.g. for messages. */
+export const typeArticles: Readonly<Record<Node["type"], string>> = {
+  atom: "an atom",
+  scheme: "a scheme",
+};

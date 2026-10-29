@@ -19,7 +19,8 @@ export function aif<S extends UserdataSchema = {}>(
   obj: aifSchema.Graph,
   ...args: helpers.LoadArgs<S, helpers.AifOptions>
 ): model.Graph<S> {
-  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const ctx = helpers.loadOptions<S>(...args);
+  const { name, codecs } = ctx;
   const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
   const index = new Index(obj);
 
@@ -52,7 +53,7 @@ export function aif<S extends UserdataSchema = {}>(
   const dialog = new Set<string>();
 
   for (const aifNode of obj.nodes) {
-    const node = nodeFromAif(aifNode, codecs);
+    let node = nodeFromAif(aifNode, codecs);
 
     if (aifSchema.DIALOG_TYPES.has(aifNode.type)) {
       dialog.add(helpers.stringId(aifNode.nodeID));
@@ -70,26 +71,23 @@ export function aif<S extends UserdataSchema = {}>(
       const [person] = persons;
       const text = locutions.size === 1 ? index.nodes.get(locution)?.text : undefined;
 
-      if (persons.size === 1) {
-        node.participant = person;
-      }
-
-      if (text !== undefined) {
-        node.reference = new model.Reference({ text });
-      }
+      node = node.with({
+        participant: persons.size === 1 ? person : undefined,
+        reference: text === undefined ? undefined : new model.Reference({ text }),
+      });
     }
 
     if (node !== undefined) {
-      graph.addNode(node);
+      helpers.addNode(graph, ctx, node);
     }
   }
 
   for (const [id, source, target] of index.edges) {
-    helpers.addEdge(graph, codecs, { id, source, target }, dialog);
+    helpers.addEdge(graph, ctx, { id, source, target }, dialog);
   }
 
   if (args[0]?.reconstructDialog) {
-    reconstructDialog(graph, codecs, index);
+    reconstructDialog(graph, ctx, index);
   }
 
   return graph;
@@ -108,7 +106,7 @@ function nodeFromAif<S extends UserdataSchema>(
   const metadata = new model.Metadata({ created: date.parseAif(obj.timestamp) });
 
   if (obj.type === "I") {
-    return new model.AtomNode<S>({
+    return new model.AtomNode({
       id,
       text: obj.text,
       metadata,
@@ -116,7 +114,7 @@ function nodeFromAif<S extends UserdataSchema>(
     });
   }
 
-  return new model.SchemeNode<S>({
+  return new model.SchemeNode({
     id,
     // a missing or empty scheme name falls back to the text
     scheme: model.resolveAifScheme(obj.type, obj.scheme || obj.text),
@@ -176,7 +174,7 @@ class Index {
  */
 function reconstructDialog<S extends UserdataSchema>(
   graph: model.Graph<S>,
-  codecs: ResolvedCodecs<S>,
+  ctx: helpers.Context<S>,
   index: Index,
 ): void {
   const isolated = Object.values(graph.nodes).filter(
@@ -202,12 +200,12 @@ function reconstructDialog<S extends UserdataSchema>(
 
         if (target !== atom.id && !pairs.has(pair)) {
           pairs.add(pair);
-          const scheme = new model.SchemeNode<S>({
+          const scheme = new model.SchemeNode({
             scheme: defaultScheme("rephrase"),
-            userdata: codecs.scheme.decode({}),
+            userdata: ctx.codecs.scheme.decode({}),
           });
           graph.addNode(scheme);
-          helpers.connect(graph, codecs, [atom.id], scheme.id, target);
+          helpers.connect(graph, ctx, [atom.id], scheme.id, target);
         }
       }
     }

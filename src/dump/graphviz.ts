@@ -125,6 +125,7 @@ export function graphviz<S extends UserdataSchema>(
     edgeStyle = "ortho",
     maxNodes = 1000,
     monochrome = false,
+    schemeNodes = true,
   } = options;
 
   const nodes = Object.values(graph.nodes);
@@ -172,7 +173,7 @@ export function graphviz<S extends UserdataSchema>(
 
       return `${quote(node.id)} ${attributes(attrs)};`;
     });
-  const schemes = nodes
+  const schemes = (schemeNodes ? nodes : [])
     .filter((node) => node.type === "scheme")
     .map((node) => {
       const label = schemeLabel?.(node) ?? node.label;
@@ -181,7 +182,14 @@ export function graphviz<S extends UserdataSchema>(
     });
   // strict graphs merge parallel edges
   const edges = new Set(
-    Object.values(graph.edges).map((edge) => `${quote(edge.source)} -> ${quote(edge.target)};`),
+    schemeNodes
+      ? Object.values(graph.edges).map((edge) => `${quote(edge.source)} -> ${quote(edge.target)};`)
+      : graph
+          .atomRelations()
+          .map(
+            ({ source, target, scheme }) =>
+              `${quote(source.id)} -> ${quote(target.id)} ${attributes({ color: scheme.color(false, monochrome).bg })};`,
+          ),
   );
   const name = graph.name === undefined ? "" : `${quote(graph.name)} `;
 

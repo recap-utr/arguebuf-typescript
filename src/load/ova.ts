@@ -20,15 +20,16 @@ export function ova<S extends UserdataSchema = {}>(
   obj: ovaSchema.Graph,
   ...args: helpers.LoadArgs<S>
 ): model.Graph<S> {
-  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const ctx = helpers.loadOptions<S>(...args);
+  const { name, codecs } = ctx;
   const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
   const { analysis } = obj;
   const [html, spans] = parseHtml(analysis.txt || "");
   const text = html || analysis.plain_txt;
-  let resource: model.Resource<S> | undefined;
+  let resource: model.ResourceOf<S> | undefined;
 
   if (text) {
-    resource = new model.Resource<S>({
+    resource = new model.Resource({
       text,
       title: analysis.documentTitle || undefined,
       source: analysis.documentSource || undefined,
@@ -51,7 +52,7 @@ export function ova<S extends UserdataSchema = {}>(
 
   if (analysis.annotatorName) {
     graph.addAnalyst(
-      new model.Analyst<S>({
+      new model.Analyst({
         name: analysis.annotatorName,
         userdata: codecs.analyst.decode({}),
       }),
@@ -67,24 +68,23 @@ export function ova<S extends UserdataSchema = {}>(
     }
 
     if (ovaNode.type === "I") {
-      const atom = atomFromOva(ovaNode, codecs);
-      const span = spans.get(`node${atom.id}`);
-      atom.participant = helpers.lookup(
-        graph.participants,
-        ovaNode.participantID,
-        "participant",
-        `atom node '${atom.id}'`,
-      )?.id;
+      const id = helpers.stringId(ovaNode.id);
+      const span = spans.get(`node${id}`);
+      const atom = atomFromOva(ovaNode, codecs, {
+        participant: helpers.lookup(
+          ctx,
+          graph.participants,
+          ovaNode.participantID,
+          "participant",
+          `atom node '${id}'`,
+        )?.id,
+        reference:
+          resource === undefined || span === undefined
+            ? undefined
+            : new model.Reference({ text: span.text, resource: resource.id, offset: span.offset }),
+      });
 
-      if (resource !== undefined && span !== undefined) {
-        atom.reference = new model.Reference({
-          text: span.text,
-          resource: resource.id,
-          offset: span.offset,
-        });
-      }
-
-      graph.addNode(atom);
+      helpers.addNode(graph, ctx, atom);
 
       if (ovaNode.majorClaim && graph.majorClaim === undefined) {
         graph.majorClaim = atom;
@@ -93,7 +93,7 @@ export function ova<S extends UserdataSchema = {}>(
       const scheme = schemeFromOva(ovaNode, codecs);
 
       if (scheme !== undefined) {
-        graph.addNode(scheme);
+        helpers.addNode(graph, ctx, scheme);
       }
     }
   }
@@ -101,8 +101,10 @@ export function ova<S extends UserdataSchema = {}>(
   for (const ovaEdge of obj.edges) {
     const source = helpers.stringId(ovaEdge.from.id);
     const target = helpers.stringId(ovaEdge.to.id);
-    helpers.addEdge(graph, codecs, { source, target, metadata: metadataFromOva(ovaEdge) }, dialog);
+    helpers.addEdge(graph, ctx, { source, target, metadata: metadataFromOva(ovaEdge) }, dialog);
   }
+
+  helpers.relocate(graph, ctx);
 
   return graph;
 }
@@ -114,12 +116,12 @@ function metadataFromOva(obj: { date?: string | null }): model.Metadata {
 function schemeFromOva<S extends UserdataSchema>(
   obj: ovaSchema.Node,
   codecs: ResolvedCodecs<S>,
-): model.SchemeNode<S> | undefined {
+): model.SchemeNodeOf<S> | undefined {
   if (!isAifSchemeType(obj.type)) {
     return undefined;
   }
 
-  return new model.SchemeNode<S>({
+  return new model.SchemeNode({
     id: helpers.stringId(obj.id),
     scheme: model.resolveAifScheme(obj.type, obj.text),
     // descriptors map roles to atom ids, the conclusion is not a premise
@@ -134,8 +136,10 @@ function schemeFromOva<S extends UserdataSchema>(
 function atomFromOva<S extends UserdataSchema>(
   obj: ovaSchema.Node,
   codecs: ResolvedCodecs<S>,
-): model.AtomNode<S> {
-  return new model.AtomNode<S>({
+  links: Pick<model.AtomNodeInit, "participant" | "reference">,
+): model.AtomNodeOf<S> {
+  return new model.AtomNode({
+    ...links,
     id: helpers.stringId(obj.id),
     text: obj.text,
     metadata: metadataFromOva(obj),

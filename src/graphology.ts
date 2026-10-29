@@ -1,15 +1,17 @@
 // the default export of graphology is mistyped, so only named imports are used
 import { DirectedGraph } from "graphology";
-import type { AtomNode, Edge, Graph, SchemeNode } from "#/model/index.js";
+import type { AtomNodeOf, EdgeOf, Graph, SchemeNodeOf } from "#/model/index.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
 type AttributeFunctions<T> = Readonly<Record<string, (element: T) => unknown>>;
 
 export interface GraphologyOptions<S extends UserdataSchema = {}> {
   graphAttrs?: AttributeFunctions<Graph<S>>;
-  atomAttrs?: AttributeFunctions<AtomNode<S>>;
-  schemeAttrs?: AttributeFunctions<SchemeNode<S>>;
-  edgeAttrs?: AttributeFunctions<Edge<S>>;
+  atomAttrs?: AttributeFunctions<AtomNodeOf<S>>;
+  schemeAttrs?: AttributeFunctions<SchemeNodeOf<S>>;
+  edgeAttrs?: AttributeFunctions<EdgeOf<S>>;
+  /** If false, scheme nodes are collapsed into edges between atoms with their `scheme` id. */
+  schemeNodes?: boolean;
 }
 
 function attrs<T>(element: T, functions: AttributeFunctions<T> = {}): Record<string, unknown> {
@@ -41,6 +43,14 @@ export function dumpGraphology<S extends UserdataSchema>(
 
   for (const atom of nodes.filter((node) => node.type === "atom")) {
     result.addNode(atom.id, nodeAttrs(atom, options.atomAttrs));
+  }
+
+  if (options.schemeNodes === false) {
+    for (const { source, target, scheme } of graph.atomRelations()) {
+      result.addDirectedEdge(source.id, target.id, { scheme: scheme.id });
+    }
+
+    return result;
   }
 
   for (const scheme of nodes.filter((node) => node.type === "scheme")) {

@@ -1,4 +1,3 @@
-import { applyPatches, enablePatches, produce, produceWithPatches } from "immer";
 import { expect, test } from "vitest";
 import * as arguebuf from "#/index.js";
 
@@ -36,22 +35,20 @@ function generateGraph() {
   });
 }
 
-test("remove scheme nodes", () => {
+test("atom relations collapse scheme nodes", () => {
   const graph = generateGraph();
-  graph.removeSchemeNodes();
 
-  expect(Object.keys(graph.nodes)).toHaveLength(4);
-  expect(Object.keys(graph.schemeNodes)).toHaveLength(0);
-  expect(Object.keys(graph.edges)).toHaveLength(3);
+  expect(graph.atomRelations().map(({ source, target }) => [source.id, target.id])).toHaveLength(3);
+  expect(Object.keys(graph.schemeNodes)).toHaveLength(3);
+  expect(arguebuf.dump.graphviz(graph, { schemeNodes: false })).not.toContain('"s1"');
 
   // without self-loops
   const other = new arguebuf.Graph({
     nodes: [atom("a1"), scheme("s1")],
     edges: edges(["a1", "s1"], ["s1", "a1"]),
   });
-  other.removeSchemeNodes();
 
-  expect(Object.keys(other.edges)).toStrictEqual([]);
+  expect(other.atomRelations()).toStrictEqual([]);
 });
 
 test("remove branch", () => {
@@ -156,43 +153,31 @@ test("wide traversals avoid function argument limits", () => {
   expect(arguebuf.traverse.bfs(start, connections)).toHaveLength(neighbors.length + 1);
 });
 
-test("draft graph with immer", () => {
-  enablePatches();
-  // typed arrays are not drafted, so they are replaced instead of mutated
+test("edit a copy of a graph", () => {
+  // elements are immutable, so they are updated through the graph
   const embedding = new Float32Array([1, 2]);
-  const node = new arguebuf.AtomNode<Custom>({ text: "A", userdata: { label: "a", embedding } });
-  const other = new arguebuf.AtomNode<Custom>({ id: "b", text: "", userdata: { label: "b" } });
+  const node = new arguebuf.AtomNode<Custom["atom"]>({ text: "A", userdata: { label: "a", embedding } });
+  const other = new arguebuf.AtomNode<Custom["atom"]>({ id: "b", text: "", userdata: { label: "b" } });
   const graph = new arguebuf.Graph<Custom>({ nodes: [node, other] });
-  const [result, patches] = produceWithPatches(graph, (draft) => {
-    const n = draft.nodes[node.id];
+  const result = graph.copy();
+  result.updateAtom(node.id, { text: "B", userdata: { label: "b", embedding: new Float32Array([3]) } });
+  result.addNode(new arguebuf.AtomNode({ id: "new", text: "C", userdata: { label: "c" } }));
+  result.addNode(new arguebuf.SchemeNode({ id: "s" }));
+  result.connect(["b"], "s", "new");
+  result.majorClaim = "new";
 
-    if (n.type === "atom") {
-      n.text = "B";
-      n.userdata.label = "b";
-      n.userdata.embedding = new Float32Array([3]);
-    }
-
-    draft.addNode(new arguebuf.AtomNode({ id: "new", text: "C", userdata: { label: "c" } }));
-    draft.addEdge(new arguebuf.Edge({ id: "e", source: "b", target: "new" }));
-    draft.majorClaim = "new";
-  });
-
-  expect(result).toBeInstanceOf(arguebuf.Graph);
-  expect(result.nodes[node.id]).toBeInstanceOf(arguebuf.AtomNode);
   expect(result.nodes[node.id]).toMatchObject({ text: "B", userdata: { label: "b" } });
   expect(result.nodes[node.id].userdata.embedding).toStrictEqual(new Float32Array([3]));
-  expect(Object.isFrozen(result.nodes[node.id].userdata)).toBe(true);
   expect(node.userdata).toStrictEqual({ label: "a", embedding });
   expect(result.majorClaim).toBe("new");
-  expect(result.outgoingNodes("b")).toStrictEqual([result.nodes.new]);
-  expect(Object.isFrozen(result.nodes)).toBe(true);
-  expect(() => result.removeNode("new")).toThrow(TypeError);
+  expect(result.outgoingAtomNodes("b")).toStrictEqual([result.nodes.new]);
   expect(graph.nodes[node.id]).toMatchObject({ text: "A" });
   expect(graph.outgoingNodes("b")).toStrictEqual([]);
   expect(Object.keys(graph.nodes)).toHaveLength(2);
-  expect(applyPatches(graph, patches)).toStrictEqual(result);
+  expect(graph.majorClaim).toBeUndefined();
 
-  const removed = produce(result, (draft) => draft.removeNode("new"));
+  const removed = result.copy();
+  removed.removeNode("s");
   expect(removed.outgoingEdges("b")).toStrictEqual([]);
-  expect(result.incomingEdges("new")).toStrictEqual([result.edges.e]);
+  expect(result.incomingNodes("new")).toStrictEqual([result.nodes.s]);
 });

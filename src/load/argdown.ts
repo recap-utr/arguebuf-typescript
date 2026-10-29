@@ -70,14 +70,15 @@ export function argdown<S extends UserdataSchema = {}>(
   obj: schema.Graph,
   ...args: helpers.LoadArgs<S>
 ): model.Graph<S> {
-  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const ctx = helpers.loadOptions<S>(...args);
+  const { name, codecs } = ctx;
   const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode(obj.frontMatter ?? {}) });
   // inference schemes by argument title and conclusion index
-  const inferences = new Map<string, Map<number, model.SchemeNode<S>>>();
+  const inferences = new Map<string, Map<number, model.SchemeNodeOf<S>>>();
 
   const link = (source: model.Node<S>, target: model.Node<S>) => {
     graph.addEdge(
-      new model.Edge<S>({ source: source.id, target: target.id, userdata: codecs.edge.decode({}) }),
+      new model.Edge({ source: source.id, target: target.id, userdata: codecs.edge.decode({}) }),
     );
   };
 
@@ -85,7 +86,7 @@ export function argdown<S extends UserdataSchema = {}>(
     element: schema.EquivalenceClass | schema.Argument,
     fields: Readonly<Record<string, JsonValue>> = {},
   ) => {
-    const node = new model.AtomNode<S>({
+    const node = new model.AtomNode({
       text: canonicalText(element.members) || element.title,
       userdata: codecs.atom.decode(
         argdownUserdata({
@@ -106,9 +107,9 @@ export function argdown<S extends UserdataSchema = {}>(
   );
 
   const addInferences = (title: string, argument: schema.Argument) => {
-    let main: model.SchemeNode<S> | undefined;
+    let main: model.SchemeNodeOf<S> | undefined;
     const owner = `argument '${title}'`;
-    const conclusions = new Map<number, model.SchemeNode<S>>();
+    const conclusions = new Map<number, model.SchemeNodeOf<S>>();
     inferences.set(title, conclusions);
 
     for (const [index, statement] of argument.pcs.entries()) {
@@ -116,7 +117,7 @@ export function argdown<S extends UserdataSchema = {}>(
         continue;
       }
 
-      const scheme = new model.SchemeNode<S>({
+      const scheme = new model.SchemeNode({
         scheme: defaultScheme("support"),
         userdata: codecs.scheme.decode(
           argdownUserdata({
@@ -130,14 +131,14 @@ export function argdown<S extends UserdataSchema = {}>(
       graph.addNode(scheme);
 
       for (const premise of premises(argument, index)) {
-        const node = helpers.lookup(statements, premise.title, "equivalence-class", owner);
+        const node = helpers.lookup(ctx, statements, premise.title, "equivalence-class", owner);
 
         if (node !== undefined) {
           link(node, scheme);
         }
       }
 
-      const conclusion = helpers.lookup(statements, statement.title, "equivalence-class", owner);
+      const conclusion = helpers.lookup(ctx, statements, statement.title, "equivalence-class", owner);
 
       if (conclusion !== undefined) {
         link(scheme, conclusion);
@@ -170,13 +171,14 @@ export function argdown<S extends UserdataSchema = {}>(
     owner: string,
   ): model.Node<S> | undefined => {
     if (type !== "inference") {
-      return helpers.lookup(members[type] ?? {}, title, type, owner);
+      return helpers.lookup(ctx, members[type] ?? {}, title, type, owner);
     }
 
     const node = index === undefined ? undefined : inferences.get(title)?.get(index);
 
     if (node === undefined) {
-      helpers.warn(
+      ctx.report(
+        "unknown-element",
         `Skipping unknown inference ${index} of argument '${title}' referenced by ${owner}.`,
       );
     }
@@ -186,7 +188,7 @@ export function argdown<S extends UserdataSchema = {}>(
 
   for (const relation of obj.relations) {
     const owner = `${relation.relationType} relation`;
-    const mapping = helpers.lookup(relations, relation.relationType, "relation type", owner);
+    const mapping = helpers.lookup(ctx, relations, relation.relationType, "relation type", owner);
 
     if (mapping === undefined) {
       continue;
@@ -207,12 +209,12 @@ export function argdown<S extends UserdataSchema = {}>(
     }
 
     for (const [start, end] of directions) {
-      const node = new model.SchemeNode<S>({
+      const node = new model.SchemeNode({
         scheme: defaultScheme(type),
         userdata: codecs.scheme.decode(argdownUserdata({ relationType: relation.relationType })),
       });
       graph.addNode(node);
-      helpers.connect(graph, codecs, [start.id], node.id, end.id);
+      helpers.connect(graph, ctx, [start.id], node.id, end.id);
     }
   }
 

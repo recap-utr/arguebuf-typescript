@@ -1,6 +1,5 @@
 import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
-import { produce } from "immer";
 import { Temporal } from "temporal-polyfill";
 import { expect, test, vi } from "vitest";
 import * as arguebuf from "#/index.js";
@@ -37,13 +36,12 @@ test("removals cascade", () => {
   const graph = sampleGraph();
   graph.removeNode("p1");
 
-  expect(Object.keys(graph.edges)).toStrictEqual(["e2"]);
-  expect(graph.schemeNodes.s.premiseDescriptors).toStrictEqual([]);
+  // the scheme left without premise is removed as well
+  expect(Object.keys(graph.nodes)).toStrictEqual(["c"]);
+  expect(Object.keys(graph.edges)).toStrictEqual([]);
 
-  graph.addEdge(new arguebuf.Edge({ source: "c", target: "c" }));
   graph.removeNode("c");
   expect(graph.majorClaim).toBeUndefined();
-  expect(Object.keys(graph.edges)).toStrictEqual([]);
 
   const other = sampleGraph();
   other.removeResource("r");
@@ -101,20 +99,20 @@ test("prototype property names are ordinary entity ids", () => {
         participant: id,
         reference: new arguebuf.Reference({ text: "", resource: id }),
       }),
+      new arguebuf.SchemeNode({ id: "constructor" }),
     ],
-    edges: [new arguebuf.Edge({ id, source: id, target: id })],
+    edges: [new arguebuf.Edge({ id, source: id, target: "constructor" })],
   });
 
-  expect(Object.keys(graph.nodes)).toStrictEqual([id]);
-  expect(graph.incomingEdges(id)).toStrictEqual([graph.edges[id]]);
-  expect(graph.outgoingNodes(id)).toStrictEqual([graph.nodes[id]]);
+  expect(Object.keys(graph.nodes)).toStrictEqual([id, "constructor"]);
+  expect(graph.incomingEdges("constructor")).toStrictEqual([graph.edges[id]]);
+  expect(graph.outgoingNodes(id)).toStrictEqual([graph.nodes.constructor]);
 
-  const removed = produce(graph, (draft) => {
-    draft.removeParticipant(id);
-    draft.removeResource(id);
-    draft.removeAnalyst(id);
-    draft.removeNode(id);
-  });
+  const removed = graph.copy();
+  removed.removeParticipant(id);
+  removed.removeResource(id);
+  removed.removeAnalyst(id);
+  removed.removeNode(id);
 
   expect(
     [
@@ -204,25 +202,23 @@ test("dates are parsed and formatted in UTC", () => {
   }
 });
 
-test("instants survive immer drafts and the protobuf round trip", () => {
+test("instants survive copies and the protobuf round trip", () => {
   const graph = sampleGraph();
   const created = Temporal.Instant.from("1969-12-31T23:59:59.123456789Z");
-  const result = produce(graph, (draft) => {
-    draft.metadata.created = created;
-    draft.resources.r.timestamp = created;
-  });
+  const result = graph.copy();
+  result.metadata = new arguebuf.Metadata({ created });
+  result.updateResource("r", { timestamp: created });
 
-  expect(Object.isFrozen(result.metadata)).toBe(true);
   expect(result.metadata.created).toBe(created);
   expect(graph.metadata.created).not.toBe(created);
   expect(arguebuf.date.toProtobuf(created)).toMatchObject({ seconds: -1n, nanos: 123456789 });
 
-  const copy = arguebuf.copy(result);
+  const copy = arguebuf.deepCopy(result);
   expect(copy.metadata.created.epochNanoseconds).toBe(created.epochNanoseconds);
   expect(copy.resources.r.timestamp?.epochNanoseconds).toBe(created.epochNanoseconds);
 });
 
-test("copy is lossless and does not mutate the input", () => {
+test("deep copy is lossless and does not mutate the input", () => {
   const graph = sampleGraph();
   graph.name = "sample";
   graph.userdata = { nested: { values: [1, 2.5, "x", null, true] } };
@@ -230,7 +226,7 @@ test("copy is lossless and does not mutate the input", () => {
     created: graph.metadata.created,
     updated: graph.metadata.updated,
   });
-  const copy = arguebuf.copy(graph);
+  const copy = arguebuf.deepCopy(graph);
 
   expect(copy).toStrictEqual(graph);
   expect(copy.edges.e1.userdata).toStrictEqual({ weight: 1 });
@@ -262,4 +258,78 @@ test("protobuf load skips dangling references with a warning", () => {
   expect(graph.atomNodes.c.reference).toStrictEqual(new arguebuf.Reference({ text: "Res" }));
   expect(warn).toHaveBeenCalledTimes(4);
   warn.mockRestore();
+});
+
+test("offsets are UTF-16 indices in memory and code points when serialized", () => {
+  const graph = new arguebuf.Graph({
+    resources: [new arguebuf.Resource({ id: "r", text: "\u{1f408} Cats" })],
+    nodes: [
+      new arguebuf.AtomNode({
+        id: "a",
+        text: "Cats",
+        reference: new arguebuf.Reference({ text: "Cats", resource: "r", offset: 3 }),
+      }),
+    ],
+  });
+  const json = arguebuf.dump.json(graph);
+
+  expect(json.nodes?.a.atom?.reference?.offset).toBe(2);
+  expect(arguebuf.load.json(json).atomNodes.a.reference?.offset).toBe(3);
+});
+
+test("writes to a graph and its copies never leak into each other", () => {
+  const graph = sampleGraph();
+  const copy = graph.copy();
+  const snapshot = (g: arguebuf.Graph) =>
+    JSON.stringify([
+      Object.keys(g.nodes),
+      Object.keys(g.edges),
+      Object.keys(g.resources),
+      Object.keys(g.participants),
+      Object.values(g.nodes).map((node) => [g.incomingEdges(node), g.outgoingEdges(node)]),
+    ]);
+  const before = snapshot(graph);
+
+  copy.removeEdge("e1");
+  copy.addEdge(new arguebuf.Edge({ id: "e3", source: "p1", target: "s" }));
+  copy.removeParticipant("p");
+  expect(snapshot(graph)).toBe(before);
+
+  const copied = snapshot(copy);
+  graph.removeNode("s");
+  graph.removeResource("r");
+  graph.addNode(new arguebuf.AtomNode({ id: "x", text: "" }));
+  expect(snapshot(copy)).toBe(copied);
+  expect(graph.incomingEdges("c")).toStrictEqual([]);
+  expect(copy.incomingNodes("s")).toStrictEqual([copy.nodes.p1]);
+
+  // unchanged elements are shared, updates are validated and replace them
+  const other = sampleGraph();
+  const edited = other.copy();
+  edited.updateAtom("c", { text: "Changed" });
+  expect(other.atomNodes.c.text).not.toBe("Changed");
+  expect(edited.atomNodes.c.metadata.updated).not.toBe(other.atomNodes.c.metadata.updated);
+  expect(edited.resources.r).toBe(other.resources.r);
+  expect(() => edited.updateAtom("c", { participant: "missing" })).toThrow(arguebuf.GraphError);
+  expect(() => edited.updateAtom("s", { text: "Scheme" })).toThrow(arguebuf.GraphError);
+});
+
+test("batch removals and links", () => {
+  const graph = sampleGraph();
+
+  expect(() => graph.removeElements(["p1", "missing"])).toThrow(arguebuf.GraphError);
+  expect(Object.keys(graph.nodes)).toContain("p1");
+
+  // the scheme is removed by the cascade before its turn
+  graph.removeElements(["p1", "s", "r"]);
+  expect(Object.keys(graph.nodes)).toStrictEqual(["c"]);
+  expect(Object.keys(graph.resources)).toStrictEqual([]);
+
+  graph.addNode(new arguebuf.AtomNode({ id: "a", text: "" }));
+  const scheme = graph.link("a", "c");
+  expect(scheme?.scheme.case).toBeUndefined();
+  expect(graph.outgoingAtomNodes("a")).toStrictEqual([graph.nodes.c]);
+  graph.addNode(new arguebuf.AtomNode({ id: "b", text: "" }));
+  expect(scheme && graph.link("b", scheme)).toBeUndefined();
+  expect(scheme && graph.premiseNodes(scheme)).toStrictEqual([graph.nodes.a, graph.nodes.b]);
 });

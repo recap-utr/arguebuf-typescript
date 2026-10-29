@@ -2,6 +2,7 @@ import type { GraphJson } from "arg-services/graph/v1/graph_pb";
 import { expect, expectTypeOf, test } from "vitest";
 import * as z from "zod";
 import * as arguebuf from "#/index.js";
+import { addEdge, loadOptions } from "#/load/helpers.js";
 
 interface AtomData {
   label: string;
@@ -61,14 +62,14 @@ test.each([null, undefined])("constructors and codecs preserve %s userdata", (us
   };
   const graph = new arguebuf.Graph<Nullable>({
     userdata,
-    resources: [new arguebuf.Resource<Nullable>({ text: "", userdata })],
-    participants: [new arguebuf.Participant<Nullable>({ userdata })],
-    analysts: [new arguebuf.Analyst<Nullable>({ userdata })],
+    resources: [new arguebuf.Resource<null | undefined>({ text: "", userdata })],
+    participants: [new arguebuf.Participant<null | undefined>({ userdata })],
+    analysts: [new arguebuf.Analyst<null | undefined>({ userdata })],
     nodes: [
-      new arguebuf.AtomNode<Nullable>({ id: "a", text: "", userdata }),
-      new arguebuf.SchemeNode<Nullable>({ id: "s", userdata }),
+      new arguebuf.AtomNode<null | undefined>({ id: "a", text: "", userdata }),
+      new arguebuf.SchemeNode<null | undefined>({ id: "s", userdata }),
     ],
-    edges: [new arguebuf.Edge<Nullable>({ source: "a", target: "s", userdata })],
+    edges: [new arguebuf.Edge<null | undefined>({ source: "a", target: "s", userdata })],
   });
   const loaded = arguebuf.load.json(arguebuf.dump.json(graph, { codecs }), { codecs });
 
@@ -86,10 +87,10 @@ test.each([null, undefined])("constructors and codecs preserve %s userdata", (us
   }
 });
 
-test("copy clones in-memory userdata", () => {
+test("deep copy clones in-memory userdata", () => {
   const graph = arguebuf.load.json(sample("x"), { codecs });
   graph.atomNodes.a.userdata.embedding = new Float32Array([1, 2]);
-  const copy = arguebuf.copy(graph);
+  const copy = arguebuf.deepCopy(graph);
   const embedding = copy.atomNodes.a.userdata.embedding;
 
   expect(copy).toStrictEqual(graph);
@@ -103,12 +104,20 @@ test("userdata types", () => {
   expectTypeOf(graph.atomNodes.a.userdata).toEqualTypeOf<AtomData>();
   expectTypeOf(graph.schemeNodes.s.userdata).toEqualTypeOf<arguebuf.JsonObject>();
 
+  // elements are interchangeable across schemas that do not customize their kind
+  const custom = new arguebuf.Graph<{ atom: AtomData }>();
+  custom.addAnalyst(new arguebuf.Analyst());
+  // @ts-expect-error customized kinds stay type safe
+  custom.addNode(new arguebuf.AtomNode({ text: "" }));
+
   // @ts-expect-error the atom codec is required
   arguebuf.dump.protobuf(graph);
   // @ts-expect-error the atom codec is required
   arguebuf.dump.json(graph, {});
-  // @ts-expect-error the edge userdata cannot be created
-  new arguebuf.Graph<{ edge: AtomData }>().removeSchemeNodes();
+  expect(() =>
+    // @ts-expect-error the edge userdata cannot be created
+    new arguebuf.Graph<{ edge: AtomData }>().connect([], "s", "a"),
+  ).toThrow(arguebuf.GraphError);
   arguebuf.load.argdown(
     { statements: {}, arguments: {}, relations: [] },
     // @ts-expect-error only the AIF, xAIF, and JSON loaders reconstruct dialogs
@@ -147,4 +156,37 @@ test("zod codecs and schemas can be passed directly", () => {
 
   expect(dumped.nodes?.a?.userdata).toEqual({ label: "x" });
   expect(() => arguebuf.load.json(sample(1), { codecs: { atom: zodAtom } })).toThrow(z.ZodError);
+});
+
+test("repairing atom edges preserves required userdata and metadata", () => {
+  const graph = new arguebuf.Graph<{ edge: AtomData }>({
+    nodes: [
+      new arguebuf.AtomNode({ id: "a", text: "A" }),
+      new arguebuf.AtomNode({ id: "b", text: "B" }),
+    ],
+  });
+  const metadata = new arguebuf.Metadata({
+    created: arguebuf.Temporal.Instant.from("2000-01-01T00:00Z"),
+  });
+  const issues: arguebuf.Issue[] = [];
+  const context = loadOptions<{ edge: AtomData }>({
+    codecs: { edge: atom },
+    onIssue: (issue) => issues.push(issue),
+  });
+  addEdge(graph, context, {
+    id: "e",
+    source: "a",
+    target: "b",
+    metadata,
+    userdata: { label: "required" },
+  });
+
+  expect(issues.map(({ code }) => code)).toEqual(["atom-edge"]);
+  expect(Object.values(graph.edges)).toHaveLength(2);
+  expect(graph.edges.e.source).toBe("a");
+
+  for (const edge of Object.values(graph.edges)) {
+    expect(edge.userdata).toEqual({ label: "required" });
+    expect(edge.metadata).toBe(metadata);
+  }
 });

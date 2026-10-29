@@ -28,7 +28,8 @@ export function brat<S extends UserdataSchema = {}>(
   input: string,
   ...args: helpers.LoadArgs<S>
 ): model.Graph<S> {
-  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const ctx = helpers.loadOptions<S>(...args);
+  const { name, codecs } = ctx;
   const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
   const rows = helpers
     .lines(input)
@@ -40,7 +41,7 @@ export function brat<S extends UserdataSchema = {}>(
       continue;
     }
 
-    const atom = new model.AtomNode<S>({ id, text, userdata: codecs.atom.decode({}) });
+    const atom = new model.AtomNode({ id, text, userdata: codecs.atom.decode({}) });
     graph.addNode(atom);
 
     if (annotation.trim().split(/\s+/)[0] !== "MajorClaim") {
@@ -51,13 +52,13 @@ export function brat<S extends UserdataSchema = {}>(
       graph.majorClaim = atom;
     } else {
       graph.addNode(
-        new model.SchemeNode<S>({
+        new model.SchemeNode({
           id: `${id}scheme`,
           scheme: defaultScheme("rephrase"),
           userdata: codecs.scheme.decode({}),
         }),
       );
-      helpers.connect(graph, codecs, [id], `${id}scheme`, graph.majorClaim);
+      helpers.connect(graph, ctx, [id], `${id}scheme`, graph.majorClaim);
     }
   }
 
@@ -72,12 +73,12 @@ export function brat<S extends UserdataSchema = {}>(
 
     if (id.startsWith("A") && kind === "Stance" && args.length === 2) {
       const [sourceId, stance] = args;
-      type = helpers.lookup(stance2scheme, stance, "stance", owner);
-      source = helpers.lookup(atoms, sourceId, "atom", owner)?.id;
+      type = helpers.lookup(ctx, stance2scheme, stance, "stance", owner);
+      source = helpers.lookup(ctx, atoms, sourceId, "atom", owner)?.id;
       target = graph.majorClaim;
 
       if (target === undefined) {
-        helpers.warn(`Skipping stance '${id}' without a major claim.`);
+        ctx.report("unknown-element", `Skipping stance '${id}' without a major claim.`, [id]);
       }
     } else if (id.startsWith("R")) {
       // arguments are given by role, e.g. `Arg1:T3`
@@ -97,20 +98,20 @@ export function brat<S extends UserdataSchema = {}>(
         continue;
       }
 
-      type = helpers.lookup(relation2scheme, kind, "relation type", owner);
-      source = helpers.lookup(atoms, sourceId, "atom", owner)?.id;
-      target = helpers.lookup(atoms, targetId, "atom", owner)?.id;
+      type = helpers.lookup(ctx, relation2scheme, kind, "relation type", owner);
+      source = helpers.lookup(ctx, atoms, sourceId, "atom", owner)?.id;
+      target = helpers.lookup(ctx, atoms, targetId, "atom", owner)?.id;
     }
 
     if (type !== undefined && source !== undefined && target !== undefined) {
       graph.addNode(
-        new model.SchemeNode<S>({
+        new model.SchemeNode({
           id,
           scheme: defaultScheme(type),
           userdata: codecs.scheme.decode({}),
         }),
       );
-      helpers.connect(graph, codecs, [source], id, target);
+      helpers.connect(graph, ctx, [source], id, target);
     }
   }
 

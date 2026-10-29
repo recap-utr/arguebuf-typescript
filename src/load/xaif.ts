@@ -22,7 +22,7 @@ export function xaif<S extends UserdataSchema = {}>(
   const [text] = parseHtml(html ?? "");
 
   if (text) {
-    graph.addResource(new model.Resource<S>({ text, userdata: codecs.resource.decode({}) }));
+    graph.addResource(new model.Resource({ text, userdata: codecs.resource.decode({}) }));
   }
 
   return graph;

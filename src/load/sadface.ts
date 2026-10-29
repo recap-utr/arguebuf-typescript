@@ -27,7 +27,8 @@ export function sadface<S extends UserdataSchema = {}>(
   obj: sadfaceSchema.Graph,
   ...args: helpers.LoadArgs<S>
 ): model.Graph<S> {
-  const { name, codecs } = helpers.loadOptions<S>(...args);
+  const ctx = helpers.loadOptions<S>(...args);
+  const { name, codecs } = ctx;
   const { core } = obj.metadata;
   const updated = date.parseIso(core.edited);
   const graph = new model.Graph<S>({
@@ -45,7 +46,7 @@ export function sadface<S extends UserdataSchema = {}>(
 
   if (core.analyst_name || core.analyst_email) {
     graph.addAnalyst(
-      new model.Analyst<S>({
+      new model.Analyst({
         name: core.analyst_name || undefined,
         email: core.analyst_email || undefined,
         userdata: codecs.analyst.decode({}),
@@ -55,7 +56,7 @@ export function sadface<S extends UserdataSchema = {}>(
 
   for (const resource of obj.resources ?? []) {
     graph.addResource(
-      new model.Resource<S>({
+      new model.Resource({
         id: resource.id,
         text: resource.content || "",
         userdata: codecs.resource.decode(resource.metadata ?? {}),
@@ -66,40 +67,46 @@ export function sadface<S extends UserdataSchema = {}>(
   for (const node of obj.nodes) {
     switch (node.type) {
       case "atom":
-        graph.addNode(atomFromSadface(node, graph.resources, codecs));
+        helpers.addNode(graph, ctx, atomFromSadface(node, graph.resources, ctx));
         break;
       case "scheme":
       case "inference":
       case "conflict":
-        graph.addNode(schemeFromSadface(node, codecs));
+        helpers.addNode(graph, ctx, schemeFromSadface(node, codecs));
         break;
       default:
-        helpers.warn(`Skipping node '${node.id}' of unknown type '${String(node.type)}'.`);
+        ctx.report(
+          "unknown-element",
+          `Skipping node '${node.id}' of unknown type '${String(node.type)}'.`,
+          [node.id],
+        );
     }
   }
 
   for (const edge of obj.edges) {
-    helpers.addEdge(graph, codecs, { id: edge.id, source: edge.source_id, target: edge.target_id });
+    helpers.addEdge(graph, ctx, { id: edge.id, source: edge.source_id, target: edge.target_id });
   }
+
+  helpers.relocate(graph, ctx);
 
   return graph;
 }
 
 function atomFromSadface<S extends UserdataSchema>(
   obj: sadfaceSchema.Node,
-  resources: Readonly<Record<string, model.Resource<S>>>,
-  codecs: ResolvedCodecs<S>,
-): model.AtomNode<S> {
+  resources: Readonly<Record<string, model.ResourceOf<S>>>,
+  ctx: helpers.Context<S>,
+): model.AtomNodeOf<S> {
   const source = obj.sources?.[0];
   const owner = `atom node '${obj.id}'`;
 
-  return new model.AtomNode<S>({
+  return new model.AtomNode({
     id: obj.id,
     text: obj.text ?? "",
     reference:
       source &&
-      helpers.newReference(source.text, source.resource_id, source.offset, resources, owner),
-    userdata: codecs.atom.decode(obj.metadata ?? {}),
+      helpers.newReference(ctx, source.text, source.resource_id, source.offset, resources, owner),
+    userdata: ctx.codecs.atom.decode(obj.metadata ?? {}),
   });
 }
 
@@ -111,7 +118,7 @@ function atomFromSadface<S extends UserdataSchema>(
 function schemeFromSadface<S extends UserdataSchema>(
   obj: sadfaceSchema.Node,
   codecs: ResolvedCodecs<S>,
-): model.SchemeNode<S> {
+): model.SchemeNodeOf<S> {
   const name = obj.name || "";
   const type = name2schemeType.get(normalizeSchemeLabel(name));
   let scheme: model.Scheme;
@@ -126,7 +133,7 @@ function schemeFromSadface<S extends UserdataSchema>(
     scheme = name ? model.resolveScheme("support", name) : { case: undefined };
   }
 
-  return new model.SchemeNode<S>({
+  return new model.SchemeNode({
     id: obj.id,
     scheme,
     userdata: codecs.scheme.decode(obj.metadata ?? {}),

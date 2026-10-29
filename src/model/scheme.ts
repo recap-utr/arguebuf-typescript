@@ -12,6 +12,8 @@ export { Attack, Preference, Rephrase, Support };
 export type Scheme = ProtobufScheme["type"];
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 
+export const schemeTypes: readonly SchemeType[] = ["support", "attack", "rephrase", "preference"];
+
 export const NO_SCHEME_LABEL = "Unknown";
 
 /** Human-readable labels of the supporting argumentation schemes according to Walton et al. */
@@ -146,12 +148,17 @@ export function normalizeSchemeLabel(text: string): string {
   return text.toLowerCase().replace(/[^\p{L}\p{N}]/gv, "");
 }
 
+/** Members of a numeric enum, without the reverse mappings. */
+function enumValues<V extends number>(enumObject: Readonly<Record<string, string | V>>): V[] {
+  return Object.values(enumObject).filter((value): value is V => typeof value === "number");
+}
+
 function lookupTable<V extends number>(
   enumObject: Readonly<Record<string, string | V>>,
   labels: Readonly<Record<V, string>>,
   aliases: Readonly<Record<string, V>> = {},
 ): ReadonlyMap<string, V> {
-  const values = Object.values(enumObject).filter((value): value is V => typeof value === "number");
+  const values = enumValues(enumObject);
 
   return new Map([
     ...values.map((value) => [normalizeSchemeLabel(labels[value]), value] as const),
@@ -196,6 +203,20 @@ export function defaultScheme(type: SchemeType): Scheme {
       return { case: type, value: Rephrase.DEFAULT };
     case "preference":
       return { case: type, value: Preference.DEFAULT };
+  }
+}
+
+/** All schemes of the given type in the order of their enum. */
+export function schemeValues(type: SchemeType): Scheme[] {
+  switch (type) {
+    case "support":
+      return enumValues(Support).map((value) => ({ case: type, value }));
+    case "attack":
+      return enumValues(Attack).map((value) => ({ case: type, value }));
+    case "rephrase":
+      return enumValues(Rephrase).map((value) => ({ case: type, value }));
+    case "preference":
+      return enumValues(Preference).map((value) => ({ case: type, value }));
   }
 }
 

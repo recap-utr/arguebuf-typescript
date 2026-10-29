@@ -32,7 +32,8 @@ export function kialo<S extends UserdataSchema = {}>(
   input: string,
   ...args: helpers.LoadArgs<S>
 ): model.Graph<S> {
-  const { codecs, ...options } = helpers.loadOptions<S>(...args);
+  const ctx = helpers.loadOptions<S>(...args);
+  const { codecs, ...options } = ctx;
   const [title = "", separator = "", ...lines] = helpers.lines(input);
 
   if (separator.trim()) {
@@ -79,7 +80,7 @@ export function kialo<S extends UserdataSchema = {}>(
 
     if (reference === null) {
       graph.addNode(
-        new model.AtomNode<S>({
+        new model.AtomNode({
           id,
           text: kialoText(statement.text),
           userdata: codecs.atom.decode({}),
@@ -91,7 +92,7 @@ export function kialo<S extends UserdataSchema = {}>(
   }
 
   const atoms = graph.atomNodes;
-  const resolve = (id: string, owner: string): model.AtomNode<S> | undefined => {
+  const resolve = (id: string, owner: string): model.AtomNodeOf<S> | undefined => {
     const visited = new Set<string>();
 
     while (references.has(id) && !visited.has(id)) {
@@ -99,7 +100,7 @@ export function kialo<S extends UserdataSchema = {}>(
       id = references.get(id) ?? id;
     }
 
-    return helpers.lookup(atoms, id, "statement", owner);
+    return helpers.lookup(ctx, atoms, id, "statement", owner);
   };
 
   graph.majorClaim = resolve("1.", "the major claim");
@@ -111,13 +112,13 @@ export function kialo<S extends UserdataSchema = {}>(
     const target = source && resolve(parentId, owner);
 
     if (source !== undefined && target !== undefined) {
-      const scheme = new model.SchemeNode<S>({
+      const scheme = new model.SchemeNode({
         id: `${id}scheme`,
         scheme: defaultScheme(stance2scheme[statement.stance]),
         userdata: codecs.scheme.decode({}),
       });
       graph.addNode(scheme);
-      helpers.connect(graph, codecs, [source.id], scheme.id, target.id);
+      helpers.connect(graph, ctx, [source.id], scheme.id, target.id);
     }
   }
 

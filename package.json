@@ -39,7 +39,6 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2",
     "arg-services": "^4",
-    "immer": "^11",
     "parse5": "^8",
     "temporal-polyfill": "^0.3"
   },

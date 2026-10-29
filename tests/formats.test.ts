@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import { expect, test, vi } from "vitest";
 import { dumpGraphology } from "#/graphology.js";
 import * as arguebuf from "#/index.js";
-import { newReference, stringId } from "#/load/helpers.js";
+import { loadOptions, newReference, stringId } from "#/load/helpers.js";
 import { parseHtml } from "#/load/html.js";
 
 const KIALO = `Discussion Title: Title
@@ -159,17 +159,13 @@ test("ova", () => {
   for (const atom of Object.values(graph.atomNodes)) {
     const offset = atom.reference?.offset ?? -1;
 
-    expect(
-      Array.from(resource.text)
-        .slice(offset)
-        .join("")
-        .startsWith(atom.reference?.text ?? "-"),
-    ).toBe(true);
+    expect(resource.text.startsWith(atom.reference?.text ?? "-", offset)).toBe(true);
   }
 
   expect(graph.majorClaim).toBe("1");
   expect(graph.atomNodes["1"].participant).toBe("7");
-  expect(graph.atomNodes["1"].reference).toMatchObject({ text: "A & B", offset: 3 });
+  // UTF-16 offset after two spaces and an emoji, Python counts 3 code points
+  expect(graph.atomNodes["1"].reference).toMatchObject({ text: "A & B", offset: 4 });
   expect(graph.atomNodes["2"].participant).toBeUndefined();
   expect(graph.nodes["1"].metadata.created).toStrictEqual(
     Temporal.Instant.from("2019-03-23T15:57:30Z"),
@@ -318,7 +314,7 @@ test("html with many spans", () => {
 test("references keep the offset unless the resource is unknown", () => {
   const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
   const resources = { r: new arguebuf.Resource({ id: "r", text: "Text" }) };
-  const reference = (resource?: string) => newReference("T", resource, 1, resources, "x");
+  const reference = (resource?: string) => newReference(loadOptions(), "T", resource, 1, resources, "x");
 
   expect(reference("r")).toStrictEqual(
     new arguebuf.Reference({ text: "T", resource: "r", offset: 1 }),

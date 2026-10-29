@@ -9,6 +9,8 @@ export * from "#/model/resource.js";
 export {
   aif2scheme,
   Attack,
+  defaultScheme,
+  isDefaultScheme,
   NO_SCHEME_LABEL,
   Preference,
   Rephrase,
@@ -17,7 +19,11 @@ export {
   type Scheme,
   scheme2aif,
   scheme2aifDefault,
+  schemeLabel,
   type SchemeType,
+  schemeTypes,
+  schemeValueLabel,
+  schemeValues,
   Support,
 } from "#/model/scheme.js";
 export type {
