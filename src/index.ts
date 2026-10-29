@@ -1,6 +1,7 @@
 export { Temporal } from "temporal-polyfill";
 /** Arguebuf graph as protobuf JSON. */
 export type { GraphJson } from "arg-services/graph/v1/graph_pb";
+export { check, type CheckOptions } from "#/check.js";
 export * as date from "#/date.js";
 export * as dump from "#/dump/index.js";
 export {
@@ -23,6 +24,21 @@ export {
   type ThresholdOptions,
 } from "#/locate.js";
 export * from "#/model/index.js";
+export {
+  type AtomPatch,
+  applyPatch,
+  type PatchResult,
+  type JsonSchema,
+  type Outline,
+  outline,
+  type ParsedPatch,
+  parsePatch,
+  type ParticipantPatch,
+  type Patch,
+  patchSchema,
+  type ResourcePatch,
+  type SchemePatch,
+} from "#/patch.js";
 export * as schemas from "#/schemas/index.js";
 export * as traverse from "#/traverse.js";
 export * from "#/utils.js";
