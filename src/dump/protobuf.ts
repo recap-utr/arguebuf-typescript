@@ -136,6 +136,7 @@ export function protobuf<S extends UserdataSchema>(
       create(pb.AnalystSchema, {
         name: analyst.name,
         email: analyst.email,
+        metadata: metadataToProtobuf(analyst.metadata),
         userdata: userdataToProtobuf(codecs.analyst, analyst.userdata),
       }),
     ),

@@ -369,8 +369,7 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
     changes: AnalystChanges<Userdata<S, "analyst">>,
   ): void {
     const current = lookup(this.store.analysts, analyst, "Analyst");
-    // analysts have no metadata
-    this.store.writable("analysts")[current.id] = current.with(changes);
+    this.store.writable("analysts")[current.id] = current.with(touched(current, changes));
   }
 
   removeAnalyst(analyst: string | AnalystOf<S>): void {

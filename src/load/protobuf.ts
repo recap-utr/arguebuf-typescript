@@ -113,7 +113,8 @@ export function protobuf<S extends UserdataSchema = {}>(
       new model.Analyst({
         id,
         name: analyst.name || undefined,
-        email: analyst.email || undefined,
+        email: analyst.email,
+        metadata: metadataFromProtobuf(analyst.metadata),
         userdata: codecs.analyst.decode(analyst.userdata ?? {}),
       }),
     );
@@ -133,7 +134,13 @@ export function protobuf<S extends UserdataSchema = {}>(
     });
   }
 
-  const majorClaim = helpers.lookup(ctx, graph.atomNodes, obj.majorClaim, "major claim", "the graph");
+  const majorClaim = helpers.lookup(
+    ctx,
+    graph.atomNodes,
+    obj.majorClaim,
+    "major claim",
+    "the graph",
+  );
 
   if (majorClaim !== undefined) {
     graph.majorClaim = majorClaim;

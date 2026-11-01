@@ -228,6 +228,16 @@ test("graphs, elements, and plain userdata are frozen", () => {
   expect(() => graph.draft().freeze().draft().addNode(graph.nodes.c)).toThrow(/already exists/);
 });
 
+test("analysts keep their metadata and empty emails in the protobuf round trip", () => {
+  const analyst = new arguebuf.Analyst({ id: "a", name: "Ann", email: "" });
+  const draft = sampleGraph().draft();
+  draft.addAnalyst(analyst);
+  const loaded = arguebuf.load.protobuf(arguebuf.dump.protobuf(draft.freeze()));
+
+  expect(loaded.analysts.a?.email).toBe("");
+  expect(loaded.analysts.a?.metadata.created).toEqual(analyst.metadata.created);
+});
+
 test("protobuf dump writes the library version", () => {
   expect(arguebuf.dump.protobuf(sampleGraph()).libraryVersion).toMatch(
     /^arguebuf-typescript:\d+\.\d+\.\d+/,
@@ -318,9 +328,13 @@ test("batch removals and links", () => {
   expect(Object.keys(graph.nodes)).toContain("p1");
 
   // the scheme is removed by the cascade before its turn, all removed ids are returned
-  expect(graph.removeElements(["p1", "s", "r"]).toSorted()).toStrictEqual(
-    ["e1", "e2", "p1", "r", "s"],
-  );
+  expect(graph.removeElements(["p1", "s", "r"]).toSorted()).toStrictEqual([
+    "e1",
+    "e2",
+    "p1",
+    "r",
+    "s",
+  ]);
   expect(Object.keys(graph.nodes)).toStrictEqual(["c"]);
   expect(Object.keys(graph.resources)).toStrictEqual([]);
 
@@ -354,10 +368,10 @@ test("annotations of a resource", () => {
     }),
   );
 
-  expect(
-    graph.annotations("r").map(({ node, start, end }) => [node.id, start, end]),
-  ).toStrictEqual([
-    ["c", 0, 3],
-    ["a", 3, 6],
-  ]);
+  expect(graph.annotations("r").map(({ node, start, end }) => [node.id, start, end])).toStrictEqual(
+    [
+      ["c", 0, 3],
+      ["a", 3, 6],
+    ],
+  );
 });
