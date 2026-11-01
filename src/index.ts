@@ -5,6 +5,7 @@ export { check, type CheckOptions } from "#/check.js";
 export * as date from "#/date.js";
 export * as dump from "#/dump/index.js";
 export {
+  catchGraphError,
   GraphError,
   hasErrors,
   type Issue,

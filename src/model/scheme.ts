@@ -9,7 +9,7 @@ import type * as aif from "#/schemas/aif.js";
 
 export { Attack, Preference, Rephrase, Support };
 
-export type Scheme = ProtobufScheme["type"];
+export type Scheme = Readonly<ProtobufScheme["type"]>;
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 
 export const schemeTypes: readonly SchemeType[] = ["support", "attack", "rephrase", "preference"];
@@ -91,7 +91,8 @@ const preferenceLabels: Readonly<Record<Preference, string>> = {
   [Preference.DEFAULT]: "Default",
 };
 
-const schemeTypeLabels: Readonly<Record<SchemeType, string>> = {
+/** Human-readable labels of the scheme types. */
+export const schemeTypeLabels: Readonly<Record<SchemeType, string>> = {
   support: "Support",
   attack: "Attack",
   rephrase: "Rephrase",

@@ -11,27 +11,31 @@ import {
 } from "#/model/userdata.js";
 import { uuid } from "arg-services";
 
+/** Color in hexadecimal RGB notation, e.g. `#ffffff`. */
+export type HexColor = `#${string}`;
+
 export interface Color {
-  readonly bg: string;
-  readonly fg: string;
-  readonly border: string;
+  readonly bg: HexColor;
+  readonly fg: HexColor;
+  readonly border: HexColor;
 }
 
-function filledColor(bg: string): Color {
+function filledColor(bg: HexColor): Color {
   return { bg, fg: "#ffffff", border: bg };
 }
 
 const COLOR_MONOCHROME_LIGHT: Color = { bg: "#ffffff", fg: "#000000", border: "#000000" };
 const COLOR_MONOCHROME_DARK: Color = { bg: "#000000", fg: "#ffffff", border: "#000000" };
-const COLOR_SCHEME_FALLBACK = filledColor("#009688");
+const COLOR_SCHEME_FALLBACK = filledColor("#9E9E9E");
 const COLOR_ATOM = filledColor("#2196F3");
 const COLOR_MAJOR_CLAIM = filledColor("#0D47A1");
 
-const scheme2color: Readonly<Record<SchemeType, Color>> = {
+/** Colors of scheme nodes by their type, untyped ones are grey. */
+export const schemeColors: Readonly<Record<SchemeType, Color>> = {
   support: filledColor("#4CAF50"),
   attack: filledColor("#F44336"),
   rephrase: filledColor("#009688"),
-  preference: filledColor("#009688"),
+  preference: filledColor("#9C27B0"),
 };
 
 interface NodeInit {
@@ -146,7 +150,7 @@ export class SchemeNode<U = JsonObject> extends AbstractNode<U, "scheme"> {
       return COLOR_MONOCHROME_DARK;
     }
 
-    return this.scheme.case === undefined ? COLOR_SCHEME_FALLBACK : scheme2color[this.scheme.case];
+    return this.scheme.case === undefined ? COLOR_SCHEME_FALLBACK : schemeColors[this.scheme.case];
   }
 }
 

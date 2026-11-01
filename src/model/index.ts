@@ -21,6 +21,7 @@ export {
   scheme2aifDefault,
   schemeLabel,
   type SchemeType,
+  schemeTypeLabels,
   schemeTypes,
   schemeValueLabel,
   schemeValues,
