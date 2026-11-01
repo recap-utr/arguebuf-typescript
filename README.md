@@ -7,7 +7,7 @@ While Protobuf automatically generates native code for all major programming lan
 - Import of existing formats like [AIF](http://www.argumentinterchange.org), [SADFace](https://github.com/Open-Argumentation/SADFace), and several others.
 - Export of Arguebuf graphs to AIF, xAIF, [graphology](https://graphology.github.io), [Graphviz](https://graphviz.org), and [D2](https://d2lang.com).
 - Various helper methods to programmatically manipulate and create argument graphs.
-- Immutable model elements whose graphs are cheap to copy, so changes can be made on a copy while the original stays intact.
+- Immutable graphs that are changed through cheap drafts, so they can be shared safely, e.g. in an undo history.
 
 A Python implementation with the same features is available as [arguebuf-python](https://github.com/recap-utr/arguebuf-python).
 
@@ -32,7 +32,7 @@ import * as arguebuf from "arguebuf";
 The following example creates a graph with two premises that are connected to a major claim.
 
 ```ts
-const graph = new arguebuf.Graph();
+const draft = new arguebuf.GraphDraft();
 
 const premise1 = new arguebuf.AtomNode({ text: "Text of premise 1" });
 const premise2 = new arguebuf.AtomNode({ text: "Text of premise 2" });
@@ -46,16 +46,19 @@ const scheme2 = new arguebuf.SchemeNode({
 });
 
 for (const node of [premise1, premise2, claim, scheme1, scheme2]) {
-  graph.addNode(node);
+  draft.addNode(node);
 }
 
-graph.addEdge(new arguebuf.Edge({ source: premise1.id, target: scheme1.id }));
-graph.addEdge(new arguebuf.Edge({ source: scheme1.id, target: claim.id }));
+draft.addEdge(new arguebuf.Edge({ source: premise1.id, target: scheme1.id }));
+draft.addEdge(new arguebuf.Edge({ source: scheme1.id, target: claim.id }));
 // shorthand for the edges from the premises to the scheme and from the scheme to the claim
-graph.connect([premise2], scheme2, claim);
+draft.connect([premise2], scheme2, claim);
 
-graph.majorClaim = claim;
+draft.majorClaim = claim;
+const graph = draft.freeze();
 ```
+
+`new arguebuf.Graph({ nodes, edges, ... })` creates a graph from its elements directly.
 
 ### Loading a Graph
 
@@ -94,17 +97,16 @@ Serialized formats count code points instead, matching Python, and the loaders a
 ### Strict Model and Lenient Loaders
 
 The graph is strict.
-Adding an element throws a `GraphError` if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
+Adding an element to a draft throws a `GraphError` if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
 Edges must not be self-loops, connect two atoms, or duplicate an existing connection.
-`graph.link(source, target, { scheme })` connects two nodes and inserts a scheme node (untyped by default) between two atoms, which it returns.
+`draft.link(source, target, { scheme })` connects two nodes and inserts a scheme node (untyped by default) between two atoms, which it returns.
 `graph.checkLink(source, target)` returns the issue that prevents such a link without throwing, e.g. to validate a connection while it is drawn.
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
-Elements are immutable, the `update` methods of the graph (`updateAtom`, `updateScheme`, `updateEdge`, `updateResource`, `updateParticipant`, `updateAnalyst`) replace them with changed copies and validate them like the `add` methods.
+Elements are immutable, the `update` methods of the draft (`updateAtom`, `updateScheme`, `updateEdge`, `updateResource`, `updateParticipant`, `updateAnalyst`) replace them with changed copies and validate them like the `add` methods.
 They set the `updated` timestamp to now unless the changes contain the metadata.
-`graph.updateResource` also re-anchors the references to a changed text and returns the resulting warnings.
-`graph.copy()` copies the structure of a graph and shares its elements, so it is cheap to change a copy while keeping the original.
+`draft.updateResource` also re-anchors the references to a changed text and returns the resulting warnings.
 Scheme nodes left without a premise or without a conclusion are removed together with the node, so that no dangling inferences remain.
-`graph.removeElements(ids)` removes elements of any kind at once, all ids must exist and elements that a removal cascades to may be listed as well.
+`draft.removeElements(ids)` removes elements of any kind at once, all ids must exist and elements that a removal cascades to may be listed as well.
 Like `removeNode` and `removeBranch`, it returns the ids of all removed elements, including those of the cascades.
 `graph.annotations(resource)` lists the atoms whose references are anchored in a resource with their spans, sorted by position.
 Views without scheme nodes, e.g. to show only the hierarchy of claims, are projections that leave the graph unchanged:
@@ -112,11 +114,10 @@ Views without scheme nodes, e.g. to show only the hierarchy of claims, are proje
 
 Loaders are lenient.
 They repair what they can and skip the rest: an edge between two atoms gets an untyped scheme in between, while self-loops, duplicate connections, duplicate nodes, and elements referencing unknown ones are skipped.
-References whose text is not found at their offset are moved to the most similar span of their resource (see `graph.relocateReferences`).
+References whose text is not found at their offset are moved to the most similar span of their resource (see `draft.relocateReferences`).
 Each repair is reported as a warning to the `onIssue` option, which defaults to `console.warn`, and the option `strict: true` throws a `GraphError` instead.
 Malformed values such as unparsable dates always throw an error.
-Loaders do not copy the objects they read, so the userdata of a graph may share objects with the input.
-Use `arguebuf.deepCopy` to get a copy whose userdata is independent as well.
+Loaders do not copy the objects they read, so the userdata of a graph shares the (then frozen) plain objects of the input.
 
 ### Issues
 
@@ -224,8 +225,9 @@ const atom: arguebuf.Codec<AtomData> = {
 // arguebuf.Graph<{ atom: AtomData }>
 const graph = arguebuf.load.json(obj, { codecs: { atom } });
 const { text, userdata } = graph.atomNodes[id];
-graph.updateAtom(id, { userdata: { ...userdata, embedding: embed(text) } });
-const json = arguebuf.dump.json(graph, { codecs: { atom } });
+const draft = graph.draft();
+draft.updateAtom(id, { userdata: { ...userdata, embedding: embed(text) } });
+const json = arguebuf.dump.json(draft.freeze(), { codecs: { atom } });
 ```
 
 The method names match the codecs of [Zod](https://zod.dev) 4.1, which can be passed directly.
@@ -242,7 +244,6 @@ const atom = z.codec(
 
 Constructors make `userdata` optional (defaulting to `{}`) only if `{}` is a valid value of its type.
 Likewise, `connect` requires a userdata factory for the edges it creates if the edge userdata is customized, and `applyPatch` requires the codecs to create userdata.
-`arguebuf.deepCopy` clones userdata with `structuredClone` instead of its codec, so in-memory data is kept, but class instances become plain objects.
 
 For throwaway data like caches, a side table keyed by element ids avoids custom types altogether:
 
@@ -265,15 +266,18 @@ Missing creation and modification timestamps default to the current time, malfor
 
 ## TypeScript Specifics
 
-### Copies
+### Immutability
 
-Elements are immutable values, so changes go through the methods of the graph, e.g. `graph.updateAtom(id, { text })`.
-`graph.copy()` is cheap: the copy shares all elements and containers with the original, and each graph clones a container only when it changes it first.
-To keep a previous version, e.g. for undo or in a state store, copy the graph and change the copy.
+A `Graph` is frozen together with its elements and their plain userdata (objects and arrays), so it can be shared freely, e.g. in an undo history or a state store.
+Other userdata such as class instances or typed arrays is kept as is and must not be changed in place.
+Changes go through a `GraphDraft`, which has all methods that change a graph.
+`graph.draft()` and `draft.freeze()` are cheap: both share all elements and containers, and a draft clones a container only when it changes it first.
+A draft stays usable after `freeze`, and functions that only read accept both as a `GraphView`.
 
 ```ts
-const next = graph.copy();
-next.updateAtom(id, { text: "New text" });
+const draft = graph.draft();
+draft.updateAtom(id, { text: "New text" });
+const next = draft.freeze();
 // `graph` is unchanged
 ```
 

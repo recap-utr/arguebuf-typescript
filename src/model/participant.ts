@@ -9,7 +9,7 @@ import {
 } from "#/model/userdata.js";
 import { uuid } from "#/model/uuid.js";
 
-/** Fields of a participant that `Participant.with` and `Graph.updateParticipant` change. */
+/** Fields of a participant that `Participant.with` and `GraphDraft.updateParticipant` change. */
 export type ParticipantChanges<U = JsonObject> = Partial<
   Pick<
     Participant<U>,
@@ -28,7 +28,7 @@ export type ParticipantInit<U = JsonObject> = {
   metadata?: Metadata;
 } & UserdataInit<U>;
 
-/** Person making statements, see `Graph.updateParticipant` to change it. */
+/** Person making statements, see `GraphDraft.updateParticipant` to change it. */
 export class Participant<U = JsonObject> {
   readonly id: string;
   readonly name?: string;
@@ -50,6 +50,7 @@ export class Participant<U = JsonObject> {
     this.description = init?.description;
     this.metadata = init?.metadata ?? new Metadata();
     this.userdata = initUserdata<U>(init);
+    Object.freeze(this);
   }
 
   /** Copy of the participant with the given fields changed. */

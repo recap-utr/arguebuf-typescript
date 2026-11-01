@@ -1,4 +1,5 @@
 import type { JsonObject } from "@bufbuild/protobuf";
+import { freeze } from "#/model/freeze.js";
 
 export type { JsonObject, JsonValue } from "@bufbuild/protobuf";
 
@@ -53,9 +54,12 @@ export type OptionalInit<I> = {} extends I ? [init?: I] : [init: I];
 /** Factory for userdata that a method creates, optional only if `{}` is a valid value. */
 export type UserdataFactoryArgs<T> = {} extends T ? [userdata?: () => T] : [userdata: () => T];
 
-/** Keep supplied userdata, callers only permit omission when `{}` is valid. */
+/**
+ * The supplied userdata, deeply frozen if it is plain data (see `freeze`).
+ * Callers only permit omission when `{}` is valid.
+ */
 export function initUserdata<T>(init: UserdataInit<T> | undefined): T {
-  return (init !== undefined && "userdata" in init ? init.userdata : {}) as T;
+  return freeze((init !== undefined && "userdata" in init ? init.userdata : {}) as T);
 }
 
 /** Codecs for all kinds of `S`. */

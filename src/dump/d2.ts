@@ -32,7 +32,7 @@ function nodeToD2(node: { readonly id: string }, label: string, color: model.Col
 
 /** Export a graph to the D2 diagram language, undefined if it has more than `maxNodes` nodes. */
 export function d2<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   options: D2Options<S> = {},
 ): string | undefined {
   const { atomLabel, schemeLabel, maxNodes = 1000, monochrome = false, schemeNodes = true } = options;

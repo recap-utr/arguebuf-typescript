@@ -72,7 +72,7 @@ export function argdown<S extends UserdataSchema = {}>(
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
-  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode(obj.frontMatter ?? {}) });
+  const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode(obj.frontMatter ?? {}) });
   // inference schemes by argument title and conclusion index
   const inferences = new Map<string, Map<number, model.SchemeNodeOf<S>>>();
 
@@ -218,5 +218,5 @@ export function argdown<S extends UserdataSchema = {}>(
     }
   }
 
-  return graph;
+  return graph.freeze();
 }

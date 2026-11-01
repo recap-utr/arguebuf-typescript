@@ -1,11 +1,11 @@
-import type { Graph } from "#/model/graph.js";
+import type { GraphView } from "#/model/graph.js";
 import { isDefaultScheme, schemeValueLabel } from "#/model/scheme.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 import { premiseIds } from "#/patch/ids.js";
 import { type Outline, participantFields } from "#/patch/schema.js";
 
 /** The graph in the shape of a patch, e.g. to show it to an agent. */
-export function outline<S extends UserdataSchema>(graph: Graph<S>): Outline {
+export function outline<S extends UserdataSchema>(graph: GraphView<S>): Outline {
   const nodes = Object.values(graph.nodes);
 
   return {

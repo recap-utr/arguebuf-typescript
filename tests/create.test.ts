@@ -52,7 +52,7 @@ test("atom relations collapse scheme nodes", () => {
 });
 
 test("remove branch", () => {
-  const graph = generateGraph();
+  const graph = generateGraph().draft();
   graph.removeBranch("s2");
 
   expect(ids(Object.values(graph.nodes))).toStrictEqual(["a4", "s3"]);
@@ -60,7 +60,7 @@ test("remove branch", () => {
 });
 
 test("remove empty scheme branches", () => {
-  const graph = generateGraph();
+  const graph = generateGraph().draft();
   graph.addNode(scheme("s4", { case: "support", value: arguebuf.Support.DEFAULT }));
   graph.addEdge(new arguebuf.Edge({ source: "a4", target: "s4" }));
   graph.removeEmptySchemeBranches();
@@ -153,13 +153,13 @@ test("wide traversals avoid function argument limits", () => {
   expect(arguebuf.traverse.bfs(start, connections)).toHaveLength(neighbors.length + 1);
 });
 
-test("edit a copy of a graph", () => {
+test("edit a draft of a graph", () => {
   // elements are immutable, so they are updated through the graph
   const embedding = new Float32Array([1, 2]);
   const node = new arguebuf.AtomNode<Custom["atom"]>({ text: "A", userdata: { label: "a", embedding } });
   const other = new arguebuf.AtomNode<Custom["atom"]>({ id: "b", text: "", userdata: { label: "b" } });
   const graph = new arguebuf.Graph<Custom>({ nodes: [node, other] });
-  const result = graph.copy();
+  const result = graph.draft();
   result.updateAtom(node.id, { text: "B", userdata: { label: "b", embedding: new Float32Array([3]) } });
   result.addNode(new arguebuf.AtomNode({ id: "new", text: "C", userdata: { label: "c" } }));
   result.addNode(new arguebuf.SchemeNode({ id: "s" }));
@@ -176,8 +176,9 @@ test("edit a copy of a graph", () => {
   expect(Object.keys(graph.nodes)).toHaveLength(2);
   expect(graph.majorClaim).toBeUndefined();
 
-  const removed = result.copy();
+  const frozen = result.freeze();
+  const removed = frozen.draft();
   removed.removeNode("s");
   expect(removed.outgoingEdges("b")).toStrictEqual([]);
-  expect(result.incomingNodes("new")).toStrictEqual([result.nodes.s]);
+  expect(frozen.incomingNodes("new")).toStrictEqual([frozen.nodes.s]);
 });

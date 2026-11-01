@@ -1,12 +1,12 @@
 // the default export of graphology is mistyped, so only named imports are used
 import { DirectedGraph } from "graphology";
-import type { AtomNodeOf, EdgeOf, Graph, SchemeNodeOf } from "#/model/index.js";
+import type { AtomNodeOf, EdgeOf, GraphView, SchemeNodeOf } from "#/model/index.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
 type AttributeFunctions<T> = Readonly<Record<string, (element: T) => unknown>>;
 
 export interface GraphologyOptions<S extends UserdataSchema = {}> {
-  graphAttrs?: AttributeFunctions<Graph<S>>;
+  graphAttrs?: AttributeFunctions<GraphView<S>>;
   atomAttrs?: AttributeFunctions<AtomNodeOf<S>>;
   schemeAttrs?: AttributeFunctions<SchemeNodeOf<S>>;
   edgeAttrs?: AttributeFunctions<EdgeOf<S>>;
@@ -33,7 +33,7 @@ function nodeAttrs<N extends { readonly label: string }>(
  * Edges are keyed by their id, parallel edges are merged into the first one.
  */
 export function dumpGraphology<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphView<S>,
   options: GraphologyOptions<S> = {},
 ): DirectedGraph {
   const result = new DirectedGraph();

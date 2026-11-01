@@ -20,6 +20,9 @@ export interface Containers<S extends UserdataSchema> {
   outgoing: Adjacency;
 }
 
+// not owned by any store, so the first write clones it
+const empty = <T>(): Record<string, T> => Object.freeze(record<T>());
+
 /**
  * Containers of a graph with copy on write:
  * they are shared with forks until either store writes to them.
@@ -28,18 +31,18 @@ export interface Containers<S extends UserdataSchema> {
 export class GraphStore<S extends UserdataSchema> {
   majorClaim?: string;
   private containers: Containers<S>;
-  // containers that only this store references, the others are shared with forks
-  private owned = new WeakSet<object>();
+  // containers that only this store references, the others are shared with forks and frozen
+  private readonly owned = new Set<object>();
 
   constructor(
     containers: Containers<S> = {
-      nodes: record(),
-      edges: record(),
-      resources: record(),
-      participants: record(),
-      analysts: record(),
-      incoming: record(),
-      outgoing: record(),
+      nodes: empty(),
+      edges: empty(),
+      resources: empty(),
+      participants: empty(),
+      analysts: empty(),
+      incoming: empty(),
+      outgoing: empty(),
     },
   ) {
     this.containers = containers;
@@ -73,11 +76,18 @@ export class GraphStore<S extends UserdataSchema> {
     return this.containers.outgoing;
   }
 
-  /** A store sharing all containers with this one, both clone them before writing. */
+  /**
+   * A store sharing all containers with this one, both clone them before writing.
+   * Shared containers are frozen, so neither store can change the other.
+   */
   fork(): GraphStore<S> {
+    for (const container of this.owned) {
+      Object.freeze(container);
+    }
+
+    this.owned.clear();
     const fork = new GraphStore<S>({ ...this.containers });
     fork.majorClaim = this.majorClaim;
-    this.owned = new WeakSet();
 
     return fork;
   }
@@ -124,8 +134,10 @@ export class GraphStore<S extends UserdataSchema> {
       this.deleteEdge(this.containers.edges[id], removed.id);
     }
 
-    drop(this.writable("incoming"), removed.id);
-    drop(this.writable("outgoing"), removed.id);
+    for (const direction of ["incoming", "outgoing"] as const) {
+      this.owned.delete(this.containers[direction][removed.id]);
+      drop(this.writable(direction), removed.id);
+    }
 
     if (this.majorClaim === removed.id) {
       this.majorClaim = undefined;

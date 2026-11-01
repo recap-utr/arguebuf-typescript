@@ -40,7 +40,7 @@ const nodeColors = (color: model.Color): NodeAttributesObject => ({
  * Atom labels are wrapped after `wrapCol` characters.
  */
 export function graphviz<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   options: GraphvizOptions<S> = {},
 ): string | undefined {
   const {

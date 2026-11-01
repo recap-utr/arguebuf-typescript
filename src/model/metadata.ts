@@ -14,5 +14,6 @@ export class Metadata {
   constructor(init: MetadataInit = {}) {
     this.created = init.created ?? now();
     this.updated = init.updated ?? this.created;
+    Object.freeze(this);
   }
 }

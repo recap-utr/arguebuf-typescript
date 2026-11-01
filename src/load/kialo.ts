@@ -71,7 +71,7 @@ export function kialo<S extends UserdataSchema = {}>(
   }
 
   const name = /Discussion Title: (.*)/s.exec(title)?.[1].trim() ?? options.name;
-  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
+  const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
   const references = new Map<string, string>();
 
   for (const [id, statement] of statements) {
@@ -122,7 +122,7 @@ export function kialo<S extends UserdataSchema = {}>(
     }
   }
 
-  return graph;
+  return graph.freeze();
 }
 
 /**

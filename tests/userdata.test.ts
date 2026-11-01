@@ -31,11 +31,14 @@ function sample(label: arguebuf.JsonValue): GraphJson {
 }
 
 test("codecs decode and encode userdata", () => {
-  const graph = arguebuf.load.json(sample("x"), { codecs });
-  graph.atomNodes.a.userdata.embedding = new Float32Array([1, 2]);
+  const draft = arguebuf.load.json(sample("x"), { codecs }).draft();
+  const embedding = new Float32Array([1, 2]);
+  draft.updateAtom("a", { userdata: { ...draft.atomNodes.a.userdata, embedding } });
+  const graph = draft.freeze();
   const dumped = arguebuf.dump.json(graph, { codecs });
   const loaded = arguebuf.load.json(dumped, { codecs });
 
+  expect(graph.atomNodes.a.userdata.embedding).toBe(embedding);
   expect(dumped.nodes?.a.userdata).toStrictEqual({ label: "x" });
   expect(loaded.atomNodes.a.userdata).toStrictEqual({ label: "x" });
   expect(loaded.edges.e.userdata).toStrictEqual({ weight: 1 });
@@ -87,16 +90,6 @@ test.each([null, undefined])("constructors and codecs preserve %s userdata", (us
   }
 });
 
-test("deep copy clones in-memory userdata", () => {
-  const graph = arguebuf.load.json(sample("x"), { codecs });
-  graph.atomNodes.a.userdata.embedding = new Float32Array([1, 2]);
-  const copy = arguebuf.deepCopy(graph);
-  const embedding = copy.atomNodes.a.userdata.embedding;
-
-  expect(copy).toStrictEqual(graph);
-  expect(embedding).not.toBe(graph.atomNodes.a.userdata.embedding);
-});
-
 test("userdata types", () => {
   const graph = arguebuf.load.json(sample("x"), { codecs });
 
@@ -105,7 +98,7 @@ test("userdata types", () => {
   expectTypeOf(graph.schemeNodes.s.userdata).toEqualTypeOf<arguebuf.JsonObject>();
 
   // elements are interchangeable across schemas that do not customize their kind
-  const custom = new arguebuf.Graph<{ atom: AtomData }>();
+  const custom = new arguebuf.GraphDraft<{ atom: AtomData }>();
   custom.addAnalyst(new arguebuf.Analyst());
   // @ts-expect-error customized kinds stay type safe
   custom.addNode(new arguebuf.AtomNode({ text: "" }));
@@ -116,7 +109,7 @@ test("userdata types", () => {
   arguebuf.dump.json(graph, {});
   expect(() =>
     // @ts-expect-error the edge userdata cannot be created
-    new arguebuf.Graph<{ edge: AtomData }>().connect([], "s", "a"),
+    new arguebuf.GraphDraft<{ edge: AtomData }>().connect([], "s", "a"),
   ).toThrow(arguebuf.GraphError);
   arguebuf.load.argdown(
     { statements: {}, arguments: {}, relations: [] },
@@ -144,11 +137,9 @@ test("zod codecs and schemas can be passed directly", () => {
   const graph = arguebuf.load.json(sample("x"), {
     codecs: { atom: zodAtom, edge: z.object({ weight: z.number() }) },
   });
-  const userdata = graph.atomNodes.a.userdata;
 
-  expectTypeOf(userdata).toEqualTypeOf<z.output<typeof zodAtom>>();
+  expectTypeOf(graph.atomNodes.a.userdata).toEqualTypeOf<z.output<typeof zodAtom>>();
   expectTypeOf(graph.edges.e.userdata).toEqualTypeOf<{ weight: number }>();
-  userdata.embedding = new Float32Array([1]);
 
   const dumped = arguebuf.dump.json(graph, {
     codecs: { atom: zodAtom, edge: z.object({ weight: z.number() }) },
@@ -159,7 +150,7 @@ test("zod codecs and schemas can be passed directly", () => {
 });
 
 test("repairing atom edges preserves required userdata and metadata", () => {
-  const graph = new arguebuf.Graph<{ edge: AtomData }>({
+  const graph = new arguebuf.GraphDraft<{ edge: AtomData }>({
     nodes: [
       new arguebuf.AtomNode({ id: "a", text: "A" }),
       new arguebuf.AtomNode({ id: "b", text: "B" }),

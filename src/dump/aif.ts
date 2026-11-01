@@ -5,7 +5,7 @@ import type * as aifSchema from "#/schemas/aif.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
 /** Export a graph to the AIF format, without locutions. */
-export function aif<S extends UserdataSchema>(obj: model.Graph<S>): aifSchema.Graph {
+export function aif<S extends UserdataSchema>(obj: model.GraphView<S>): aifSchema.Graph {
   return {
     nodes: Object.values(obj.nodes).map((node) => nodeToAif(node, true)),
     edges: Object.values(obj.edges).map((edge) => ({ ...edgeToAif(edge), formEdgeID: null })),

@@ -13,7 +13,7 @@ const escapeHtml = (text: string) =>
  * xAIF nodes have no timestamps, so they are omitted.
  * The resources are joined into an HTML `text` with newlines as `<br>`.
  */
-export function xaif<S extends UserdataSchema>(obj: model.Graph<S>): xaifSchema.Graph {
+export function xaif<S extends UserdataSchema>(obj: model.GraphView<S>): xaifSchema.Graph {
   return {
     AIF: {
       nodes: Object.values(obj.nodes).map((node) => nodeToAif(node, false)),

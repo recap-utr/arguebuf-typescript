@@ -1,14 +1,14 @@
 // Removal of nodes, cascading to the scheme nodes that are left dangling.
 import { fail } from "#/issue.js";
 import { dfs } from "#/traverse.js";
-import type { Graph } from "#/model/graph.js";
+import type { GraphDraft } from "#/model/graph.js";
 import type { GraphStore } from "#/model/graph/store.js";
 import type { Node } from "#/model/node.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
 /** Whether the node is a scheme of the graph without a premise or without a conclusion. */
 function isDangling<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphDraft<S>,
   store: GraphStore<S>,
   node: Node<S>,
 ): boolean {
@@ -38,7 +38,7 @@ function deleteNode<S extends UserdataSchema>(
 
 /** Delete the node and the schemes left dangling, collecting the ids of removed elements. */
 function cascade<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphDraft<S>,
   store: GraphStore<S>,
   node: Node<S>,
   removed: Set<string>,
@@ -55,7 +55,7 @@ function cascade<S extends UserdataSchema>(
 }
 
 /** Remove the removed atoms from the premise descriptors and return the removed ids. */
-function finish<S extends UserdataSchema>(graph: Graph<S>, removed: Set<string>): string[] {
+function finish<S extends UserdataSchema>(graph: GraphDraft<S>, removed: Set<string>): string[] {
   // ids are unique per kind only, so a removed edge may share the id of a remaining atom
   const isRemoved = (id: string) => removed.has(id) && !Object.hasOwn(graph.nodes, id);
 
@@ -70,9 +70,9 @@ function finish<S extends UserdataSchema>(graph: Graph<S>, removed: Set<string>)
   return [...removed];
 }
 
-/** See `Graph.removeNode`. */
+/** See `GraphDraft.removeNode`. */
 export function removeNode<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphDraft<S>,
   store: GraphStore<S>,
   node: Node<S>,
 ): string[] {
@@ -82,9 +82,9 @@ export function removeNode<S extends UserdataSchema>(
   return finish(graph, removed);
 }
 
-/** See `Graph.removeElements`. */
+/** See `GraphDraft.removeElements`. */
 export function removeElements<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphDraft<S>,
   store: GraphStore<S>,
   ids: Iterable<string>,
 ): string[] {
@@ -119,9 +119,9 @@ export function removeElements<S extends UserdataSchema>(
   return finish(graph, removed);
 }
 
-/** See `Graph.removeBranch`, the branches of all starts are removed at once. */
+/** See `GraphDraft.removeBranch`, the branches of all starts are removed at once. */
 export function removeBranches<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphDraft<S>,
   store: GraphStore<S>,
   starts: Iterable<Node<S>>,
 ): string[] {

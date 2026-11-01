@@ -84,7 +84,7 @@ test("check reports quality problems", () => {
       majorClaim: "mc",
     },
     { onIssue: () => undefined },
-  );
+  ).draft();
   graph.updateAtom("a", {
     reference: new arguebuf.Reference({ text: "pets", resource: "r", offset: 1 }),
   });
@@ -215,7 +215,7 @@ test("parsePatch reports every problem of untrusted input", () => {
 });
 
 test("updating a resource text re-anchors its references", () => {
-  const graph = new arguebuf.Graph({
+  const graph = new arguebuf.GraphDraft({
     resources: [new arguebuf.Resource({ id: "r", text: "Cats are pets." })],
     nodes: [
       new arguebuf.AtomNode({

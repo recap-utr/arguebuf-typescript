@@ -9,7 +9,7 @@ import {
 } from "#/model/userdata.js";
 import { uuid } from "#/model/uuid.js";
 
-/** Fields of a resource that `Resource.with` and `Graph.updateResource` change. */
+/** Fields of a resource that `Resource.with` and `GraphDraft.updateResource` change. */
 export type ResourceChanges<U = JsonObject> = Partial<
   Pick<Resource<U>, "text" | "title" | "source" | "timestamp" | "metadata" | "userdata">
 >;
@@ -23,7 +23,7 @@ export type ResourceInit<U = JsonObject> = {
   metadata?: Metadata;
 } & UserdataInit<U>;
 
-/** Source document that atom nodes may reference, see `Graph.updateResource` to change it. */
+/** Source document that atom nodes may reference, see `GraphDraft.updateResource` to change it. */
 export class Resource<U = JsonObject> {
   readonly id: string;
   readonly text: string;
@@ -41,6 +41,7 @@ export class Resource<U = JsonObject> {
     this.timestamp = init.timestamp;
     this.metadata = init.metadata ?? new Metadata();
     this.userdata = initUserdata<U>(init);
+    Object.freeze(this);
   }
 
   /** Copy of the resource with the given fields changed. */

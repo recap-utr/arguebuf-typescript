@@ -31,7 +31,7 @@ export function sadface<S extends UserdataSchema = {}>(
   const { name, codecs } = ctx;
   const { core } = obj.metadata;
   const updated = date.parseIso(core.edited);
-  const graph = new model.Graph<S>({
+  const graph = new model.GraphDraft<S>({
     name,
     metadata: new model.Metadata({ created: date.parseIso(core.created) ?? updated, updated }),
     userdata: codecs.graph.decode(
@@ -89,7 +89,7 @@ export function sadface<S extends UserdataSchema = {}>(
 
   helpers.relocate(graph, ctx);
 
-  return graph;
+  return graph.freeze();
 }
 
 function atomFromSadface<S extends UserdataSchema>(

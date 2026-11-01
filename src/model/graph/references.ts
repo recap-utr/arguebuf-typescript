@@ -1,18 +1,18 @@
 import { type Issue, issue, unresolvedReference } from "#/issue.js";
 import { isAnchored, locate, type ThresholdOptions } from "#/locate.js";
-import type { Graph } from "#/model/graph.js";
+import type { GraphDraft } from "#/model/graph.js";
 import { Reference } from "#/model/reference.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
-/** Options of `Graph.relocateReferences`. */
+/** Options of `GraphDraft.relocateReferences`. */
 export interface RelocateOptions extends ThresholdOptions {
   /** Only relocate the references to the resource with this id. */
   readonly resource?: string;
 }
 
-/** See `Graph.relocateReferences`. */
+/** See `GraphDraft.relocateReferences`. */
 export function relocateReferences<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphDraft<S>,
   options: RelocateOptions,
 ): Issue[] {
   const issues: Issue[] = [];

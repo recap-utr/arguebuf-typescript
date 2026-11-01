@@ -30,7 +30,7 @@ export function brat<S extends UserdataSchema = {}>(
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
-  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
+  const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
   const rows = helpers
     .lines(input)
     .filter((line) => line.trim())
@@ -115,5 +115,5 @@ export function brat<S extends UserdataSchema = {}>(
     }
   }
 
-  return graph;
+  return graph.freeze();
 }

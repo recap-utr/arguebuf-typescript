@@ -1,4 +1,4 @@
-import { GraphError, type Issue } from "#/issue.js";
+import { fail, GraphError, type Issue } from "#/issue.js";
 import type { ThresholdOptions } from "#/locate.js";
 import type { AnalystChanges, AnalystOf } from "#/model/analyst.js";
 import { Edge, type EdgeChanges, type EdgeOf } from "#/model/edge.js";
@@ -14,7 +14,9 @@ import {
 import type { AtomRelation } from "#/model/graph/queries.js";
 import { relocateReferences, type RelocateOptions } from "#/model/graph/references.js";
 import { removeBranches, removeElements, removeNode } from "#/model/graph/removal.js";
-import { edgeIssue, validateAtom, validateEdge } from "#/model/graph/validation.js";
+import { validateAtom, validateEdge } from "#/model/graph/validation.js";
+import { freeze } from "#/model/freeze.js";
+import { GraphStore } from "#/model/graph/store.js";
 import { GraphView } from "#/model/graph/view.js";
 import { Metadata } from "#/model/metadata.js";
 import {
@@ -38,10 +40,10 @@ import {
   type UserdataSchema,
 } from "#/model/userdata.js";
 
-export type { Annotation } from "#/model/graph/view.js";
+export { type Annotation, GraphView } from "#/model/graph/view.js";
 export type { AtomRelation, RelocateOptions };
 
-/** Userdata factories of `Graph.link`, required if the userdata of schemes or edges is customized. */
+/** Userdata factories of `GraphDraft.link`, required if the userdata of schemes or edges is customized. */
 export interface LinkUserdata<S extends UserdataSchema> {
   readonly scheme: () => Userdata<S, "scheme">;
   readonly edge: () => Userdata<S, "edge">;
@@ -53,7 +55,7 @@ type DefaultLinkUserdata<S extends UserdataSchema> = {} extends Userdata<S, "sch
   : false;
 
 /**
- * Options of `Graph.link`.
+ * Options of `GraphDraft.link`.
  * `scheme` is the scheme of the inserted scheme node, `userdata` creates the userdata
  * of the new elements and is required if the userdata of schemes or edges is customized.
  */
@@ -77,61 +79,119 @@ export type GraphInit<S extends UserdataSchema = {}> = {
   metadata?: Metadata;
 } & UserdataInit<Userdata<S, "graph">>;
 
+/** Init of a graph or draft, or the graph or draft to copy, which shares its elements. */
+export type GraphSource<S extends UserdataSchema = {}> =
+  | OptionalInit<GraphInit<S>>
+  | [source: GraphView<S>];
+
 /**
- * Argument graph consisting of atom nodes, scheme nodes, and edges.
+ * Immutable argument graph consisting of atom nodes, scheme nodes, and edges.
  *
- * Elements are immutable, they are added, updated, and removed through the methods of the graph,
- * which validate references and cascade removals.
- * Violations throw a `GraphError` whose `issue` describes the cause.
+ * The graph, its elements, and their plain userdata are frozen,
+ * so it can be shared freely, e.g. in an undo history.
+ * Changes are made on a `GraphDraft` (see `draft`), whose `freeze` returns the changed graph.
+ * Both share the unchanged elements, so this takes time proportional to the changes.
  * Adjacency queries take time proportional to the degree of the node.
  */
 export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
+  readonly name?: string;
+  readonly metadata: Metadata;
+  readonly userdata: Userdata<S, "graph">;
+
+  constructor(...args: GraphSource<S>) {
+    const [source] = args;
+    const view = source instanceof GraphView ? source : new GraphDraft<S>(...args);
+    super(GraphView.fork(view));
+    this.name = view.name;
+    this.metadata = view.metadata;
+    this.userdata = freeze(view.userdata);
+    Object.freeze(this.store);
+    Object.freeze(this);
+  }
+
+  /** A draft to change a copy of the graph, see `GraphDraft.freeze`. */
+  draft(): GraphDraft<S> {
+    return new GraphDraft<S>(this);
+  }
+}
+
+/**
+ * Mutable copy of an argument graph, see `Graph.draft`.
+ *
+ * Elements are immutable, they are added, updated, and removed through the methods of the draft,
+ * which validate references and cascade removals.
+ * Violations throw a `GraphError` whose `issue` describes the cause.
+ */
+export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
   name?: string;
   metadata: Metadata;
   userdata: Userdata<S, "graph">;
-  constructor(...[init]: OptionalInit<GraphInit<S>>) {
-    super();
-    this.name = init?.name;
-    this.metadata = init?.metadata ?? new Metadata();
-    this.userdata = initUserdata<Userdata<S, "graph">>(init);
 
-    for (const resource of init?.resources ?? []) {
+  constructor(...[source]: GraphSource<S>) {
+    super(source instanceof GraphView ? GraphView.fork(source) : new GraphStore<S>());
+
+    if (source instanceof GraphView) {
+      this.name = source.name;
+      this.metadata = source.metadata;
+      this.userdata = source.userdata;
+
+      return;
+    }
+
+    this.name = source?.name;
+    this.metadata = source?.metadata ?? new Metadata();
+    this.userdata = initUserdata<Userdata<S, "graph">>(source);
+
+    for (const resource of source?.resources ?? []) {
       this.addResource(resource);
     }
 
-    for (const participant of init?.participants ?? []) {
+    for (const participant of source?.participants ?? []) {
       this.addParticipant(participant);
     }
 
-    for (const analyst of init?.analysts ?? []) {
+    for (const analyst of source?.analysts ?? []) {
       this.addAnalyst(analyst);
     }
 
-    for (const node of init?.nodes ?? []) {
+    for (const node of source?.nodes ?? []) {
       this.addNode(node);
     }
 
-    for (const edge of init?.edges ?? []) {
+    for (const edge of source?.edges ?? []) {
       this.addEdge(edge);
     }
 
-    this.majorClaim = init?.majorClaim;
+    this.majorClaim = source?.majorClaim;
   }
 
   /**
-   * Copy the structure of the graph, sharing its immutable elements and userdata.
-   * This is cheap, so changes can be made on a copy while the original stays intact.
-   * See `deepCopy` to copy the userdata as well.
+   * The graph with the changes so far, the draft stays usable.
+   * Takes time proportional to the changes since the last call.
    */
-  copy(): Graph<S> {
-    const copy = new Graph<S>({
-      name: this.name,
-      metadata: this.metadata,
-      userdata: this.userdata,
-    });
-    copy.store = this.store.fork();
+  freeze(): Graph<S> {
+    return new Graph<S>(this);
+  }
 
-    return copy;
+  override get majorClaim(): string | undefined {
+    return this.store.majorClaim;
+  }
+
+  /** The major claim must be an atom node of this graph. */
+  override set majorClaim(value: string | AtomNodeOf<S> | undefined) {
+    if (value !== undefined) {
+      const node = this.node(value);
+
+      if (node.type !== "atom") {
+        fail(
+          "invalid-major-claim",
+          `Only atom nodes can be the major claim, '${node.id}' is a scheme node.`,
+          [node.id],
+        );
+      }
+    }
+
+    this.store.majorClaim = value === undefined ? undefined : idOf(value);
   }
 
   /** Add a node whose participant and resource are already part of the graph. */
@@ -326,19 +386,6 @@ export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
     }
 
     link(scheme, conclusion);
-  }
-
-  /**
-   * The issue that prevents `link` from connecting the nodes, if any.
-   * Unlike `link`, nothing is thrown, e.g. to validate a connection while it is drawn.
-   */
-  checkLink(source: string | Node<S>, target: string | Node<S>): Issue | undefined {
-    const from = idOf(source);
-    const to = idOf(target);
-    const atoms = [from, to].every((id) => this.store.nodes[id]?.type === "atom");
-
-    // atoms are connected through a new scheme node, which only rules out self-loops
-    return atoms && from !== to ? undefined : edgeIssue(this.store, from, to);
   }
 
   /**

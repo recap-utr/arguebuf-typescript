@@ -1,3 +1,4 @@
+import { freeze } from "#/model/freeze.js";
 import { Metadata } from "#/model/metadata.js";
 import type { Reference } from "#/model/reference.js";
 import { type Scheme, type SchemeType, schemeLabel } from "#/model/scheme.js";
@@ -62,7 +63,7 @@ abstract class AbstractNode<U, K extends Node["type"]> {
   abstract color(majorClaim: boolean, monochrome: boolean): Color;
 }
 
-/** Fields of an atom node that `AtomNode.with` and `Graph.updateAtom` change. */
+/** Fields of an atom node that `AtomNode.with` and `GraphDraft.updateAtom` change. */
 export type AtomChanges<U = JsonObject> = Partial<
   Pick<AtomNode<U>, "text" | "reference" | "participant" | "metadata" | "userdata">
 >;
@@ -77,7 +78,7 @@ export type AtomNodeInit<U = JsonObject> = NodeInit & {
  * Node containing a claim or premise of an argument.
  *
  * The participant and the resource of the reference must be registered in the graph
- * before the node is added to it, see `Graph.updateAtom` to change it.
+ * before the node is added to it, see `GraphDraft.updateAtom` to change it.
  */
 export class AtomNode<U = JsonObject> extends AbstractNode<U, "atom"> {
   readonly type = "atom";
@@ -90,6 +91,7 @@ export class AtomNode<U = JsonObject> extends AbstractNode<U, "atom"> {
     this.text = init.text;
     this.reference = init.reference;
     this.participant = init.participant;
+    Object.freeze(this);
   }
 
   /** Copy of the node with the given fields changed. */
@@ -112,7 +114,7 @@ export class AtomNode<U = JsonObject> extends AbstractNode<U, "atom"> {
   }
 }
 
-/** Fields of a scheme node that `SchemeNode.with` and `Graph.updateScheme` change. */
+/** Fields of a scheme node that `SchemeNode.with` and `GraphDraft.updateScheme` change. */
 export type SchemeChanges<U = JsonObject> = Partial<
   Pick<SchemeNode<U>, "scheme" | "premiseDescriptors" | "metadata" | "userdata">
 >;
@@ -122,7 +124,7 @@ export type SchemeNodeInit<U = JsonObject> = NodeInit & {
   premiseDescriptors?: readonly string[];
 } & UserdataInit<U>;
 
-/** Node describing the relation between atom nodes, see `Graph.updateScheme` to change it. */
+/** Node describing the relation between atom nodes, see `GraphDraft.updateScheme` to change it. */
 export class SchemeNode<U = JsonObject> extends AbstractNode<U, "scheme"> {
   readonly type = "scheme";
   readonly scheme: Scheme;
@@ -130,8 +132,9 @@ export class SchemeNode<U = JsonObject> extends AbstractNode<U, "scheme"> {
 
   constructor(...[init]: OptionalInit<SchemeNodeInit<U>>) {
     super(init);
-    this.scheme = { ...(init?.scheme ?? { case: undefined }) };
-    this.premiseDescriptors = [...(init?.premiseDescriptors ?? [])];
+    this.scheme = freeze(init?.scheme ?? { case: undefined });
+    this.premiseDescriptors = freeze(init?.premiseDescriptors ?? []);
+    Object.freeze(this);
   }
 
   /** Copy of the node with the given fields changed. */

@@ -18,6 +18,7 @@ export class Reference {
     this.text = init.text;
     this.resource = init.resource;
     this.offset = init.offset;
+    Object.freeze(this);
   }
 
   /** The start and end index of the text in the source, if it is found at its offset. */

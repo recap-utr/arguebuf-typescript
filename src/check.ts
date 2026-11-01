@@ -1,6 +1,6 @@
 import { type Issue, type IssueCode, issue, unresolvedReference } from "#/issue.js";
 import { isAnchored } from "#/locate.js";
-import type { Graph } from "#/model/graph.js";
+import type { GraphView } from "#/model/graph.js";
 import type { Node } from "#/model/node.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 import { dfs } from "#/traverse.js";
@@ -15,7 +15,7 @@ export interface CheckOptions {
  * i.e. untyped schemes, references that do not match their resource, and quality problems of the argument.
  */
 export function check<S extends UserdataSchema>(
-  graph: Graph<S>,
+  graph: GraphView<S>,
   options: CheckOptions = {},
 ): Issue[] {
   const nodes = Object.values(graph.nodes);

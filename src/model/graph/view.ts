@@ -1,4 +1,4 @@
-import { fail } from "#/issue.js";
+import { fail, type Issue } from "#/issue.js";
 import type { AnalystOf } from "#/model/analyst.js";
 import type { EdgeOf } from "#/model/edge.js";
 import { idOf, isEmpty, lookup } from "#/model/graph/helpers.js";
@@ -8,11 +8,13 @@ import {
   neighborAtomNodes,
   siblingNodeDistances,
 } from "#/model/graph/queries.js";
-import { type Adjacency, GraphStore } from "#/model/graph/store.js";
+import type { Adjacency, GraphStore } from "#/model/graph/store.js";
+import { edgeIssue } from "#/model/graph/validation.js";
+import type { Metadata } from "#/model/metadata.js";
 import { type AtomNodeOf, isType, type Node, type SchemeNodeOf, typeArticles } from "#/model/node.js";
 import type { ParticipantOf } from "#/model/participant.js";
 import type { ResourceOf } from "#/model/resource.js";
-import type { UserdataSchema } from "#/model/userdata.js";
+import type { Userdata, UserdataSchema } from "#/model/userdata.js";
 
 /** Atom node whose reference is anchored in a resource, see `Graph.annotations`. */
 export interface Annotation<S extends UserdataSchema = {}> {
@@ -25,10 +27,22 @@ export interface Annotation<S extends UserdataSchema = {}> {
 
 /**
  * Read access to the elements of a graph and the queries derived from its adjacency,
- * the base of `Graph`, which adds the methods that change it.
+ * the base of the immutable `Graph` and the mutable `GraphDraft`.
  */
 export abstract class GraphView<S extends UserdataSchema = {}> {
-  protected store: GraphStore<S> = new GraphStore();
+  abstract readonly name?: string;
+  abstract readonly metadata: Metadata;
+  abstract readonly userdata: Userdata<S, "graph">;
+  protected readonly store: GraphStore<S>;
+
+  protected constructor(store: GraphStore<S>) {
+    this.store = store;
+  }
+
+  /** A store sharing the elements of `view`, see `GraphStore.fork`. */
+  protected static fork<S extends UserdataSchema>(view: GraphView<S>): GraphStore<S> {
+    return view.store.fork();
+  }
 
   get nodes(): Readonly<Record<string, Node<S>>> {
     return this.store.nodes;
@@ -70,23 +84,6 @@ export abstract class GraphView<S extends UserdataSchema = {}> {
 
   get majorClaim(): string | undefined {
     return this.store.majorClaim;
-  }
-
-  /** The major claim must be an atom node of this graph. */
-  set majorClaim(value: string | AtomNodeOf<S> | undefined) {
-    if (value !== undefined) {
-      const node = this.node(value);
-
-      if (node.type !== "atom") {
-        fail(
-          "invalid-major-claim",
-          `Only atom nodes can be the major claim, '${node.id}' is a scheme node.`,
-          [node.id],
-        );
-      }
-    }
-
-    this.store.majorClaim = value === undefined ? undefined : idOf(value);
   }
 
   /** Atom nodes without outgoing edges. */
@@ -205,6 +202,19 @@ export abstract class GraphView<S extends UserdataSchema = {}> {
   }
 
   /**
+   * The issue that prevents `GraphDraft.link` from connecting the nodes, if any.
+   * Unlike `link`, nothing is thrown, e.g. to validate a connection while it is drawn.
+   */
+  checkLink(source: string | Node<S>, target: string | Node<S>): Issue | undefined {
+    const from = idOf(source);
+    const to = idOf(target);
+    const atoms = [from, to].every((id) => this.store.nodes[id]?.type === "atom");
+
+    // atoms are connected through a new scheme node, which only rules out self-loops
+    return atoms && from !== to ? undefined : edgeIssue(this.store, from, to);
+  }
+
+  /**
    * Relations between atoms with the scheme nodes collapsed, e.g. to show only the hierarchy of claims.
    * The graph is not changed, as it cannot contain edges between atoms.
    * Each pair of atoms is related once, self-loops are skipped.
@@ -215,7 +225,7 @@ export abstract class GraphView<S extends UserdataSchema = {}> {
 
   /**
    * The atom nodes whose references are anchored in the resource, sorted by their position.
-   * References whose text is not found at their offset are skipped, see `Graph.relocateReferences`.
+   * References whose text is not found at their offset are skipped, see `GraphDraft.relocateReferences`.
    */
   annotations(resource: string | ResourceOf<S>): Annotation<S>[] {
     const { id, text } = lookup(this.store.resources, resource, "Resource");

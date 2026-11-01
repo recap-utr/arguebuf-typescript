@@ -33,7 +33,7 @@ test("graph: aif2arguebuf", () => {
 
 // The following tests mirror tests/test_aif.py of arguebuf-python.
 
-function relations(graph: arguebuf.Graph): string[] {
+function relations(graph: arguebuf.GraphView): string[] {
   const ids = (nodes: readonly arguebuf.Node[]) =>
     nodes
       .map((node) => node.id)
@@ -125,7 +125,7 @@ test("dialog xaif", () => {
 
 test.each(["aif", "xaif"] as const)("roundtrip %s", (format) => {
   const timestamp = Temporal.Instant.from("2020-01-02T03:04:05Z");
-  const graph = new arguebuf.Graph();
+  const graph = new arguebuf.GraphDraft();
   const claim = new arguebuf.AtomNode({
     text: "Claim",
     metadata: new arguebuf.Metadata({ created: timestamp }),

@@ -21,7 +21,7 @@ export function aif<S extends UserdataSchema = {}>(
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
-  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
+  const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
   const index = new Index(obj);
 
   for (const participant of obj.participants ?? []) {
@@ -90,7 +90,7 @@ export function aif<S extends UserdataSchema = {}>(
     reconstructDialog(graph, ctx, index);
   }
 
-  return graph;
+  return graph.freeze();
 }
 
 /** Create an atom or scheme node from an AIF node, undefined for dialog nodes. */
@@ -173,7 +173,7 @@ class Index {
  * and is linked to the locutions before and after it via transitions (TA).
  */
 function reconstructDialog<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphDraft<S>,
   ctx: helpers.Context<S>,
   index: Index,
 ): void {

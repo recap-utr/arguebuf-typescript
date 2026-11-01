@@ -44,7 +44,7 @@ function offsetToProtobuf<S extends UserdataSchema>(
 
 function nodeToProtobuf<S extends UserdataSchema>(
   node: model.Node<S>,
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   codecs: ResolvedCodecs<S>,
 ): pb.Node {
   const metadata = metadataToProtobuf(node.metadata);
@@ -88,7 +88,7 @@ function nodeToProtobuf<S extends UserdataSchema>(
  * Userdata is encoded by the codec of its kind, the codecs are required if `S` customizes userdata.
  */
 export function protobuf<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   ...[options]: CodecArgs<S>
 ): pb.Graph {
   const codecs = resolveCodecs(options?.codecs);

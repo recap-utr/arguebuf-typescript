@@ -29,15 +29,15 @@ function isPlainFormat(args: readonly unknown[]): args is [PlainFormat] {
  * AIF and xAIF do not contain userdata, so they need no codecs.
  */
 export function json<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   ...args: CodecArgs<S>
 ): GraphJson;
 export function json<S extends UserdataSchema, F extends PlainFormat>(
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   format: F,
 ): Formats[F];
 export function json<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphView<S>,
   ...args: CodecArgs<S> | [PlainFormat]
 ): Formats[Format] {
   if (isPlainFormat(args)) {

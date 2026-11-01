@@ -97,15 +97,15 @@ function attempt<S extends UserdataSchema>(
 
 /** Add a node, skipping it with a warning if its id is taken. */
 export function addNode<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphDraft<S>,
   ctx: Context<S>,
   node: model.Node<S>,
 ): void {
   attempt(ctx, () => graph.addNode(node), () => "The node was skipped.");
 }
 
-/** Re-anchor references that do not match their resource, see `Graph.relocateReferences`. */
-export function relocate<S extends UserdataSchema>(graph: model.Graph<S>, ctx: Context<S>): void {
+/** Re-anchor references that do not match their resource, see `GraphDraft.relocateReferences`. */
+export function relocate<S extends UserdataSchema>(graph: model.GraphDraft<S>, ctx: Context<S>): void {
   for (const { code, message, elements } of graph.relocateReferences()) {
     ctx.report(code, message, elements);
   }
@@ -222,7 +222,7 @@ export interface EdgeData {
  * Edges of `ignore`d nodes (e.g. skipped dialog nodes) are skipped silently.
  */
 export function addEdge<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphDraft<S>,
   ctx: Context<S>,
   { userdata = {}, ...init }: EdgeData,
   ignore: ReadonlySet<string> = new Set(),
@@ -256,7 +256,7 @@ export function addEdge<S extends UserdataSchema>(
  * invalid edges are skipped with a warning.
  */
 export function connect<S extends UserdataSchema>(
-  graph: model.Graph<S>,
+  graph: model.GraphDraft<S>,
   ctx: Context<S>,
   sourceIds: readonly string[],
   schemeId: string,

@@ -15,7 +15,7 @@ function metadataFromProtobuf(obj: pb.Metadata | undefined): model.Metadata {
 function nodeFromProtobuf<S extends UserdataSchema>(
   id: string,
   obj: pb.Node,
-  graph: model.Graph<S>,
+  graph: model.GraphDraft<S>,
   ctx: helpers.Context<S>,
 ): model.Node<S> {
   const { codecs } = ctx;
@@ -72,7 +72,7 @@ export function protobuf<S extends UserdataSchema = {}>(
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
-  const graph = new model.Graph<S>({
+  const graph = new model.GraphDraft<S>({
     name,
     metadata: metadataFromProtobuf(obj.metadata),
     userdata: codecs.graph.decode(obj.userdata ?? {}),
@@ -141,5 +141,5 @@ export function protobuf<S extends UserdataSchema = {}>(
 
   helpers.relocate(graph, ctx);
 
-  return graph;
+  return graph.freeze();
 }

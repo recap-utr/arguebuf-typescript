@@ -22,7 +22,7 @@ export function ova<S extends UserdataSchema = {}>(
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
-  const graph = new model.Graph<S>({ name, userdata: codecs.graph.decode({}) });
+  const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
   const { analysis } = obj;
   const [html, spans] = parseHtml(analysis.txt || "");
   const text = html || analysis.plain_txt;
@@ -106,7 +106,7 @@ export function ova<S extends UserdataSchema = {}>(
 
   helpers.relocate(graph, ctx);
 
-  return graph;
+  return graph.freeze();
 }
 
 function metadataFromOva(obj: { date?: string | null }): model.Metadata {

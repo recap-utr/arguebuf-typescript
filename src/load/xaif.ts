@@ -17,7 +17,7 @@ export function xaif<S extends UserdataSchema = {}>(
   ...args: helpers.LoadArgs<S, helpers.AifOptions>
 ): model.Graph<S> {
   const { codecs } = helpers.loadOptions<S>(...args);
-  const graph = aif<S>(obj.AIF, ...args);
+  const graph = aif<S>(obj.AIF, ...args).draft();
   const html = typeof obj.text === "string" ? obj.text : obj.text?.txt;
   const [text] = parseHtml(html ?? "");
 
@@ -25,5 +25,5 @@ export function xaif<S extends UserdataSchema = {}>(
     graph.addResource(new model.Resource({ text, userdata: codecs.resource.decode({}) }));
   }
 
-  return graph;
+  return graph.freeze();
 }

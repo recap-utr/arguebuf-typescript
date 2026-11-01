@@ -42,4 +42,3 @@ export {
 } from "#/patch.js";
 export * as schemas from "#/schemas/index.js";
 export * as traverse from "#/traverse.js";
-export * from "#/utils.js";

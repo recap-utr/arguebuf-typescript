@@ -8,7 +8,7 @@ import {
 } from "#/model/userdata.js";
 import { uuid } from "#/model/uuid.js";
 
-/** Fields of an analyst that `Analyst.with` and `Graph.updateAnalyst` change. */
+/** Fields of an analyst that `Analyst.with` and `GraphDraft.updateAnalyst` change. */
 export type AnalystChanges<U = JsonObject> = Partial<Pick<Analyst<U>, "name" | "email" | "userdata">>;
 
 export type AnalystInit<U = JsonObject> = {
@@ -17,7 +17,7 @@ export type AnalystInit<U = JsonObject> = {
   email?: string;
 } & UserdataInit<U>;
 
-/** Person who annotated the graph, see `Graph.updateAnalyst` to change it. */
+/** Person who annotated the graph, see `GraphDraft.updateAnalyst` to change it. */
 export class Analyst<U = JsonObject> {
   readonly id: string;
   readonly name?: string;
@@ -29,6 +29,7 @@ export class Analyst<U = JsonObject> {
     this.name = init?.name;
     this.email = init?.email;
     this.userdata = initUserdata<U>(init);
+    Object.freeze(this);
   }
 
   /** Copy of the analyst with the given fields changed. */

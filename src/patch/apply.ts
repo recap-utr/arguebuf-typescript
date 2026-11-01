@@ -1,7 +1,7 @@
 import { catchGraphError, fail, hasErrors, type Issue } from "#/issue.js";
 import type { ThresholdOptions } from "#/locate.js";
 import { Edge } from "#/model/edge.js";
-import type { Graph } from "#/model/graph.js";
+import type { Graph, GraphDraft } from "#/model/graph.js";
 import { AtomNode, isType, type Node, SchemeNode, typeArticles } from "#/model/node.js";
 import { Participant } from "#/model/participant.js";
 import type { Reference } from "#/model/reference.js";
@@ -50,7 +50,7 @@ class Editor<S extends UserdataSchema> {
   private readonly initial: ReadonlySet<string>;
 
   constructor(
-    private readonly graph: Graph<S>,
+    private readonly graph: GraphDraft<S>,
     private readonly codecs: ResolvedCodecs<S>,
     private readonly options: ThresholdOptions,
   ) {
@@ -344,8 +344,7 @@ class Editor<S extends UserdataSchema> {
 /**
  * Apply a patch to a graph, all or nothing.
  *
- * Returns a copy of the graph (see `Graph.copy`) that shares unchanged elements with the input,
- * which is not modified.
+ * Returns the changed graph, which shares unchanged elements with the input.
  * If an issue is an error, the input graph is returned together with all issues.
  * Texts of atoms are linked to the most similar spans of the resources.
  */
@@ -354,8 +353,8 @@ export function applyPatch<S extends UserdataSchema>(
   patch: Patch,
   ...[options]: CodecArgs<S, ThresholdOptions>
 ): PatchResult<S> {
-  const result = graph.copy();
-  const editor = new Editor<S>(result, resolveCodecs(options?.codecs), {
+  const draft = graph.draft();
+  const editor = new Editor<S>(draft, resolveCodecs(options?.codecs), {
     threshold: options?.threshold,
   });
   editor.apply(patch);
@@ -365,6 +364,7 @@ export function applyPatch<S extends UserdataSchema>(
     return { graph, issues, created: [], updated: [], removed: [] };
   }
 
+  const result = draft.freeze();
   const created: string[] = [];
   const updated: string[] = [];
   const removed: string[] = [];

@@ -8,7 +8,7 @@ import {
 } from "#/model/userdata.js";
 import { uuid } from "#/model/uuid.js";
 
-/** Fields of an edge that `Edge.with` and `Graph.updateEdge` change, its nodes are fixed. */
+/** Fields of an edge that `Edge.with` and `GraphDraft.updateEdge` change, its nodes are fixed. */
 export type EdgeChanges<U = JsonObject> = Partial<Pick<Edge<U>, "metadata" | "userdata">>;
 
 export type EdgeInit<U = JsonObject> = {
@@ -18,7 +18,7 @@ export type EdgeInit<U = JsonObject> = {
   metadata?: Metadata;
 } & UserdataInit<U>;
 
-/** Directed connection between two nodes, see `Graph.updateEdge` to change it. */
+/** Directed connection between two nodes, see `GraphDraft.updateEdge` to change it. */
 export class Edge<U = JsonObject> {
   readonly id: string;
   readonly source: string;
@@ -32,6 +32,7 @@ export class Edge<U = JsonObject> {
     this.target = init.target;
     this.metadata = init.metadata ?? new Metadata();
     this.userdata = initUserdata<U>(init);
+    Object.freeze(this);
   }
 
   /** Copy of the edge with the given fields changed. */
