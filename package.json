@@ -40,6 +40,7 @@
     "@bufbuild/protobuf": "^2",
     "arg-services": "^4",
     "ajv": "^8",
+    "approx-string-match": "^2",
     "parse5": "^8",
     "temporal-polyfill": "^0.3"
   },

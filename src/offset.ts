@@ -1,4 +1,5 @@
 // Serialized formats count offsets in code points, JavaScript indexes strings in UTF-16 code units.
+import { memoize } from "#/cache.js";
 
 /** Conversion of the offsets of one text. */
 export interface Offsets {
@@ -10,9 +11,6 @@ export interface Offsets {
 
 const SURROGATE = /[\uD800-\uDFFF]/;
 const identity: Offsets = { toUtf16: (offset) => offset, toCodePoints: (index) => index };
-// the references of a graph point to few resource texts
-const converters = new Map<string, Offsets>();
-const CACHE_SIZE = 8;
 
 /** Lookup tables of both directions, built in one pass over the text. */
 function tables(text: string): Offsets {
@@ -38,20 +36,9 @@ function tables(text: string): Offsets {
   };
 }
 
+// the references of a graph point to few resource texts
 /** Offset conversion of the text, the identity unless it contains characters beyond the BMP. */
-export function offsets(text: string): Offsets {
-  let converter = converters.get(text);
-
-  if (converter === undefined) {
-    converter = SURROGATE.test(text) ? tables(text) : identity;
-    converters.set(text, converter);
-
-    const [oldest] = converters.keys();
-
-    if (converters.size > CACHE_SIZE && oldest !== undefined) {
-      converters.delete(oldest);
-    }
-  }
-
-  return converter;
-}
+export const offsets: (text: string) => Offsets = memoize(
+  (text) => (SURROGATE.test(text) ? tables(text) : identity),
+  8,
+);

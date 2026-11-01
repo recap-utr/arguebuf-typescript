@@ -1,3 +1,6 @@
+import search from "approx-string-match";
+import { memoize } from "#/cache.js";
+
 /** Options of the functions that match texts approximately. */
 export interface ThresholdOptions {
   /** Minimal similarity between the query and the span, from 0 to 1. */
@@ -22,114 +25,51 @@ export const DEFAULT_THRESHOLD = 0.85;
 const WORD = /^[\p{L}\p{N}]$/u;
 
 interface Normalized {
-  readonly chars: string[];
-  /** UTF-16 start and end in the original text of the code point behind each char. */
+  readonly text: string;
+  /** UTF-16 start and end in the original text of the code point behind each code unit. */
   readonly starts: number[];
   readonly ends: number[];
 }
-
-// the same sources are searched repeatedly, e.g. one resource for all atoms of a patch
-const normalizedSources = new Map<string, Normalized>();
-const CACHE_SIZE = 8;
 
 /**
  * Reduce the text to its lowercase words separated by single spaces.
  * Letters and numbers form words, everything else separates them.
  */
-function normalize(text: string): Normalized {
-  const chars: string[] = [];
+function normalize(source: string): Normalized {
+  let text = "";
   const starts: number[] = [];
   const ends: number[] = [];
   // the last separator before the next word, which the space stands for
   let separator: [number, number] | undefined;
   let index = 0;
 
-  for (const codePoint of text) {
+  for (const codePoint of source) {
     const end = index + codePoint.length;
 
     if (!WORD.test(codePoint)) {
-      separator = chars.length > 0 ? [index, end] : undefined;
+      separator = text.length > 0 ? [index, end] : undefined;
     } else {
       if (separator !== undefined) {
-        chars.push(" ");
+        text += " ";
         starts.push(separator[0]);
         ends.push(separator[1]);
         separator = undefined;
       }
 
-      for (const char of codePoint.toLowerCase()) {
-        chars.push(char);
-        starts.push(index);
-        ends.push(end);
-      }
+      const lowered = codePoint.toLowerCase();
+      text += lowered;
+      starts.push(...Array<number>(lowered.length).fill(index));
+      ends.push(...Array<number>(lowered.length).fill(end));
     }
 
     index = end;
   }
 
-  return { chars, starts, ends };
+  return { text, starts, ends };
 }
 
-function normalizeSource(source: string): Normalized {
-  let normalized = normalizedSources.get(source);
-
-  if (normalized === undefined) {
-    normalized = normalize(source);
-    normalizedSources.set(source, normalized);
-
-    const [oldest] = normalizedSources.keys();
-
-    if (normalizedSources.size > CACHE_SIZE && oldest !== undefined) {
-      normalizedSources.delete(oldest);
-    }
-  }
-
-  return normalized;
-}
-
-/**
- * Edit distance of the pattern to the best span ending at each position of the text
- * (Myers' bit-parallel algorithm).
- * If `anchored`, spans must start at the beginning of the text.
- */
-function distances(
-  text: readonly string[],
-  pattern: readonly string[],
-  anchored: boolean,
-): number[] {
-  const width = BigInt(pattern.length);
-  const full = (1n << width) - 1n;
-  const last = 1n << (width - 1n);
-  const peq = new Map<string, bigint>();
-
-  pattern.forEach((char, index) => {
-    peq.set(char, (peq.get(char) ?? 0n) | (1n << BigInt(index)));
-  });
-
-  let pv = full;
-  let mv = 0n;
-  let score = pattern.length;
-
-  return text.map((char) => {
-    const eq = peq.get(char) ?? 0n;
-    const xv = eq | mv;
-    const xh = (((eq & pv) + pv) ^ pv) | eq;
-    const ph = mv | (~(xh | pv) & full);
-    const mh = pv & xh;
-
-    if (ph & last) {
-      score++;
-    } else if (mh & last) {
-      score--;
-    }
-
-    const shifted = ((ph << 1n) | (anchored ? 1n : 0n)) & full;
-    pv = ((mh << 1n) & full) | (~(xv | shifted) & full);
-    mv = shifted & xv;
-
-    return score;
-  });
-}
+// the same sources are searched repeatedly, e.g. one resource for all atoms of a patch
+const normalizeSource = memoize(normalize, 8);
 
 /** The first candidate with the lowest key. */
 function closest(candidates: readonly number[], key: (candidate: number) => number): number {
@@ -156,41 +96,44 @@ function exact(source: string, query: string, near: number | undefined): Match |
       };
 }
 
-function approximate(source: string, query: string, options: LocateOptions): Match | undefined {
-  const pattern = normalize(query).chars;
+function approximate(
+  source: string,
+  query: string,
+  { threshold = DEFAULT_THRESHOLD, near }: LocateOptions,
+): Match | undefined {
+  const pattern = normalize(query).text;
+  const { text, starts, ends } = normalizeSource(source);
 
-  if (pattern.length === 0) {
+  if (pattern === "" || text === "" || threshold > 1) {
     return undefined;
   }
 
-  const { chars, starts, ends } = normalizeSource(source);
-  const scores = distances(chars, pattern, false);
-  // a loop instead of `Math.min(...scores)`, which exceeds the call stack for long sources
-  const distance = scores.reduce((min, score) => Math.min(min, score), Infinity);
-  const similarity = 1 - distance / pattern.length;
+  const similarity = (errors: number) => 1 - errors / pattern.length;
+  const maxErrors = Math.min(pattern.length - 1, Math.ceil((1 - threshold) * pattern.length));
+  const distance = (start: number) =>
+    near === undefined ? starts[start] : Math.abs(starts[start] - near);
+  // all matches are kept, so that overlapping ones compete for the proximity preference
+  const [best] = search(text, pattern, maxErrors)
+    .filter(({ start, end, errors }) => start < end && similarity(errors) >= threshold)
+    .toSorted(
+      (a, b) =>
+        a.errors - b.errors ||
+        distance(a.start) - distance(b.start) ||
+        a.start - b.start ||
+        b.end - a.end,
+    );
 
-  if (similarity < (options.threshold ?? DEFAULT_THRESHOLD)) {
+  if (best === undefined) {
     return undefined;
   }
 
-  // consecutive ends of equal distance belong to the same span, its longest version is kept
-  const candidates = scores.flatMap((value, index) =>
-    value === distance && scores[index + 1] !== distance ? [index] : [],
-  );
-  const { near } = options;
-  // spans of equal distance are compared by the start they would have without edits
-  const end =
-    near === undefined
-      ? candidates[0]
-      : closest(candidates, (index) =>
-          Math.abs(starts[Math.max(0, index - pattern.length + 1)] - near),
-        );
-  // the shortest span ending at `end` with the same distance, at most `distance` longer than the pattern
-  const window = chars.slice(Math.max(0, end + 1 - pattern.length - distance), end + 1);
-  const reversed = distances(window.toReversed(), pattern.toReversed(), true);
-  const offset = starts[end - reversed.indexOf(distance)];
+  const offset = starts[best.start];
 
-  return { offset, text: source.slice(offset, ends[end]), similarity };
+  return {
+    offset,
+    text: source.slice(offset, ends[best.end - 1]),
+    similarity: similarity(best.errors),
+  };
 }
 
 /**
@@ -213,6 +156,10 @@ export function locate(
 }
 
 /** Whether `text` is found at `offset` of `source`. */
-export function isAnchored(source: string, text: string, offset: number | undefined): boolean {
+export function isAnchored(
+  source: string,
+  text: string,
+  offset: number | undefined,
+): offset is number {
   return offset !== undefined && source.startsWith(text, offset);
 }

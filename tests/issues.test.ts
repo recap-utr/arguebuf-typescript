@@ -26,6 +26,17 @@ test("locate finds verbatim, normalized, and similar spans", () => {
   expect(arguebuf.locate(SOURCE, "they are", { near: 50 })?.offset).toBe(55);
   expect(arguebuf.locate(SOURCE, "dogs bark loudly")).toBeUndefined();
   expect(arguebuf.locate(SOURCE, "")).toBeUndefined();
+  expect(arguebuf.locate("ACABACCB", "acaac", { near: 0, threshold: 0.8 })).toEqual({
+    offset: 0,
+    text: "ACABAC",
+    similarity: 0.8,
+  });
+
+  for (const near of [0, 1]) {
+    expect(arguebuf.locate("AAAAAA", "aaaaa", { near })?.offset).toBe(near);
+    expect(arguebuf.locate("ABXDEABXDE", "abcde", { near: near * 5, threshold: 0.8 })?.offset)
+      .toBe(near * 5);
+  }
 });
 
 test("loaders repair malformed graphs and report it", () => {
