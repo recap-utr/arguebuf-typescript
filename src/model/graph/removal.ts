@@ -19,45 +19,55 @@ function isDangling<S extends UserdataSchema>(
   );
 }
 
-/** Delete the node and the schemes left dangling, collecting the ids of removed atoms. */
+/** Delete the node with its edges, collecting their ids. */
+function deleteNode<S extends UserdataSchema>(
+  store: GraphStore<S>,
+  node: Node<S>,
+  removed: Set<string>,
+): void {
+  for (const id of [
+    node.id,
+    ...Object.keys(store.incoming[node.id]),
+    ...Object.keys(store.outgoing[node.id]),
+  ]) {
+    removed.add(id);
+  }
+
+  store.deleteNode(node);
+}
+
+/** Delete the node and the schemes left dangling, collecting the ids of removed elements. */
 function cascade<S extends UserdataSchema>(
   graph: Graph<S>,
   store: GraphStore<S>,
   node: Node<S>,
-  atoms: Set<string>,
+  removed: Set<string>,
 ): void {
   const pending = [node];
 
   for (let current = pending.pop(); current !== undefined; current = pending.pop()) {
     if (Object.hasOwn(store.nodes, current.id)) {
       const neighbors = graph.neighborNodes(current);
-      store.deleteNode(current);
-
-      if (current.type === "atom") {
-        atoms.add(current.id);
-      }
-
+      deleteNode(store, current, removed);
       pending.push(...neighbors.filter((neighbor) => isDangling(graph, store, neighbor)));
     }
   }
 }
 
-/** Remove the atoms from the premise descriptors, which only reference atom nodes. */
-function removeDescriptors<S extends UserdataSchema>(
-  graph: Graph<S>,
-  ids: ReadonlySet<string>,
-): void {
-  if (ids.size === 0) {
-    return;
-  }
+/** Remove the removed atoms from the premise descriptors and return the removed ids. */
+function finish<S extends UserdataSchema>(graph: Graph<S>, removed: Set<string>): string[] {
+  // ids are unique per kind only, so a removed edge may share the id of a remaining atom
+  const isRemoved = (id: string) => removed.has(id) && !Object.hasOwn(graph.nodes, id);
 
   for (const scheme of Object.values(graph.nodes)) {
-    if (scheme.type === "scheme" && scheme.premiseDescriptors.some((id) => ids.has(id))) {
+    if (scheme.type === "scheme" && scheme.premiseDescriptors.some(isRemoved)) {
       graph.updateScheme(scheme, {
-        premiseDescriptors: scheme.premiseDescriptors.filter((id) => !ids.has(id)),
+        premiseDescriptors: scheme.premiseDescriptors.filter((id) => !isRemoved(id)),
       });
     }
   }
+
+  return [...removed];
 }
 
 /** See `Graph.removeNode`. */
@@ -65,10 +75,11 @@ export function removeNode<S extends UserdataSchema>(
   graph: Graph<S>,
   store: GraphStore<S>,
   node: Node<S>,
-): void {
-  const atoms = new Set<string>();
-  cascade(graph, store, node, atoms);
-  removeDescriptors(graph, atoms);
+): string[] {
+  const removed = new Set<string>();
+  cascade(graph, store, node, removed);
+
+  return finish(graph, removed);
 }
 
 /** See `Graph.removeElements`. */
@@ -76,7 +87,7 @@ export function removeElements<S extends UserdataSchema>(
   graph: Graph<S>,
   store: GraphStore<S>,
   ids: Iterable<string>,
-): void {
+): string[] {
   const elements = [...ids];
   const kinds = [store.nodes, store.edges, store.resources, store.participants];
 
@@ -86,37 +97,44 @@ export function removeElements<S extends UserdataSchema>(
     }
   }
 
-  const atoms = new Set<string>();
+  const removed = new Set<string>();
 
   for (const id of elements) {
     if (Object.hasOwn(store.nodes, id)) {
-      cascade(graph, store, store.nodes[id], atoms);
+      cascade(graph, store, store.nodes[id], removed);
     } else if (Object.hasOwn(store.edges, id)) {
       graph.removeEdge(id);
     } else if (Object.hasOwn(store.resources, id)) {
       graph.removeResource(id);
     } else if (Object.hasOwn(store.participants, id)) {
       graph.removeParticipant(id);
+    } else {
+      // removed by a cascade earlier in the loop
+      continue;
+    }
+
+    removed.add(id);
+  }
+
+  return finish(graph, removed);
+}
+
+/** See `Graph.removeBranch`, the branches of all starts are removed at once. */
+export function removeBranches<S extends UserdataSchema>(
+  graph: Graph<S>,
+  store: GraphStore<S>,
+  starts: Iterable<Node<S>>,
+): string[] {
+  const removed = new Set<string>();
+
+  for (const start of starts) {
+    // a branch removed before may contain this one
+    if (Object.hasOwn(store.nodes, start.id)) {
+      for (const node of dfs(start, (node) => graph.incomingNodes(node))) {
+        deleteNode(store, node, removed);
+      }
     }
   }
 
-  removeDescriptors(graph, atoms);
-}
-
-/** See `Graph.removeBranch`. */
-export function removeBranch<S extends UserdataSchema>(
-  graph: Graph<S>,
-  store: GraphStore<S>,
-  start: Node<S>,
-): void {
-  const branch = dfs(start, (node) => graph.incomingNodes(node));
-
-  for (const node of branch) {
-    store.deleteNode(node);
-  }
-
-  removeDescriptors(
-    graph,
-    new Set(branch.filter((node) => node.type === "atom").map((node) => node.id)),
-  );
+  return finish(graph, removed);
 }

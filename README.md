@@ -96,7 +96,8 @@ Serialized formats count code points instead, matching Python, and the loaders a
 The graph is strict.
 Adding an element throws a `GraphError` if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
 Edges must not be self-loops, connect two atoms, or duplicate an existing connection.
-`graph.link(source, target)` connects two nodes and inserts an untyped scheme node between two atoms, which it returns.
+`graph.link(source, target, { scheme })` connects two nodes and inserts a scheme node (untyped by default) between two atoms, which it returns.
+`graph.checkLink(source, target)` returns the issue that prevents such a link without throwing, e.g. to validate a connection while it is drawn.
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
 Elements are immutable, the `update` methods of the graph (`updateAtom`, `updateScheme`, `updateEdge`, `updateResource`, `updateParticipant`, `updateAnalyst`) replace them with changed copies and validate them like the `add` methods.
 They set the `updated` timestamp to now unless the changes contain the metadata.
@@ -104,6 +105,8 @@ They set the `updated` timestamp to now unless the changes contain the metadata.
 `graph.copy()` copies the structure of a graph and shares its elements, so it is cheap to change a copy while keeping the original.
 Scheme nodes left without a premise or without a conclusion are removed together with the node, so that no dangling inferences remain.
 `graph.removeElements(ids)` removes elements of any kind at once, all ids must exist and elements that a removal cascades to may be listed as well.
+Like `removeNode` and `removeBranch`, it returns the ids of all removed elements, including those of the cascades.
+`graph.annotations(resource)` lists the atoms whose references are anchored in a resource with their spans, sorted by position.
 Views without scheme nodes, e.g. to show only the hierarchy of claims, are projections that leave the graph unchanged:
 `graph.atomRelations()` relates atoms through their scheme nodes, and the Graphviz, D2, and graphology exports accept `schemeNodes: false`.
 

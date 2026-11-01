@@ -1,3 +1,4 @@
+import { isAnchored } from "#/locate.js";
 
 export interface ReferenceInit {
   text: string;
@@ -17,5 +18,12 @@ export class Reference {
     this.text = init.text;
     this.resource = init.resource;
     this.offset = init.offset;
+  }
+
+  /** The start and end index of the text in the source, if it is found at its offset. */
+  span(source: string): readonly [start: number, end: number] | undefined {
+    const { text, offset } = this;
+
+    return isAnchored(source, text, offset) ? [offset, offset + text.length] : undefined;
   }
 }

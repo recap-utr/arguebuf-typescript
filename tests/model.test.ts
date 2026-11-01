@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import { Temporal } from "temporal-polyfill";
-import { expect, test, vi } from "vitest";
+import { expect, expectTypeOf, test, vi } from "vitest";
 import * as arguebuf from "#/index.js";
 
 function sampleGraph() {
@@ -158,6 +158,7 @@ test("metadata describes a single instant", () => {
 });
 
 test("resolve schemes", () => {
+  expectTypeOf<arguebuf.Scheme>().toEqualTypeOf<Readonly<pb.Scheme["type"]>>();
   expect(arguebuf.resolveScheme("support", "ExpertOpinion")).toStrictEqual({
     case: "support",
     value: arguebuf.Support.EXPERT_OPINION,
@@ -320,16 +321,47 @@ test("batch removals and links", () => {
   expect(() => graph.removeElements(["p1", "missing"])).toThrow(arguebuf.GraphError);
   expect(Object.keys(graph.nodes)).toContain("p1");
 
-  // the scheme is removed by the cascade before its turn
-  graph.removeElements(["p1", "s", "r"]);
+  // the scheme is removed by the cascade before its turn, all removed ids are returned
+  expect(graph.removeElements(["p1", "s", "r"]).toSorted()).toStrictEqual(
+    ["e1", "e2", "p1", "r", "s"],
+  );
   expect(Object.keys(graph.nodes)).toStrictEqual(["c"]);
   expect(Object.keys(graph.resources)).toStrictEqual([]);
 
   graph.addNode(new arguebuf.AtomNode({ id: "a", text: "" }));
-  const scheme = graph.link("a", "c");
-  expect(scheme?.scheme.case).toBeUndefined();
+  expect(graph.checkLink("a", "a")?.code).toBe("self-loop");
+  expect(() => graph.link("a", "a")).toThrow(arguebuf.GraphError);
+  expect(graph.checkLink("a", "c")).toBeUndefined();
+  const scheme = graph.link("a", "c", { scheme: arguebuf.defaultScheme("attack") });
+  expect(scheme?.scheme.case).toBe("attack");
   expect(graph.outgoingAtomNodes("a")).toStrictEqual([graph.nodes.c]);
   graph.addNode(new arguebuf.AtomNode({ id: "b", text: "" }));
+  expect(scheme && graph.checkLink("a", scheme)?.code).toBe("parallel-edge");
   expect(scheme && graph.link("b", scheme)).toBeUndefined();
   expect(scheme && graph.premiseNodes(scheme)).toStrictEqual([graph.nodes.a, graph.nodes.b]);
+});
+
+test("annotations of a resource", () => {
+  const graph = sampleGraph();
+  graph.addNode(
+    new arguebuf.AtomNode({
+      id: "a",
+      text: "",
+      reference: new arguebuf.Reference({ text: "our", resource: "r", offset: 3 }),
+    }),
+  );
+  graph.addNode(
+    new arguebuf.AtomNode({
+      id: "b",
+      text: "",
+      reference: new arguebuf.Reference({ text: "moved", resource: "r", offset: 2 }),
+    }),
+  );
+
+  expect(
+    graph.annotations("r").map(({ node, start, end }) => [node.id, start, end]),
+  ).toStrictEqual([
+    ["c", 0, 3],
+    ["a", 3, 6],
+  ]);
 });

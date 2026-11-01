@@ -1,4 +1,4 @@
-type Entity = { readonly id: string };
+import type { Entity } from "#/model/graph/helpers.js";
 
 /** Neighbors of a node, e.g. `(node) => graph.outgoingNodes(node)`. */
 export type Connections<N extends Entity> = (node: N) => Iterable<N>;

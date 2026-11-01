@@ -1,4 +1,4 @@
-import type { Issue } from "#/issue.js";
+import { GraphError, type Issue } from "#/issue.js";
 import type { ThresholdOptions } from "#/locate.js";
 import type { AnalystChanges, AnalystOf } from "#/model/analyst.js";
 import { Edge, type EdgeChanges, type EdgeOf } from "#/model/edge.js";
@@ -13,8 +13,8 @@ import {
 } from "#/model/graph/helpers.js";
 import type { AtomRelation } from "#/model/graph/queries.js";
 import { relocateReferences, type RelocateOptions } from "#/model/graph/references.js";
-import { removeBranch, removeElements, removeNode } from "#/model/graph/removal.js";
-import { validateAtom, validateEdge } from "#/model/graph/validation.js";
+import { removeBranches, removeElements, removeNode } from "#/model/graph/removal.js";
+import { edgeIssue, validateAtom, validateEdge } from "#/model/graph/validation.js";
 import { GraphView } from "#/model/graph/view.js";
 import { Metadata } from "#/model/metadata.js";
 import {
@@ -27,6 +27,7 @@ import {
 } from "#/model/node.js";
 import type { ParticipantChanges, ParticipantOf } from "#/model/participant.js";
 import { Reference } from "#/model/reference.js";
+import type { Scheme } from "#/model/scheme.js";
 import type { ResourceChanges, ResourceOf } from "#/model/resource.js";
 import {
   type OptionalInit,
@@ -37,6 +38,7 @@ import {
   type UserdataSchema,
 } from "#/model/userdata.js";
 
+export type { Annotation } from "#/model/graph/view.js";
 export type { AtomRelation, RelocateOptions };
 
 /** Userdata factories of `Graph.link`, required if the userdata of schemes or edges is customized. */
@@ -45,10 +47,24 @@ export interface LinkUserdata<S extends UserdataSchema> {
   readonly edge: () => Userdata<S, "edge">;
 }
 
-export type LinkArgs<S extends UserdataSchema> = {} extends Userdata<S, "scheme"> &
+type DefaultLinkUserdata<S extends UserdataSchema> = {} extends Userdata<S, "scheme"> &
   Userdata<S, "edge">
-  ? [userdata?: LinkUserdata<S>]
-  : [userdata: LinkUserdata<S>];
+  ? true
+  : false;
+
+/**
+ * Options of `Graph.link`.
+ * `scheme` is the scheme of the inserted scheme node, `userdata` creates the userdata
+ * of the new elements and is required if the userdata of schemes or edges is customized.
+ */
+export type LinkOptions<S extends UserdataSchema> = {
+  scheme?: Scheme;
+} & (DefaultLinkUserdata<S> extends true
+  ? { userdata?: LinkUserdata<S> }
+  : { userdata: LinkUserdata<S> });
+
+export type LinkArgs<S extends UserdataSchema> =
+  DefaultLinkUserdata<S> extends true ? [options?: LinkOptions<S>] : [options: LinkOptions<S>];
 
 export type GraphInit<S extends UserdataSchema = {}> = {
   name?: string;
@@ -151,18 +167,20 @@ export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
    * Remove a node together with its edges and all references to it.
    * Scheme nodes left without a premise or without a conclusion are removed as well,
    * which includes the scheme nodes depending on them (e.g. undercutters).
+   * Returns the ids of all removed nodes and edges.
    */
-  removeNode(node: string | Node<S>): void {
-    removeNode(this, this.store, this.node(node));
+  removeNode(node: string | Node<S>): string[] {
+    return removeNode(this, this.store, this.node(node));
   }
 
   /**
    * Remove elements of any kind (nodes, edges, resources, participants) by id at once.
    * All ids must exist, otherwise nothing is removed.
    * Elements that a removal cascades to may be listed as well.
+   * Returns the ids of all removed elements, including those of the cascades.
    */
-  removeElements(ids: Iterable<string>): void {
-    removeElements(this, this.store, ids);
+  removeElements(ids: Iterable<string>): string[] {
+    return removeElements(this, this.store, ids);
   }
 
   /**
@@ -311,18 +329,39 @@ export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
   }
 
   /**
+   * The issue that prevents `link` from connecting the nodes, if any.
+   * Unlike `link`, nothing is thrown, e.g. to validate a connection while it is drawn.
+   */
+  checkLink(source: string | Node<S>, target: string | Node<S>): Issue | undefined {
+    const from = idOf(source);
+    const to = idOf(target);
+    const atoms = [from, to].every((id) => this.store.nodes[id]?.type === "atom");
+
+    // atoms are connected through a new scheme node, which only rules out self-loops
+    return atoms && from !== to ? undefined : edgeIssue(this.store, from, to);
+  }
+
+  /**
    * Connect two nodes of the graph.
-   * Atoms cannot be connected directly, so an untyped scheme node is inserted between them and returned.
-   * The userdata of the new elements is created by `userdata`, which is required if it is customized.
+   * Atoms cannot be connected directly, so a scheme node with `options.scheme` (untyped by default)
+   * is inserted between them and returned.
+   * The userdata of the new elements is created by `options.userdata`,
+   * which is required if it is customized.
    */
   link(
     source: string | Node<S>,
     target: string | Node<S>,
-    ...[userdata]: LinkArgs<S>
+    ...[options]: LinkArgs<S>
   ): SchemeNodeOf<S> | undefined {
     const from = this.node(source);
     const to = this.node(target);
+    const userdata = options?.userdata;
     const edge = userdata?.edge ?? (() => initUserdata<Userdata<S, "edge">>(undefined));
+    const found = this.checkLink(from, to);
+
+    if (found !== undefined) {
+      throw new GraphError(found);
+    }
 
     if (from.type !== "atom" || to.type !== "atom") {
       this.addEdge(new Edge({ source: from.id, target: to.id, userdata: edge() }));
@@ -331,6 +370,7 @@ export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
     }
 
     const scheme = new SchemeNode({
+      scheme: options?.scheme,
       userdata: userdata?.scheme() ?? initUserdata<Userdata<S, "scheme">>(undefined),
     });
     this.addNode(scheme);
@@ -339,21 +379,23 @@ export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
     return scheme;
   }
 
-  /** Remove scheme nodes without a scheme together with their descendants. */
-  removeEmptySchemeBranches(): void {
-    for (const scheme of this.schemes()) {
-      if (scheme.scheme.case === undefined && Object.hasOwn(this.store.nodes, scheme.id)) {
-        this.removeBranch(scheme);
-      }
-    }
+  /**
+   * Remove scheme nodes without a scheme together with their descendants.
+   * Returns the ids of all removed nodes and edges.
+   */
+  removeEmptySchemeBranches(): string[] {
+    const empty = this.schemes().filter((scheme) => scheme.scheme.case === undefined);
+
+    return removeBranches(this, this.store, empty);
   }
 
   /**
    * Remove a node and all its descendants (i.e., nodes connected via incoming edges).
    * An edge is interpreted as its source node, a string as the id of a node.
+   * Returns the ids of all removed nodes and edges.
    */
-  removeBranch(element: string | Node<S> | EdgeOf<S>): void {
+  removeBranch(element: string | Node<S> | EdgeOf<S>): string[] {
     const start = typeof element !== "string" && "source" in element ? element.source : element;
-    removeBranch(this, this.store, this.node(start));
+    return removeBranches(this, this.store, [this.node(start)]);
   }
 }

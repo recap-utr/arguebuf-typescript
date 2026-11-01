@@ -14,6 +14,15 @@ import type { ParticipantOf } from "#/model/participant.js";
 import type { ResourceOf } from "#/model/resource.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
+/** Atom node whose reference is anchored in a resource, see `Graph.annotations`. */
+export interface Annotation<S extends UserdataSchema = {}> {
+  readonly node: AtomNodeOf<S>;
+  /** Index of the first character of the reference in the resource text. */
+  readonly start: number;
+  /** Index after the last character of the reference in the resource text. */
+  readonly end: number;
+}
+
 /**
  * Read access to the elements of a graph and the queries derived from its adjacency,
  * the base of `Graph`, which adds the methods that change it.
@@ -202,5 +211,21 @@ export abstract class GraphView<S extends UserdataSchema = {}> {
    */
   atomRelations(): AtomRelation<S>[] {
     return atomRelations(this);
+  }
+
+  /**
+   * The atom nodes whose references are anchored in the resource, sorted by their position.
+   * References whose text is not found at their offset are skipped, see `Graph.relocateReferences`.
+   */
+  annotations(resource: string | ResourceOf<S>): Annotation<S>[] {
+    const { id, text } = lookup(this.store.resources, resource, "Resource");
+
+    return this.atoms()
+      .flatMap((node) => {
+        const span = node.reference?.resource === id ? node.reference.span(text) : undefined;
+
+        return span === undefined ? [] : [{ node, start: span[0], end: span[1] }];
+      })
+      .sort((a, b) => a.start - b.start || a.end - b.end);
   }
 }
