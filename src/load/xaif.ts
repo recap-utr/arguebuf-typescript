@@ -17,13 +17,13 @@ export function xaif<S extends UserdataSchema = {}>(
   ...args: helpers.LoadArgs<S, helpers.AifOptions>
 ): model.Graph<S> {
   const { codecs } = helpers.loadOptions<S>(...args);
-  const graph = aif<S>(obj.AIF, ...args).draft();
+  const graph = aif<S>(obj.AIF, ...args);
   const html = typeof obj.text === "string" ? obj.text : obj.text?.txt;
   const [text] = parseHtml(html ?? "");
 
-  if (text) {
-    graph.addResource(new model.Resource({ text, userdata: codecs.resource.decode({}) }));
-  }
-
-  return graph.freeze();
+  return text
+    ? graph.edit((draft) =>
+        draft.addResource(new model.Resource({ text, userdata: codecs.resource.decode({}) })),
+      )
+    : graph;
 }

@@ -89,7 +89,7 @@ export type GraphSource<S extends UserdataSchema = {}> =
  *
  * The graph, its elements, and their plain userdata are frozen,
  * so it can be shared freely, e.g. in an undo history.
- * Changes are made on a `GraphDraft` (see `draft`), whose `freeze` returns the changed graph.
+ * Changes are made on a `GraphDraft`, either within `edit` or via `draft` and `GraphDraft.freeze`.
  * Both share the unchanged elements, so this takes time proportional to the changes.
  * Adjacency queries take time proportional to the degree of the node.
  */
@@ -112,6 +112,17 @@ export class Graph<S extends UserdataSchema = {}> extends GraphView<S> {
   /** A draft to change a copy of the graph, see `GraphDraft.freeze`. */
   draft(): GraphDraft<S> {
     return new GraphDraft<S>(this);
+  }
+
+  /**
+   * The graph changed by `recipe` on a draft, like `produce` of immer.
+   * If `recipe` throws, nothing is changed.
+   */
+  edit(recipe: (draft: GraphDraft<S>) => void): Graph<S> {
+    const draft = this.draft();
+    recipe(draft);
+
+    return draft.freeze();
   }
 }
 

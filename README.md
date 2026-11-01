@@ -225,9 +225,10 @@ const atom: arguebuf.Codec<AtomData> = {
 // arguebuf.Graph<{ atom: AtomData }>
 const graph = arguebuf.load.json(obj, { codecs: { atom } });
 const { text, userdata } = graph.atomNodes[id];
-const draft = graph.draft();
-draft.updateAtom(id, { userdata: { ...userdata, embedding: embed(text) } });
-const json = arguebuf.dump.json(draft.freeze(), { codecs: { atom } });
+const next = graph.edit((draft) =>
+  draft.updateAtom(id, { userdata: { ...userdata, embedding: embed(text) } }),
+);
+const json = arguebuf.dump.json(next, { codecs: { atom } });
 ```
 
 The method names match the codecs of [Zod](https://zod.dev) 4.1, which can be passed directly.
@@ -275,11 +276,15 @@ Changes go through a `GraphDraft`, which has all methods that change a graph.
 A draft stays usable after `freeze`, and functions that only read accept both as a `GraphView`.
 
 ```ts
-const draft = graph.draft();
-draft.updateAtom(id, { text: "New text" });
-const next = draft.freeze();
+const next = graph.edit((draft) => {
+  draft.updateAtom(id, { text: "New text" });
+  draft.majorClaim = id;
+});
 // `graph` is unchanged
 ```
+
+`graph.edit(recipe)` works like `produce` of immer: it runs the recipe on a draft and returns the frozen result, so the draft never escapes, and a recipe that throws changes nothing.
+`graph.draft()` and `draft.freeze()` are the building blocks for edits that span several steps, e.g. a loader that builds a graph piece by piece.
 
 ### Argdown
 

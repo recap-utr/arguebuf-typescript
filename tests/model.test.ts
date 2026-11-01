@@ -295,6 +295,12 @@ test("drafts never change the graph they start from or the graphs they froze", (
   expect(draft.incomingEdges("c")).toStrictEqual([]);
   expect(frozen.incomingNodes("s")).toStrictEqual([frozen.nodes.p1]);
 
+  // recipes that throw change nothing
+  expect(() => graph.edit((d) => d.removeNode("missing"))).toThrow(arguebuf.GraphError);
+  const renamed = graph.edit((d) => d.updateAtom("c", { text: "Renamed" }));
+  expect([graph.atomNodes.c.text, renamed.atomNodes.c.text]).toStrictEqual(["Claim", "Renamed"]);
+  expect(Object.isFrozen(renamed)).toBe(true);
+
   // unchanged elements are shared, updates are validated and replace them
   const edited = graph.draft();
   edited.updateAtom("c", { text: "Changed" });
