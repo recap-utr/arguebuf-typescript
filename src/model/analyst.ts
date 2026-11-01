@@ -6,7 +6,7 @@ import {
   type Userdata,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import { uuid } from "arg-services";
+import { uuid } from "#/model/uuid.js";
 
 /** Fields of an analyst that `Analyst.with` and `Graph.updateAnalyst` change. */
 export type AnalystChanges<U = JsonObject> = Partial<Pick<Analyst<U>, "name" | "email" | "userdata">>;

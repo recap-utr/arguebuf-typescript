@@ -37,4 +37,4 @@ export type {
   UserdataKind,
   UserdataSchema,
 } from "#/model/userdata.js";
-export { uuid } from "arg-services";
+export { uuid } from "#/model/uuid.js";

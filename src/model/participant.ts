@@ -7,7 +7,7 @@ import {
   type Userdata,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import { uuid } from "arg-services";
+import { uuid } from "#/model/uuid.js";
 
 /** Fields of a participant that `Participant.with` and `Graph.updateParticipant` change. */
 export type ParticipantChanges<U = JsonObject> = Partial<

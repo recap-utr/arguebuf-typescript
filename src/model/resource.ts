@@ -7,7 +7,7 @@ import {
   type Userdata,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import { uuid } from "arg-services";
+import { uuid } from "#/model/uuid.js";
 
 /** Fields of a resource that `Resource.with` and `Graph.updateResource` change. */
 export type ResourceChanges<U = JsonObject> = Partial<

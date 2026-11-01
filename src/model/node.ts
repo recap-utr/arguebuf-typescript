@@ -9,7 +9,7 @@ import {
   type UserdataInit,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import { uuid } from "arg-services";
+import { uuid } from "#/model/uuid.js";
 
 /** Color in hexadecimal RGB notation, e.g. `#ffffff`. */
 export type HexColor = `#${string}`;

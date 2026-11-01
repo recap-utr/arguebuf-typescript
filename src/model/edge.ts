@@ -6,7 +6,7 @@ import {
   type Userdata,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import { uuid } from "arg-services";
+import { uuid } from "#/model/uuid.js";
 
 /** Fields of an edge that `Edge.with` and `Graph.updateEdge` change, its nodes are fixed. */
 export type EdgeChanges<U = JsonObject> = Partial<Pick<Edge<U>, "metadata" | "userdata">>;
