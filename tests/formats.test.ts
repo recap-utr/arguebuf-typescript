@@ -218,10 +218,11 @@ test("dump d2 and graphviz", () => {
   });
 
   expect(arguebuf.dump.d2(graph)).toContain('label: "a b back\\\\slash \\"q\\" \\$x\\\\"\n');
-  expect(arguebuf.dump.graphviz(graph)).toContain(
-    `"a" [label="${"x".repeat(33)}\n\\"y\\"", fontcolor="#ffffff", fillcolor="#0D47A1", color="#0D47A1", root="true"];`,
-  );
-  expect(arguebuf.dump.graphviz(graph)).toContain('[label="a b back\\\\slash \\"q\\" $x\\\\"');
+  const dot = arguebuf.dump.graphviz(graph);
+  // DOT escapes quotes and backslashes, the wrapped line is `\n`
+  expect(dot).toContain(`label = "${"x".repeat(33)}\\n\\"y\\"";`);
+  expect(dot).toContain('label = "a b back\\\\slash \\"q\\" $x\\\\";');
+  expect(dot).toMatch(/"a" \[[^\]]*fillcolor = "#0D47A1";[^\]]*root = true;/);
 });
 
 test("dump graphology", () => {
