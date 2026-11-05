@@ -314,7 +314,8 @@ test("html with many spans", () => {
 test("references keep the offset unless the resource is unknown", () => {
   const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
   const resources = { r: new arguebuf.Resource({ id: "r", text: "Text" }) };
-  const reference = (resource?: string) => newReference(loadOptions(), "T", resource, 1, resources, "x");
+  const reference = (resource?: string) =>
+    newReference(loadOptions(), "T", resource, 1, resources, "x");
 
   expect(reference("r")).toStrictEqual(
     new arguebuf.Reference({ text: "T", resource: "r", offset: 1 }),

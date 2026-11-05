@@ -46,8 +46,7 @@ export function linkText<S extends UserdataSchema>(
     fail("unknown-element", `Resource '${resource}' does not exist.`, [resource]);
   }
 
-  const candidates =
-    resource === undefined ? Object.values(resources) : [resources[resource]];
+  const candidates = resource === undefined ? Object.values(resources) : [resources[resource]];
   let best: { match: Match; resource: string } | undefined;
 
   for (const candidate of candidates) {
@@ -90,7 +89,10 @@ export function linkText<S extends UserdataSchema>(
 }
 
 /** The scheme of the item, keeping the `current` type unless the item changes it. */
-export function resolveSchemeOf(item: SchemePatch, current: SchemeType | undefined): ResolvedScheme {
+export function resolveSchemeOf(
+  item: SchemePatch,
+  current: SchemeType | undefined,
+): ResolvedScheme {
   const type = item.type ?? current;
 
   if (type === undefined) {

@@ -37,12 +37,13 @@ export interface PatchResult<S extends UserdataSchema> {
   readonly removed: readonly string[];
 }
 
-
 /** The patched value of an optional field, `undefined` keeps it and `null` clears it. */
-function patched(value: string | null | undefined, current: string | undefined): string | undefined {
+function patched(
+  value: string | null | undefined,
+  current: string | undefined,
+): string | undefined {
   return value === undefined ? current : (value ?? undefined);
 }
-
 
 class Editor<S extends UserdataSchema> {
   readonly issues: Issue[] = [];
@@ -308,7 +309,10 @@ class Editor<S extends UserdataSchema> {
 
     for (const premise of premises ?? []) {
       if (this.node(premise, "atom") === undefined) {
-        fail("unknown-element", `Premise '${premise}' of scheme '${id}' does not exist.`, [id, premise]);
+        fail("unknown-element", `Premise '${premise}' of scheme '${id}' does not exist.`, [
+          id,
+          premise,
+        ]);
       }
     }
 
@@ -400,4 +404,3 @@ export function applyPatch<S extends UserdataSchema>(
     removed,
   };
 }
-

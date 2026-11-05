@@ -158,11 +158,21 @@ test("wide traversals avoid function argument limits", () => {
 test("edit a draft of a graph", () => {
   // elements are immutable, so they are updated through the graph
   const embedding = new Float32Array([1, 2]);
-  const node = new arguebuf.AtomNode<Custom["atom"]>({ text: "A", userdata: { label: "a", embedding } });
-  const other = new arguebuf.AtomNode<Custom["atom"]>({ id: "b", text: "", userdata: { label: "b" } });
+  const node = new arguebuf.AtomNode<Custom["atom"]>({
+    text: "A",
+    userdata: { label: "a", embedding },
+  });
+  const other = new arguebuf.AtomNode<Custom["atom"]>({
+    id: "b",
+    text: "",
+    userdata: { label: "b" },
+  });
   const graph = new arguebuf.Graph<Custom>({ nodes: [node, other] });
   const result = graph.draft();
-  result.updateAtom(node.id, { text: "B", userdata: { label: "b", embedding: new Float32Array([3]) } });
+  result.updateAtom(node.id, {
+    text: "B",
+    userdata: { label: "b", embedding: new Float32Array([3]) },
+  });
   result.addNode(new arguebuf.AtomNode({ id: "new", text: "C", userdata: { label: "c" } }));
   result.addNode(new arguebuf.SchemeNode({ id: "s" }));
   result.connect(["b"], "s", "new");

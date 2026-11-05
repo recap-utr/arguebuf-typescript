@@ -12,7 +12,13 @@ import {
 import type { Adjacency, GraphStore } from "#/model/graph/store.js";
 import { edgeIssue } from "#/model/graph/validation.js";
 import type { Metadata } from "#/model/metadata.js";
-import { type AtomNodeOf, isType, type Node, type SchemeNodeOf, typeArticles } from "#/model/node.js";
+import {
+  type AtomNodeOf,
+  isType,
+  type Node,
+  type SchemeNodeOf,
+  typeArticles,
+} from "#/model/node.js";
 import type { ParticipantOf } from "#/model/participant.js";
 import type { ResourceOf } from "#/model/resource.js";
 import type { Userdata, UserdataSchema } from "#/model/userdata.js";

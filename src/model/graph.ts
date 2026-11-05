@@ -56,10 +56,9 @@ export type ConnectArgs<S extends UserdataSchema> = OptionalInit<ConnectOptions<
  * `scheme` is the scheme of the inserted scheme node, the userdata factories are required
  * if the userdata of edges or schemes is customized.
  */
-export type LinkOptions<S extends UserdataSchema> = { readonly scheme?: Scheme } & UserdataFactories<
-  S,
-  "edge" | "scheme"
->;
+export type LinkOptions<S extends UserdataSchema> = {
+  readonly scheme?: Scheme;
+} & UserdataFactories<S, "edge" | "scheme">;
 
 /** Arguments of `GraphDraft.link` after the nodes. */
 export type LinkArgs<S extends UserdataSchema> = OptionalInit<LinkOptions<S>>;

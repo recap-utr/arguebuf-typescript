@@ -101,11 +101,18 @@ export function addNode<S extends UserdataSchema>(
   ctx: Context<S>,
   node: model.Node<S>,
 ): void {
-  attempt(ctx, () => graph.addNode(node), () => "The node was skipped.");
+  attempt(
+    ctx,
+    () => graph.addNode(node),
+    () => "The node was skipped.",
+  );
 }
 
 /** Re-anchor references that do not match their resource, see `GraphDraft.relocateReferences`. */
-export function relocate<S extends UserdataSchema>(graph: model.GraphDraft<S>, ctx: Context<S>): void {
+export function relocate<S extends UserdataSchema>(
+  graph: model.GraphDraft<S>,
+  ctx: Context<S>,
+): void {
   for (const { code, message, elements } of graph.relocateReferences()) {
     ctx.report(code, message, elements);
   }

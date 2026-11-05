@@ -35,7 +35,13 @@ export function d2<S extends UserdataSchema>(
   graph: model.GraphView<S>,
   options: D2Options<S> = {},
 ): string | undefined {
-  const { atomLabel, schemeLabel, maxNodes = 1000, monochrome = false, schemeNodes = true } = options;
+  const {
+    atomLabel,
+    schemeLabel,
+    maxNodes = 1000,
+    monochrome = false,
+    schemeNodes = true,
+  } = options;
 
   const nodes = Object.values(graph.nodes);
 
@@ -54,9 +60,7 @@ export function d2<S extends UserdataSchema>(
     );
   const schemes = (schemeNodes ? nodes : [])
     .filter((node) => node.type === "scheme")
-    .map((node) =>
-      nodeToD2(node, schemeLabel?.(node) ?? node.label, node.color({ monochrome })),
-    );
+    .map((node) => nodeToD2(node, schemeLabel?.(node) ?? node.label, node.color({ monochrome })));
   const edges = schemeNodes
     ? Object.values(graph.edges).map((edge) => `${quote(edge.source)} -> ${quote(edge.target)}\n`)
     : graph

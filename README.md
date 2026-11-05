@@ -144,7 +144,10 @@ for (const issue of arguebuf.check(graph, { ignore: ["no-major-claim"] })) {
 Verbatim matches are preferred, otherwise only the words are compared (case, whitespace, and punctuation are ignored) and minor differences are tolerated up to a `threshold` of similarity.
 
 ```ts
-const match = arguebuf.locate("Cats are the best pets. They are independent.", "they are independant");
+const match = arguebuf.locate(
+  "Cats are the best pets. They are independent.",
+  "they are independant",
+);
 // { offset: 24, text: "They are independent", similarity: 0.95 }
 ```
 

@@ -34,8 +34,9 @@ test("locate finds verbatim, normalized, and similar spans", () => {
 
   for (const near of [0, 1]) {
     expect(arguebuf.locate("AAAAAA", "aaaaa", { near })?.offset).toBe(near);
-    expect(arguebuf.locate("ABXDEABXDE", "abcde", { near: near * 5, threshold: 0.8 })?.offset)
-      .toBe(near * 5);
+    expect(arguebuf.locate("ABXDEABXDE", "abcde", { near: near * 5, threshold: 0.8 })?.offset).toBe(
+      near * 5,
+    );
   }
 });
 
@@ -62,29 +63,31 @@ test("loaders repair malformed graphs and report it", () => {
 });
 
 test("check reports quality problems", () => {
-  const graph = arguebuf.load.json(
-    {
-      resources: { r: { text: SOURCE } },
-      participants: { p: {} },
-      nodes: {
-        mc: { atom: { text: "Cats are the best pets", participant: "p" } },
-        a: { atom: { text: "x", reference: { text: "pets", resource: "r", offset: 1 } } },
-        b: { atom: { text: "y" } },
-        o: { atom: { text: "z", reference: { text: "dogs", resource: "r" } } },
-        s1: { scheme: { support: "SUPPORT_DEFAULT" } },
-        s2: { scheme: {} },
-        s3: { scheme: { attack: "ATTACK_DEFAULT" } },
+  const graph = arguebuf.load
+    .json(
+      {
+        resources: { r: { text: SOURCE } },
+        participants: { p: {} },
+        nodes: {
+          mc: { atom: { text: "Cats are the best pets", participant: "p" } },
+          a: { atom: { text: "x", reference: { text: "pets", resource: "r", offset: 1 } } },
+          b: { atom: { text: "y" } },
+          o: { atom: { text: "z", reference: { text: "dogs", resource: "r" } } },
+          s1: { scheme: { support: "SUPPORT_DEFAULT" } },
+          s2: { scheme: {} },
+          s3: { scheme: { attack: "ATTACK_DEFAULT" } },
+        },
+        edges: {
+          e1: { source: "a", target: "s1" },
+          e2: { source: "s1", target: "mc" },
+          e3: { source: "s1", target: "b" },
+          e4: { source: "s2", target: "s3" },
+        },
+        majorClaim: "mc",
       },
-      edges: {
-        e1: { source: "a", target: "s1" },
-        e2: { source: "s1", target: "mc" },
-        e3: { source: "s1", target: "b" },
-        e4: { source: "s2", target: "s3" },
-      },
-      majorClaim: "mc",
-    },
-    { onIssue: () => undefined },
-  ).draft();
+      { onIssue: () => undefined },
+    )
+    .draft();
   graph.updateAtom("a", {
     reference: new arguebuf.Reference({ text: "pets", resource: "r", offset: 1 }),
   });
@@ -176,9 +179,7 @@ test("applyPatch applies patches all or nothing", () => {
 });
 
 test("parsePatch reports every problem of untrusted input", () => {
-  expect(arguebuf.parsePatch([]).issues).toMatchObject([
-    { code: "invalid-patch", path: [] },
-  ]);
+  expect(arguebuf.parsePatch([]).issues).toMatchObject([{ code: "invalid-patch", path: [] }]);
   const parsed = arguebuf.parsePatch({
     atoms: [{ id: "a", text: 1 }, { text: "b" }],
     schemes: [{ id: "s", type: "rebut", premises: [] }],
@@ -188,13 +189,15 @@ test("parsePatch reports every problem of untrusted input", () => {
 
   expect(parsed.patch).toBeUndefined();
   expect(parsed.issues).toHaveLength(5);
-  expect(parsed.issues).toEqual(expect.arrayContaining([
-    expect.objectContaining({ code: "invalid-patch", path: ["atoms", 0, "text"] }),
-    expect.objectContaining({ code: "invalid-patch", path: ["atoms", 1] }),
-    expect.objectContaining({ code: "invalid-patch", path: ["schemes", 0, "type"] }),
-    expect.objectContaining({ code: "invalid-patch", path: ["schemes", 0, "premises"] }),
-    expect.objectContaining({ code: "invalid-patch", path: [] }),
-  ]));
+  expect(parsed.issues).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ code: "invalid-patch", path: ["atoms", 0, "text"] }),
+      expect.objectContaining({ code: "invalid-patch", path: ["atoms", 1] }),
+      expect.objectContaining({ code: "invalid-patch", path: ["schemes", 0, "type"] }),
+      expect.objectContaining({ code: "invalid-patch", path: ["schemes", 0, "premises"] }),
+      expect.objectContaining({ code: "invalid-patch", path: [] }),
+    ]),
+  );
   expect(arguebuf.parsePatch({ remove: ["a"], majorClaim: null })).toStrictEqual({
     patch: { remove: ["a"], majorClaim: null },
     issues: [],
@@ -210,8 +213,10 @@ test("parsePatch reports every problem of untrusted input", () => {
 
   expect(arguebuf.parsePatch({ confidence: 2 }, schema).patch).toBeUndefined();
   expect(arguebuf.parsePatch({ confidence: 0.5 }, schema).patch).toEqual({ confidence: 0.5 });
-  expect(arguebuf.parsePatch({ explanations: { "0/~": 1 } }, schema).issues[0].path)
-    .toEqual(["explanations", "0/~"]);
+  expect(arguebuf.parsePatch({ explanations: { "0/~": 1 } }, schema).issues[0].path).toEqual([
+    "explanations",
+    "0/~",
+  ]);
 });
 
 test("updating a resource text re-anchors its references", () => {

@@ -185,9 +185,7 @@ test("dates are parsed and formatted in UTC", () => {
   expect(date.parseIso("2019-03-23T15:57:30Z[Europe/Berlin]")).toStrictEqual(value);
   expect(date.parseOva("23/03/2019 - 15:57:30")).toStrictEqual(value);
   expect(date.parseOva("23/3/2019 - 15:57:30")).toStrictEqual(value);
-  expect(date.parseOvaDate("1/2/2019")).toStrictEqual(
-    Temporal.Instant.from("2019-02-01T00:00Z"),
-  );
+  expect(date.parseOvaDate("1/2/2019")).toStrictEqual(Temporal.Instant.from("2019-02-01T00:00Z"));
   expect(date.formatAif(value)).toBe("2019-03-23 15:57:30");
   expect(date.parseAif(undefined)).toBeUndefined();
   expect(date.parseOva("")).toBeUndefined();
