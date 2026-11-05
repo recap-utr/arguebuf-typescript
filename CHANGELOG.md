@@ -1,5 +1,48 @@
 # Changelog
 
+## [3.0.0](https://github.com/recap-utr/arguebuf-typescript/compare/v2.0.2...v3.0.0) (2026-11-05)
+
+### ⚠ BREAKING CHANGES
+
+* stop exporting internal node helpers
+* rename exported constants consistently
+* **model:** pass userdata factories of connect and link as flat options
+* **model:** return nodes as keys of sibling node distances
+* pass optional parameters as options objects
+* make date helpers private
+* require native temporal instead of bundling a polyfill
+* **model:** make graphs immutable and change them through drafts
+* **api:** make graph elements immutable and repair malformed input
+* **api:** unify strict graph and format APIs
+
+### Features
+
+* **api:** make graph elements immutable and repair malformed input ([ec0d8d7](https://github.com/recap-utr/arguebuf-typescript/commit/ec0d8d70dd50ee9209cb8ac85d36e3be4ca0db62))
+* **api:** unify strict graph and format APIs ([879b77c](https://github.com/recap-utr/arguebuf-typescript/commit/879b77c2b062014a4b1f69ed6eedeccb39891233))
+* export scheme labels, scheme colors and catchGraphError ([9cbbcf0](https://github.com/recap-utr/arguebuf-typescript/commit/9cbbcf02de667c3b5e41085d1d0098faf906c319))
+* **graphology:** add optional export entry point ([4d5a932](https://github.com/recap-utr/arguebuf-typescript/commit/4d5a9325cefd17fa0169896e7bd384c18742bb6a))
+* **model:** add metadata to analysts ([eb964ed](https://github.com/recap-utr/arguebuf-typescript/commit/eb964edefaa2536403f57b62e4c2bfd498077852))
+* **model:** check links, type inserted schemes and list annotations ([bf78845](https://github.com/recap-utr/arguebuf-typescript/commit/bf78845cac2dd6abce9b0fb82a7043c2a4d2741f))
+* **model:** edit graphs through recipes ([36366e3](https://github.com/recap-utr/arguebuf-typescript/commit/36366e33749b7b645d2df305d986810f1ae3be46))
+* **model:** make graphs immutable and change them through drafts ([b49b298](https://github.com/recap-utr/arguebuf-typescript/commit/b49b2981cd8297a97eb0b38d3306e7b14aae5822))
+* **model:** pass userdata factories of connect and link as flat options ([67ba93a](https://github.com/recap-utr/arguebuf-typescript/commit/67ba93ad4bb10151775e16e9e5073c1640fd2720))
+* **model:** return nodes as keys of sibling node distances ([bf30db0](https://github.com/recap-utr/arguebuf-typescript/commit/bf30db090092ae0b0127beaf18d9fd5678eae32b))
+* **model:** return removed ids from all removals ([46ad67b](https://github.com/recap-utr/arguebuf-typescript/commit/46ad67b081de5645664a0a1016341e4b9f52e228))
+* pass optional parameters as options objects ([eb07943](https://github.com/recap-utr/arguebuf-typescript/commit/eb07943461b3f7ab158cbd30e08f508c7e2d1fb9))
+* **patch:** add check and patch api for agents ([98a88a6](https://github.com/recap-utr/arguebuf-typescript/commit/98a88a6b43216b245e0e86d45c913105868febb8))
+* require native temporal instead of bundling a polyfill ([6e081b6](https://github.com/recap-utr/arguebuf-typescript/commit/6e081b6e92cc3ff5bec0b5822c742c327d4f8f49))
+
+### Bug Fixes
+
+* **deps:** declare @bufbuild/protobuf dependency ([11becb2](https://github.com/recap-utr/arguebuf-typescript/commit/11becb20c5fd7c88919580ea7c36089d87f4d4ec))
+* **model:** generate random uuid v4 ids ([67de874](https://github.com/recap-utr/arguebuf-typescript/commit/67de87498dc141d4934d55220b1797fdf1fed4f3))
+
+### Code Refactoring
+
+* make date helpers private ([53fc156](https://github.com/recap-utr/arguebuf-typescript/commit/53fc156924fe05026ce5634f5e57519b542760aa))
+* rename exported constants consistently ([9ab003e](https://github.com/recap-utr/arguebuf-typescript/commit/9ab003e5d96529f77eafb9eb0de9c84386b67efe))
+* stop exporting internal node helpers ([5008c73](https://github.com/recap-utr/arguebuf-typescript/commit/5008c734bd389f1e4a96048b6e046914e4f1f643))
+
 ## [2.0.2](https://github.com/recap-utr/arguebuf-typescript/compare/v2.0.1...v2.0.2) (2026-08-04)
 
 ### Bug Fixes
