@@ -55,7 +55,7 @@ export function aif<S extends UserdataSchema = {}>(
   for (const aifNode of obj.nodes) {
     let node = nodeFromAif(aifNode, codecs);
 
-    if (aifSchema.DIALOG_TYPES.has(aifNode.type)) {
+    if (aifSchema.dialogTypes.has(aifNode.type)) {
       dialog.add(helpers.stringId(aifNode.nodeID));
     }
 

@@ -21,7 +21,7 @@ export type SchemeType = Exclude<Scheme["case"], undefined>;
 
 export const schemeTypes: readonly SchemeType[] = ["support", "attack", "rephrase", "preference"];
 
-export const NO_SCHEME_LABEL = "Unknown";
+export const noSchemeLabel = "Unknown";
 
 /** Human-readable labels of the scheme types. */
 export const schemeTypeLabels: Readonly<Record<SchemeType, string>> = {
@@ -31,14 +31,14 @@ export const schemeTypeLabels: Readonly<Record<SchemeType, string>> = {
   preference: "Preference",
 };
 
-export const scheme2aif: Readonly<Record<SchemeType, Exclude<aif.SchemeType, "">>> = {
+export const schemeAifTypes: Readonly<Record<SchemeType, Exclude<aif.SchemeType, "">>> = {
   support: "RA",
   attack: "CA",
   rephrase: "MA",
   preference: "PA",
 };
 
-export const aif2scheme: Readonly<Record<aif.SchemeType, SchemeType | undefined>> = {
+export const aifSchemeTypes: Readonly<Record<aif.SchemeType, SchemeType | undefined>> = {
   RA: "support",
   CA: "attack",
   MA: "rephrase",
@@ -47,11 +47,11 @@ export const aif2scheme: Readonly<Record<aif.SchemeType, SchemeType | undefined>
 };
 
 export function isAifSchemeType(type: string): type is aif.SchemeType {
-  return Object.hasOwn(aif2scheme, type);
+  return Object.hasOwn(aifSchemeTypes, type);
 }
 
 /** AIFdb labels of the default schemes. */
-export const scheme2aifDefault: Readonly<Record<SchemeType, string>> = {
+export const schemeAifDefaults: Readonly<Record<SchemeType, string>> = {
   support: "Default Inference",
   attack: "Default Conflict",
   rephrase: "Default Rephrase",
@@ -174,7 +174,7 @@ export function schemeValues(type: SchemeType): Scheme[] {
 
 /** Get the scheme of an AIF scheme node, refined by its text if possible. */
 export function resolveAifScheme(aifType: aif.SchemeType, text: string): Scheme {
-  const type = aif2scheme[aifType];
+  const type = aifSchemeTypes[aifType];
 
   return type === undefined ? { case: undefined } : resolveScheme(type, text);
 }
@@ -202,14 +202,14 @@ export function isKnownScheme(scheme: Scheme): boolean {
 /** Human-readable label of the scheme value, e.g. "Expert Opinion" or "Default". */
 export function schemeValueLabel(scheme: Scheme): string {
   return scheme.case === undefined
-    ? NO_SCHEME_LABEL
-    : (valueLabels[scheme.case].get(scheme.value) ?? NO_SCHEME_LABEL);
+    ? noSchemeLabel
+    : (valueLabels[scheme.case].get(scheme.value) ?? noSchemeLabel);
 }
 
 /** Label of a scheme node, e.g. "Support: Expert Opinion", "Support" for defaults, "Unknown" without scheme. */
 export function schemeLabel(scheme: Scheme): string {
   if (scheme.case === undefined) {
-    return NO_SCHEME_LABEL;
+    return noSchemeLabel;
   }
 
   const typeLabel = schemeTypeLabels[scheme.case];

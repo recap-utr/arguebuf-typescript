@@ -4,7 +4,7 @@ export type NodeType = SchemeType | DialogType | "I";
 // AIFdb uses strings, xAIF tools mostly integers, loaders stringify them
 export type Id = string | number;
 
-export const DIALOG_TYPES: ReadonlySet<string> = new Set<DialogType>(["L", "TA", "YA"]);
+export const dialogTypes: ReadonlySet<string> = new Set<DialogType>(["L", "TA", "YA"]);
 
 export interface Node {
   nodeID: Id;

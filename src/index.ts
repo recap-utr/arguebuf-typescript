@@ -15,7 +15,7 @@ export {
 } from "#/issue.js";
 export * as load from "#/load/index.js";
 export {
-  DEFAULT_THRESHOLD,
+  defaultThreshold,
   isAnchored,
   locate,
   type LocateOptions,

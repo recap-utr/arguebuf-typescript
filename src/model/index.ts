@@ -7,11 +7,11 @@ export * from "#/model/participant.js";
 export * from "#/model/reference.js";
 export * from "#/model/resource.js";
 export {
-  aif2scheme,
+  aifSchemeTypes,
   Attack,
   defaultScheme,
   isDefaultScheme,
-  NO_SCHEME_LABEL,
+  noSchemeLabel,
   Preference,
   Rephrase,
   resolveAifScheme,

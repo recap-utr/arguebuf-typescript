@@ -20,7 +20,7 @@ export interface Match {
   readonly similarity: number;
 }
 
-export const DEFAULT_THRESHOLD = 0.85;
+export const defaultThreshold = 0.85;
 
 const WORD = /^[\p{L}\p{N}]$/u;
 
@@ -99,7 +99,7 @@ function exact(source: string, query: string, near: number | undefined): Match |
 function approximate(
   source: string,
   query: string,
-  { threshold = DEFAULT_THRESHOLD, near }: LocateOptions,
+  { threshold = defaultThreshold, near }: LocateOptions,
 ): Match | undefined {
   const pattern = normalize(query).text;
   const { text, starts, ends } = normalizeSource(source);

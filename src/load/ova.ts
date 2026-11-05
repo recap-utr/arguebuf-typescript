@@ -1,7 +1,7 @@
 import * as date from "#/date.js";
 import * as model from "#/model/index.js";
 import { isAifSchemeType } from "#/model/scheme.js";
-import { DIALOG_TYPES } from "#/schemas/aif.js";
+import { dialogTypes } from "#/schemas/aif.js";
 import type * as ovaSchema from "#/schemas/ova.js";
 import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
 import * as helpers from "#/load/helpers.js";
@@ -63,7 +63,7 @@ export function ova<S extends UserdataSchema = {}>(
   const dialog = new Set<string>();
 
   for (const ovaNode of obj.nodes) {
-    if (DIALOG_TYPES.has(ovaNode.type)) {
+    if (dialogTypes.has(ovaNode.type)) {
       dialog.add(helpers.stringId(ovaNode.id));
     }
 

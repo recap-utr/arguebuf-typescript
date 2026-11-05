@@ -15,10 +15,10 @@ export function aif<S extends UserdataSchema>(obj: model.GraphView<S>): aifSchem
 
 function schemeText(scheme: model.Scheme): string {
   if (scheme.case === undefined) {
-    return model.NO_SCHEME_LABEL;
+    return model.noSchemeLabel;
   }
 
-  return isDefaultScheme(scheme) ? model.scheme2aifDefault[scheme.case] : schemeValueLabel(scheme);
+  return isDefaultScheme(scheme) ? model.schemeAifDefaults[scheme.case] : schemeValueLabel(scheme);
 }
 
 /** Export an atom or scheme node to an AIF node, with or without timestamp. */
@@ -32,7 +32,7 @@ export function nodeToAif<S extends UserdataSchema>(
       : {
           nodeID: node.id,
           text: schemeText(node.scheme),
-          type: node.scheme.case === undefined ? "" : model.scheme2aif[node.scheme.case],
+          type: node.scheme.case === undefined ? "" : model.schemeAifTypes[node.scheme.case],
         };
 
   if (timestamp) {
