@@ -89,7 +89,7 @@ export function removeElements<S extends UserdataSchema>(
   ids: Iterable<string>,
 ): string[] {
   const elements = [...ids];
-  const kinds = [store.nodes, store.edges, store.resources, store.participants];
+  const kinds = [store.nodes, store.edges, store.resources, store.participants, store.analysts];
 
   for (const id of elements) {
     if (!kinds.some((kind) => Object.hasOwn(kind, id))) {
@@ -108,6 +108,8 @@ export function removeElements<S extends UserdataSchema>(
       graph.removeResource(id);
     } else if (Object.hasOwn(store.participants, id)) {
       graph.removeParticipant(id);
+    } else if (Object.hasOwn(store.analysts, id)) {
+      graph.removeAnalyst(id);
     } else {
       // removed by a cascade earlier in the loop
       continue;

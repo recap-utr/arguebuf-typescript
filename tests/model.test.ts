@@ -109,9 +109,9 @@ test("prototype property names are ordinary entity ids", () => {
   expect(graph.outgoingNodes(id)).toStrictEqual([graph.nodes.constructor]);
 
   const removed = graph.draft();
-  removed.removeParticipant(id);
-  removed.removeResource(id);
-  removed.removeAnalyst(id);
+  expect(removed.removeParticipant(id)).toStrictEqual([id]);
+  expect(removed.removeResource(id)).toStrictEqual([id]);
+  expect(removed.removeAnalyst(id)).toStrictEqual([id]);
   removed.removeNode(id);
 
   expect(
@@ -129,8 +129,8 @@ test("cleanup retains only referenced resources and participants", () => {
   const graph = sampleGraph().draft();
   graph.addResource(new arguebuf.Resource({ text: "Unused" }));
   graph.addParticipant(new arguebuf.Participant());
-  graph.cleanResources();
-  graph.cleanParticipants();
+  expect(graph.cleanResources()).toHaveLength(1);
+  expect(graph.cleanParticipants()).toHaveLength(1);
 
   expect(Object.keys(graph.resources)).toStrictEqual(["r"]);
   expect(Object.keys(graph.participants)).toStrictEqual(["p"]);
@@ -236,6 +236,8 @@ test("analysts keep their metadata and empty emails in the protobuf round trip",
 
   expect(loaded.analysts.a?.email).toBe("");
   expect(loaded.analysts.a?.metadata.created).toEqual(analyst.metadata.created);
+  expect(draft.removeElements(["a"])).toStrictEqual(["a"]);
+  expect(Object.keys(draft.analysts)).toStrictEqual([]);
 });
 
 test("protobuf dump writes the library version", () => {

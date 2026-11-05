@@ -18,14 +18,15 @@ export function drop(store: Record<string, unknown>, id: string): void {
   delete store[id];
 }
 
-/** Remove the elements whose ids are not `used`. */
+/** Remove the elements whose ids are not `used` and return the removed ids. */
 export function dropUnused(
   store: Record<string, unknown>,
   used: ReadonlySet<string | undefined>,
-): void {
-  for (const id of new Set(Object.keys(store)).difference(used)) {
-    drop(store, id);
-  }
+): string[] {
+  const unused = [...new Set(Object.keys(store)).difference(used)];
+  unused.forEach((id) => drop(store, id));
+
+  return unused;
 }
 
 export function isEmpty(record: object): boolean {

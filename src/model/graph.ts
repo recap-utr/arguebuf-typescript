@@ -266,8 +266,12 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
     this.store.writable("edges")[current.id] = current.with(touched(current, changes));
   }
 
-  removeEdge(edge: string | EdgeOf<S>): void {
-    this.store.deleteEdge(lookup(this.store.edges, edge, "Edge"));
+  /** Remove an edge and return its id. */
+  removeEdge(edge: string | EdgeOf<S>): string[] {
+    const { id } = lookup(this.store.edges, edge, "Edge");
+    this.store.deleteEdge(this.store.edges[id]);
+
+    return [id];
   }
 
   addResource(resource: ResourceOf<S>): void {
@@ -304,8 +308,8 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
     return relocateReferences(this, options);
   }
 
-  /** Remove a resource and unset it (including the offset) in all references. */
-  removeResource(resource: string | ResourceOf<S>): void {
+  /** Remove a resource and unset it (including the offset) in all references, returns its id. */
+  removeResource(resource: string | ResourceOf<S>): string[] {
     const { id } = remove(this.store.writable("resources"), resource, "Resource");
 
     for (const node of this.atoms()) {
@@ -313,11 +317,13 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
         this.updateAtom(node, { reference: new Reference({ text: node.reference.text }) });
       }
     }
+
+    return [id];
   }
 
-  /** Remove resources that are not referenced by any node. */
-  cleanResources(): void {
-    dropUnused(
+  /** Remove resources that are not referenced by any node and return their ids. */
+  cleanResources(): string[] {
+    return dropUnused(
       this.store.writable("resources"),
       new Set(this.atoms().map((node) => node.reference?.resource)),
     );
@@ -336,8 +342,8 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
     this.store.writable("participants")[current.id] = current.with(touched(current, changes));
   }
 
-  /** Remove a participant and unset it for all its nodes. */
-  removeParticipant(participant: string | ParticipantOf<S>): void {
+  /** Remove a participant and unset it for all its nodes, returns its id. */
+  removeParticipant(participant: string | ParticipantOf<S>): string[] {
     const { id } = remove(this.store.writable("participants"), participant, "Participant");
 
     for (const node of this.atoms()) {
@@ -345,11 +351,13 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
         this.updateAtom(node, { participant: undefined });
       }
     }
+
+    return [id];
   }
 
-  /** Remove participants that are not assigned to any node. */
-  cleanParticipants(): void {
-    dropUnused(
+  /** Remove participants that are not assigned to any node and return their ids. */
+  cleanParticipants(): string[] {
+    return dropUnused(
       this.store.writable("participants"),
       new Set(this.atoms().map((node) => node.participant)),
     );
@@ -368,8 +376,9 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
     this.store.writable("analysts")[current.id] = current.with(touched(current, changes));
   }
 
-  removeAnalyst(analyst: string | AnalystOf<S>): void {
-    remove(this.store.writable("analysts"), analyst, "Analyst");
+  /** Remove an analyst and return its id. */
+  removeAnalyst(analyst: string | AnalystOf<S>): string[] {
+    return [remove(this.store.writable("analysts"), analyst, "Analyst").id];
   }
 
   /**

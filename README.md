@@ -103,6 +103,7 @@ The graph is strict.
 Adding an element to a draft throws a `GraphError` if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
 Edges must not be self-loops, connect two atoms, or duplicate an existing connection.
 `draft.link(source, target, { scheme })` connects two nodes and inserts a scheme node (untyped by default) between two atoms, which it returns.
+The removal and cleanup methods of a draft (e.g. `removeEdge` and `cleanResources`) return the ids of the removed elements as well.
 `graph.checkLink(source, target)` returns the issue that prevents such a link without throwing, e.g. to validate a connection while it is drawn.
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
 Elements are immutable, the `update` methods of the draft (`updateAtom`, `updateScheme`, `updateEdge`, `updateResource`, `updateParticipant`, `updateAnalyst`) replace them with changed copies and validate them like the `add` methods.
