@@ -70,7 +70,7 @@ export function kialo<S extends UserdataSchema = {}>(
     throw new Error("The major claim is not present in the third line!");
   }
 
-  const name = /Discussion Title: (.*)/s.exec(title)?.[1].trim() ?? options.name;
+  const name = helpers.KIALO_TITLE.exec(title)?.[1].trim() ?? options.name;
   const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
   const references = new Map<string, string>();
 

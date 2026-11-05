@@ -182,6 +182,9 @@ export function compact<V>(
   );
 }
 
+/** First line of a kialo export, its group is the discussion title. */
+export const KIALO_TITLE = /Discussion Title: (.*)/s;
+
 /** Split a text into lines at any line break. */
 export function lines(text: string): string[] {
   return text.split(/\r\n|\r|\n/);

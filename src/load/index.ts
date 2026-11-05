@@ -1,10 +1,12 @@
 export * from "#/load/aif.js";
 export * from "#/load/argdown.js";
 export * from "#/load/brat.js";
+export * from "#/load/file.js";
 export type { AifOptions, LoadArgs, LoadOptions } from "#/load/helpers.js";
 export * from "#/load/json.js";
 export * from "#/load/kialo.js";
 export * from "#/load/ova.js";
 export * from "#/load/protobuf.js";
 export * from "#/load/sadface.js";
+export * from "#/load/text.js";
 export * from "#/load/xaif.js";

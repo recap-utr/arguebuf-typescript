@@ -74,6 +74,14 @@ The loaders in `arguebuf.load` support the following formats:
 - The JSON export of [Argdown](https://argdown.org) (`load.argdown`).
 - [Kialo](https://www.kialo.com) discussion exports (`load.kialo`).
 - [BRAT](https://brat.nlplab.org) standoff annotations (`load.brat`).
+- Plain texts as a single atom node, kialo exports are detected by their title (`load.text`).
+
+Files (e.g. a `File` of the browser) are passed to `load.file`, which derives the format from the suffix of their name (see `load.fileFormat` and `load.suffixes`) and names the graph after the file.
+Argdown sources (`.argdown`, `.ad`) are loaded by `loadArgdown` of the entry point `arguebuf/argdown` instead, since its parser is an optional peer dependency.
+
+```ts
+const graph = await arguebuf.load.file(file, { reconstructDialog: true });
+```
 
 JSON objects are passed to `load.json`, which detects their format by checking the following keys in order.
 

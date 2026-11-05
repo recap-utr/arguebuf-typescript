@@ -44,6 +44,42 @@ test("kialo", () => {
   ).toBe("Other");
 });
 
+test("text", () => {
+  expect(arguebuf.load.text(KIALO).name).toBe("Title");
+
+  const graph = arguebuf.load.text("Plain claim", { name: "Plain" });
+
+  expect(graph.name).toBe("Plain");
+  expect(Object.values(graph.atomNodes).map((node) => node.text)).toStrictEqual(["Plain claim"]);
+});
+
+test("fileFormat", () => {
+  expect(arguebuf.load.fileFormat("map.AD")).toBe("argdown");
+  expect(arguebuf.load.fileFormat("a.b.json")).toBe("json");
+  expect(arguebuf.load.fileFormat(".json")).toBeUndefined();
+  expect(arguebuf.load.fileFormat("json")).toBeUndefined();
+});
+
+test("file", async () => {
+  const kialo = await arguebuf.load.file(new File([KIALO], "discussion.TXT"));
+  const plain = await arguebuf.load.file(new File(["Claim"], "notes.txt"));
+  const json = await arguebuf.load.file(
+    new File([JSON.stringify(arguebuf.dump.json(plain))], "graph.json"),
+  );
+  const brat = await arguebuf.load.file(new File(["T1\tMajorClaim 0 5\tClaim\n"], "essay.ann"));
+
+  expect([kialo.name, plain.name, json.name, brat.name]).toStrictEqual([
+    "Title",
+    "notes",
+    "graph",
+    "essay",
+  ]);
+  await expect(arguebuf.load.file(new File([""], "map.argdown"))).rejects.toThrow(
+    "arguebuf/argdown",
+  );
+  await expect(arguebuf.load.file(new File([""], "map.xml"))).rejects.toThrow("not supported");
+});
+
 test("brat", () => {
   const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
   const graph = arguebuf.load.brat(
