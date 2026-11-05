@@ -111,6 +111,16 @@ test("userdata types", () => {
     // @ts-expect-error the edge userdata cannot be created
     new arguebuf.GraphDraft<{ edge: AtomData }>().connect([], "s", "a"),
   ).toThrow(arguebuf.GraphError);
+  const edges = new arguebuf.GraphDraft<{ edge: AtomData; scheme: AtomData }>();
+  edges.addNode(new arguebuf.AtomNode({ id: "a", text: "A" }));
+  edges.addNode(new arguebuf.AtomNode({ id: "b", text: "B" }));
+  // @ts-expect-error both userdata factories are required
+  void (() => edges.link("a", "b", { edgeUserdata: () => ({ label: "e" }) }));
+  edges.link("a", "b", {
+    edgeUserdata: () => ({ label: "e" }),
+    schemeUserdata: () => ({ label: "s" }),
+  });
+  expect(Object.values(edges.edges).map((edge) => edge.userdata.label)).toStrictEqual(["e", "e"]);
   arguebuf.load.argdown(
     { statements: {}, arguments: {}, relations: [] },
     // @ts-expect-error only the AIF, xAIF, and JSON loaders reconstruct dialogs

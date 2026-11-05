@@ -247,7 +247,7 @@ const atom = z.codec(
 ```
 
 Constructors make `userdata` optional (defaulting to `{}`) only if `{}` is a valid value of its type.
-Likewise, `connect` requires a userdata factory for the edges it creates if the edge userdata is customized, and `applyPatch` requires the codecs to create userdata.
+Likewise, `connect` requires the factory `edgeUserdata` for the edges it creates if the edge userdata is customized, `link` also requires `schemeUserdata` for customized schemes, and `applyPatch` requires the codecs to create userdata.
 
 For throwaway data like caches, a side table keyed by element ids avoids custom types altogether:
 

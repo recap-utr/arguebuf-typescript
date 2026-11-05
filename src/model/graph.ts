@@ -35,7 +35,7 @@ import {
   type OptionalInit,
   initUserdata,
   type Userdata,
-  type UserdataFactoryArgs,
+  type UserdataFactories,
   type UserdataInit,
   type UserdataSchema,
 } from "#/model/userdata.js";
@@ -43,30 +43,26 @@ import {
 export { type Annotation, GraphView } from "#/model/graph/view.js";
 export type { AtomRelation, RelocateOptions, SiblingOptions };
 
-/** Userdata factories of `GraphDraft.link`, required if the userdata of schemes or edges is customized. */
-export interface LinkUserdata<S extends UserdataSchema> {
-  readonly scheme: () => Userdata<S, "scheme">;
-  readonly edge: () => Userdata<S, "edge">;
-}
+const defaultUserdata = <T>(): T => initUserdata<T>(undefined);
 
-type DefaultLinkUserdata<S extends UserdataSchema> = {} extends Userdata<S, "scheme"> &
-  Userdata<S, "edge">
-  ? true
-  : false;
+/** Options of `GraphDraft.connect`, `edgeUserdata` is required if the edge userdata is customized. */
+export type ConnectOptions<S extends UserdataSchema> = UserdataFactories<S, "edge">;
+
+/** Arguments of `GraphDraft.connect` after the nodes. */
+export type ConnectArgs<S extends UserdataSchema> = OptionalInit<ConnectOptions<S>>;
 
 /**
  * Options of `GraphDraft.link`.
- * `scheme` is the scheme of the inserted scheme node, `userdata` creates the userdata
- * of the new elements and is required if the userdata of schemes or edges is customized.
+ * `scheme` is the scheme of the inserted scheme node, the userdata factories are required
+ * if the userdata of edges or schemes is customized.
  */
-export type LinkOptions<S extends UserdataSchema> = {
-  scheme?: Scheme;
-} & (DefaultLinkUserdata<S> extends true
-  ? { userdata?: LinkUserdata<S> }
-  : { userdata: LinkUserdata<S> });
+export type LinkOptions<S extends UserdataSchema> = { readonly scheme?: Scheme } & UserdataFactories<
+  S,
+  "edge" | "scheme"
+>;
 
-export type LinkArgs<S extends UserdataSchema> =
-  DefaultLinkUserdata<S> extends true ? [options?: LinkOptions<S>] : [options: LinkOptions<S>];
+/** Arguments of `GraphDraft.link` after the nodes. */
+export type LinkArgs<S extends UserdataSchema> = OptionalInit<LinkOptions<S>>;
 
 export type GraphInit<S extends UserdataSchema = {}> = {
   name?: string;
@@ -378,18 +374,34 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
 
   /**
    * Connect the premises to the conclusion via the scheme node, all part of the graph.
-   * The userdata of the new edges is created by `userdata`, which defaults to `{}`
+   * The userdata of the new edges is created by `options.edgeUserdata`, which defaults to `{}`
    * and is required if the edge userdata is customized.
    */
   connect(
     premises: Iterable<string | Node<S>>,
     scheme: string | SchemeNodeOf<S>,
     conclusion: string | Node<S>,
-    ...[userdata]: UserdataFactoryArgs<Userdata<S, "edge">>
+    ...args: ConnectArgs<S>
+  ): void;
+  connect(
+    premises: Iterable<string | Node<S>>,
+    scheme: string | SchemeNodeOf<S>,
+    conclusion: string | Node<S>,
+    options?: { readonly edgeUserdata?: () => Userdata<S, "edge"> },
   ): void {
-    const create = userdata ?? (() => initUserdata<Userdata<S, "edge">>(undefined));
+    this.addPath(premises, scheme, conclusion, options?.edgeUserdata ?? defaultUserdata);
+  }
+
+  private addPath(
+    premises: Iterable<string | Node<S>>,
+    scheme: string | SchemeNodeOf<S>,
+    conclusion: string | Node<S>,
+    edgeUserdata: () => Userdata<S, "edge">,
+  ): void {
     const link = (source: string | Node<S>, target: string | Node<S>) =>
-      this.addEdge(new Edge({ source: idOf(source), target: idOf(target), userdata: create() }));
+      this.addEdge(
+        new Edge({ source: idOf(source), target: idOf(target), userdata: edgeUserdata() }),
+      );
 
     for (const premise of premises) {
       link(premise, scheme);
@@ -402,18 +414,26 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
    * Connect two nodes of the graph.
    * Atoms cannot be connected directly, so a scheme node with `options.scheme` (untyped by default)
    * is inserted between them and returned.
-   * The userdata of the new elements is created by `options.userdata`,
-   * which is required if it is customized.
+   * The userdata of the new elements is created by `options.edgeUserdata` and `options.schemeUserdata`,
+   * which are required if the userdata of edges or schemes is customized.
    */
   link(
     source: string | Node<S>,
     target: string | Node<S>,
-    ...[options]: LinkArgs<S>
+    ...args: LinkArgs<S>
+  ): SchemeNodeOf<S> | undefined;
+  link(
+    source: string | Node<S>,
+    target: string | Node<S>,
+    options?: {
+      readonly scheme?: Scheme;
+      readonly edgeUserdata?: () => Userdata<S, "edge">;
+      readonly schemeUserdata?: () => Userdata<S, "scheme">;
+    },
   ): SchemeNodeOf<S> | undefined {
     const from = this.node(source);
     const to = this.node(target);
-    const userdata = options?.userdata;
-    const edge = userdata?.edge ?? (() => initUserdata<Userdata<S, "edge">>(undefined));
+    const edgeUserdata = options?.edgeUserdata ?? defaultUserdata;
     const found = this.checkLink(from, to);
 
     if (found !== undefined) {
@@ -421,17 +441,17 @@ export class GraphDraft<S extends UserdataSchema = {}> extends GraphView<S> {
     }
 
     if (from.type !== "atom" || to.type !== "atom") {
-      this.addEdge(new Edge({ source: from.id, target: to.id, userdata: edge() }));
+      this.addEdge(new Edge({ source: from.id, target: to.id, userdata: edgeUserdata() }));
 
       return undefined;
     }
 
     const scheme = new SchemeNode({
       scheme: options?.scheme,
-      userdata: userdata?.scheme() ?? initUserdata<Userdata<S, "scheme">>(undefined),
+      userdata: (options?.schemeUserdata ?? defaultUserdata)(),
     });
     this.addNode(scheme);
-    this.connect([from], scheme, to, edge);
+    this.addPath([from], scheme, to, edgeUserdata);
 
     return scheme;
   }

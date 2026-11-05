@@ -51,8 +51,15 @@ export type UserdataInit<T> = {} extends T ? { userdata?: T } : { userdata: T };
 /** Constructor arguments whose init object is optional only if all its fields are. */
 export type OptionalInit<I> = {} extends I ? [init?: I] : [init: I];
 
-/** Factory for userdata that a method creates, optional only if `{}` is a valid value. */
-export type UserdataFactoryArgs<T> = {} extends T ? [userdata?: () => T] : [userdata: () => T];
+/**
+ * Factories `edgeUserdata` and `schemeUserdata` for the userdata of the kinds `K`
+ * that a method creates, each required only if `{}` is not a valid value of its kind.
+ */
+export type UserdataFactories<S extends UserdataSchema, K extends "edge" | "scheme"> = {
+  readonly [P in K as {} extends Userdata<S, P> ? never : `${P}Userdata`]: () => Userdata<S, P>;
+} & {
+  readonly [P in K as {} extends Userdata<S, P> ? `${P}Userdata` : never]?: () => Userdata<S, P>;
+};
 
 /**
  * The supplied userdata, deeply frozen if it is plain data (see `freeze`).
