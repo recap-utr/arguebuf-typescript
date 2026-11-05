@@ -58,8 +58,8 @@ export function siblingNodeDistances<S extends UserdataSchema>(
   graph: GraphView<S>,
   start: Node<S>,
   { maxLevels = 1, nodeType }: SiblingOptions = {},
-): Map<string, number> {
-  const distances = new Map<string, number>();
+): Map<Node<S>, number> {
+  const distances = new Map<Node<S>, number>();
   const visited = new Set([start.id]);
   const parents = (x: Node<S>) => graph.outgoingNodes(x);
   const children = (x: Node<S>) => graph.incomingNodes(x);
@@ -78,9 +78,9 @@ export function siblingNodeDistances<S extends UserdataSchema>(
       if (
         sibling.id !== start.id &&
         (nodeType === undefined || sibling.type === nodeType) &&
-        !distances.has(sibling.id)
+        !distances.has(sibling)
       ) {
-        distances.set(sibling.id, level);
+        distances.set(sibling, level);
       }
     }
   }

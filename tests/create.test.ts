@@ -90,8 +90,8 @@ test("sibling nodes", () => {
 
   expect(graph.siblingNodeDistances("a2", { maxLevels: Infinity })).toStrictEqual(
     new Map([
-      ["a1", 2],
-      ["a6", 4],
+      [graph.nodes.a1, 2],
+      [graph.nodes.a6, 4],
     ]),
   );
   expect(graph.siblingNodes("a2")).toStrictEqual([]);

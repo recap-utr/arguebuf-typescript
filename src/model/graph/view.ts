@@ -168,21 +168,20 @@ export abstract class GraphView<S extends UserdataSchema = {}> {
   }
 
   /**
-   * Find the ids of the sibling nodes of `node` together with their distance.
+   * Find the sibling nodes of `node` together with their distance.
    *
    * Each ancestor is reached via its shortest path up (via outgoing edges) of length `n`.
    * The siblings at distance `n` are the nodes exactly `n` levels below it (via incoming edges).
    * Each sibling gets its minimal distance, the start node is excluded.
    * Use `Infinity` for `options.maxLevels` to search the whole graph.
    */
-  siblingNodeDistances(node: string | Node<S>, options?: SiblingOptions): Map<string, number> {
+  siblingNodeDistances(node: string | Node<S>, options?: SiblingOptions): Map<Node<S>, number> {
     return siblingNodeDistances(this, this.node(node), options);
   }
 
+  /** The sibling nodes of `node`, see `siblingNodeDistances`. */
   siblingNodes(node: string | Node<S>, options?: SiblingOptions): Node<S>[] {
-    const distances = this.siblingNodeDistances(node, options);
-
-    return Array.from(distances.keys(), (id) => this.store.nodes[id]);
+    return [...this.siblingNodeDistances(node, options).keys()];
   }
 
   /** The scheme node connecting `premise` and `claim` if there is exactly one. */
