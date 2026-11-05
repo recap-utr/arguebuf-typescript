@@ -1,6 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
 import { expect, expectTypeOf, test, vi } from "vitest";
+import * as date from "#/date.js";
 import * as arguebuf from "#/index.js";
 
 function sampleGraph() {
@@ -177,26 +178,26 @@ test("resolve schemes", () => {
 test("dates are parsed and formatted in UTC", () => {
   const value = Temporal.Instant.from("2019-03-23T15:57:30Z");
 
-  expect(arguebuf.date.parseAif("2019-03-23 15:57:30")).toStrictEqual(value);
-  expect(arguebuf.date.parseAif("2019-3-23 15:57:30")).toStrictEqual(value);
-  expect(arguebuf.date.parseIso("2019-03-23T16:57:30+01:00")).toStrictEqual(value);
-  expect(arguebuf.date.parseIso("2019-03-23T15:57:30")).toStrictEqual(value);
-  expect(arguebuf.date.parseIso("2019-03-23T15:57:30Z[Europe/Berlin]")).toStrictEqual(value);
-  expect(arguebuf.date.parseOva("23/03/2019 - 15:57:30")).toStrictEqual(value);
-  expect(arguebuf.date.parseOva("23/3/2019 - 15:57:30")).toStrictEqual(value);
-  expect(arguebuf.date.parseOvaDate("1/2/2019")).toStrictEqual(
+  expect(date.parseAif("2019-03-23 15:57:30")).toStrictEqual(value);
+  expect(date.parseAif("2019-3-23 15:57:30")).toStrictEqual(value);
+  expect(date.parseIso("2019-03-23T16:57:30+01:00")).toStrictEqual(value);
+  expect(date.parseIso("2019-03-23T15:57:30")).toStrictEqual(value);
+  expect(date.parseIso("2019-03-23T15:57:30Z[Europe/Berlin]")).toStrictEqual(value);
+  expect(date.parseOva("23/03/2019 - 15:57:30")).toStrictEqual(value);
+  expect(date.parseOva("23/3/2019 - 15:57:30")).toStrictEqual(value);
+  expect(date.parseOvaDate("1/2/2019")).toStrictEqual(
     Temporal.Instant.from("2019-02-01T00:00Z"),
   );
-  expect(arguebuf.date.formatAif(value)).toBe("2019-03-23 15:57:30");
-  expect(arguebuf.date.parseAif(undefined)).toBeUndefined();
-  expect(arguebuf.date.parseOva("")).toBeUndefined();
+  expect(date.formatAif(value)).toBe("2019-03-23 15:57:30");
+  expect(date.parseAif(undefined)).toBeUndefined();
+  expect(date.parseOva("")).toBeUndefined();
 
   for (const [parse, text] of [
-    [arguebuf.date.parseAif, "2019-13-01 00:00:00"],
-    [arguebuf.date.parseAif, "2019-03-23T15:57:30"],
-    [arguebuf.date.parseIso, "yesterday"],
-    [arguebuf.date.parseOva, "23/03/2019"],
-    [arguebuf.date.parseOvaDate, "23/03/2019 - 15:57:30"],
+    [date.parseAif, "2019-13-01 00:00:00"],
+    [date.parseAif, "2019-03-23T15:57:30"],
+    [date.parseIso, "yesterday"],
+    [date.parseOva, "23/03/2019"],
+    [date.parseOvaDate, "23/03/2019 - 15:57:30"],
   ] as const) {
     expect(() => parse(text)).toThrow(RangeError);
   }
@@ -213,7 +214,7 @@ test("instants survive drafts and the protobuf round trip", () => {
   expect(result.metadata.created).toBe(created);
   expect(result.resources.r.timestamp).toBe(created);
   expect(graph.metadata.created).not.toBe(created);
-  expect(arguebuf.date.toProtobuf(created)).toMatchObject({ seconds: -1n, nanos: 123456789 });
+  expect(date.toProtobuf(created)).toMatchObject({ seconds: -1n, nanos: 123456789 });
 });
 
 test("graphs, elements, and plain userdata are frozen", () => {
