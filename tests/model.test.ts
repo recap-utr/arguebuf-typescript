@@ -1,6 +1,5 @@
 import { create } from "@bufbuild/protobuf";
 import * as pb from "arg-services/graph/v1/graph_pb";
-import { Temporal } from "temporal-polyfill";
 import { expect, expectTypeOf, test, vi } from "vitest";
 import * as arguebuf from "#/index.js";
 

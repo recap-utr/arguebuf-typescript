@@ -19,6 +19,9 @@ You can install the library from [npm](https://www.npmjs.com/package/arguebuf).
 npm install arguebuf
 ```
 
+The library uses the native [`Temporal`](https://tc39.es/proposal-temporal/docs/) API, so it requires a runtime that provides it (e.g. Node.js 26+) or a global polyfill such as `import "temporal-polyfill/global"`.
+For type checking, add `"ESNext.Temporal"` to the `lib` option of your `tsconfig.json`.
+
 ## Usage
 
 When importing this library, we recommend using a namespace import.
@@ -255,7 +258,7 @@ embeddings.set(node.id, embed(node.text));
 
 ### Dates
 
-All timestamps are immutable `Temporal.Instant` values, `Temporal` is re-exported from [temporal-polyfill](https://github.com/fullcalendar/temporal-polyfill).
+All timestamps are immutable `Temporal.Instant` values of the native `Temporal` API.
 Timestamps without timezone are interpreted as UTC.
 Each format uses one strict pattern:
 

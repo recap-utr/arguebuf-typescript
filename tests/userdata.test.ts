@@ -157,7 +157,7 @@ test("repairing atom edges preserves required userdata and metadata", () => {
     ],
   });
   const metadata = new arguebuf.Metadata({
-    created: arguebuf.Temporal.Instant.from("2000-01-01T00:00Z"),
+    created: Temporal.Instant.from("2000-01-01T00:00Z"),
   });
   const issues: arguebuf.Issue[] = [];
   const context = loadOptions<{ edge: AtomData }>({

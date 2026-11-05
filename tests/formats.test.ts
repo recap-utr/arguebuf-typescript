@@ -1,5 +1,4 @@
 // Regression tests for the format loaders and dumpers, mirroring tests/test_formats.py of arguebuf-python.
-import { Temporal } from "temporal-polyfill";
 import { expect, test, vi } from "vitest";
 import { dumpGraphology } from "#/graphology.js";
 import * as arguebuf from "#/index.js";

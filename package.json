@@ -42,13 +42,13 @@
     "ajv": "^8",
     "approx-string-match": "^2",
     "parse5": "^8",
-    "temporal-polyfill": "^0.3",
     "ts-graphviz": "^3",
     "word-wrap": "^1"
   },
   "devDependencies": {
     "@argdown/core": "^2",
     "graphology": "^0.26",
+    "temporal-polyfill": "^1",
     "typescript": "^7",
     "vite": "^8",
     "vitest": "^5",

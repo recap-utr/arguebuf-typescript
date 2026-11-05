@@ -1,4 +1,3 @@
-export { Temporal } from "temporal-polyfill";
 /** Arguebuf graph as protobuf JSON. */
 export type { GraphJson } from "arg-services/graph/v1/graph_pb";
 export { check, type CheckOptions } from "#/check.js";

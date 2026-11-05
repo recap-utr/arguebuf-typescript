@@ -1,4 +1,3 @@
-import type { Temporal } from "temporal-polyfill";
 import { Metadata } from "#/model/metadata.js";
 import {
   initUserdata,

@@ -1,4 +1,3 @@
-import { Temporal } from "temporal-polyfill";
 import { assertType, expect, test } from "vitest";
 import aifGraph from "#data/arguebase/microtexts/format=aif,lang=en/nodeset6361.json" with { type: "json" };
 import * as arguebuf from "#/index.js";

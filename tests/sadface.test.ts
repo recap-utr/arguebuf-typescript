@@ -1,4 +1,3 @@
-import { Temporal } from "temporal-polyfill";
 import { assertType, expect, test } from "vitest";
 import sadfaceGraph from "#data/sadface.json" with { type: "json" };
 import * as arguebuf from "#/index.js";

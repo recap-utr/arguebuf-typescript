@@ -1,6 +1,5 @@
 import { create } from "@bufbuild/protobuf";
 import { type Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
-import { Temporal } from "temporal-polyfill";
 
 // Each format has one explicit pattern, naive timestamps are read as UTC and all output is UTC.
 // Missing input yields undefined, malformed input throws a RangeError.
