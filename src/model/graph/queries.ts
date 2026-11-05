@@ -12,6 +12,14 @@ export interface AtomRelation<S extends UserdataSchema = {}> {
   readonly scheme: SchemeNodeOf<S>;
 }
 
+/** Options of `GraphView.siblingNodeDistances` and `GraphView.siblingNodes`. */
+export interface SiblingOptions {
+  /** Number of levels to search up and down, defaults to 1 and `Infinity` searches the whole graph. */
+  readonly maxLevels?: number;
+  /** Only return siblings of this type. */
+  readonly nodeType?: Node["type"];
+}
+
 /** Unique neighbors of all given nodes. */
 function layer<N extends Entity>(nodes: readonly N[], neighbors: (node: N) => N[]): N[] {
   return [...new Map(nodes.flatMap(neighbors).map((node) => [node.id, node])).values()];
@@ -49,8 +57,7 @@ export function neighborAtomNodes<S extends UserdataSchema>(
 export function siblingNodeDistances<S extends UserdataSchema>(
   graph: GraphView<S>,
   start: Node<S>,
-  maxLevels: number,
-  nodeType: Node["type"] | undefined,
+  { maxLevels = 1, nodeType }: SiblingOptions = {},
 ): Map<string, number> {
   const distances = new Map<string, number>();
   const visited = new Set([start.id]);

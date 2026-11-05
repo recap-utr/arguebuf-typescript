@@ -88,7 +88,7 @@ test("sibling nodes", () => {
     ),
   });
 
-  expect(graph.siblingNodeDistances("a2", Infinity)).toStrictEqual(
+  expect(graph.siblingNodeDistances("a2", { maxLevels: Infinity })).toStrictEqual(
     new Map([
       ["a1", 2],
       ["a6", 4],
@@ -96,7 +96,7 @@ test("sibling nodes", () => {
   );
   expect(graph.siblingNodes("a2")).toStrictEqual([]);
   expect(ids(graph.siblingNodes("s3"))).toStrictEqual(["s4"]);
-  expect(ids(graph.siblingNodes("a1", 2, "atom"))).toStrictEqual(["a2"]);
+  expect(ids(graph.siblingNodes("a1", { maxLevels: 2, nodeType: "atom" }))).toStrictEqual(["a2"]);
 });
 
 test("sibling and atom queries terminate on cycles", () => {
@@ -109,7 +109,7 @@ test("sibling and atom queries terminate on cycles", () => {
   expect(ids(graph.incomingAtomNodes("s1"))).toStrictEqual(["a1", "a2"]);
   expect(graph.outgoingAtomNodes("a2")).toStrictEqual([]);
   expect(ids(graph.incomingAtomNodes("a2"))).toStrictEqual(["a1"]);
-  expect(ids(graph.siblingNodes("a1", Infinity))).toStrictEqual(["s2"]);
+  expect(ids(graph.siblingNodes("a1", { maxLevels: Infinity }))).toStrictEqual(["s2"]);
 });
 
 test("adjacency and traversal", () => {
@@ -131,11 +131,13 @@ test("adjacency and traversal", () => {
     expect(arguebuf.traverse.nodeDistance(n1, node, outgoing)).toBe(index);
   });
   expect(arguebuf.traverse.nodeDistance(n3, n1, outgoing)).toBeUndefined();
-  expect(arguebuf.traverse.nodeDistance(n3, n1, outgoing, Infinity, false)).toBe(2);
-  expect(arguebuf.traverse.nodeDistance(n1, n3, outgoing, 1)).toBeUndefined();
+  expect(arguebuf.traverse.nodeDistance(n3, n1, outgoing, { directed: false })).toBe(2);
+  expect(arguebuf.traverse.nodeDistance(n1, n3, outgoing, { maxDistance: 1 })).toBeUndefined();
   expect(arguebuf.traverse.bfs(n1, outgoing)).toStrictEqual([n1, n2, n3]);
   expect(
-    arguebuf.traverse.dfs<arguebuf.Node>(n3, (node) => graph.incomingNodes(node), false),
+    arguebuf.traverse.dfs<arguebuf.Node>(n3, (node) => graph.incomingNodes(node), {
+      includeStart: false,
+    }),
   ).toStrictEqual([n2, n1]);
 
   expect(graph.schemeBetween(n1, n3)).toBe(n2);

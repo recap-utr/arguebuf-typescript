@@ -49,13 +49,13 @@ export function d2<S extends UserdataSchema>(
       nodeToD2(
         node,
         atomLabel?.(node) ?? node.label,
-        node.color(graph.majorClaim === node.id, monochrome),
+        node.color({ majorClaim: graph.majorClaim === node.id, monochrome }),
       ),
     );
   const schemes = (schemeNodes ? nodes : [])
     .filter((node) => node.type === "scheme")
     .map((node) =>
-      nodeToD2(node, schemeLabel?.(node) ?? node.label, node.color(false, monochrome)),
+      nodeToD2(node, schemeLabel?.(node) ?? node.label, node.color({ monochrome })),
     );
   const edges = schemeNodes
     ? Object.values(graph.edges).map((edge) => `${quote(edge.source)} -> ${quote(edge.target)}\n`)
@@ -63,7 +63,7 @@ export function d2<S extends UserdataSchema>(
         .atomRelations()
         .map(
           ({ source, target, scheme }) =>
-            `${quote(source.id)} -> ${quote(target.id)}: {style.stroke: ${quote(scheme.color(false, monochrome).bg)}}\n`,
+            `${quote(source.id)} -> ${quote(target.id)}: {style.stroke: ${quote(scheme.color({ monochrome }).bg)}}\n`,
         );
 
   return [...atoms, ...schemes, ...edges].join("");

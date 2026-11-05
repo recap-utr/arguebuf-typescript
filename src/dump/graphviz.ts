@@ -93,12 +93,12 @@ export function graphviz<S extends UserdataSchema>(
         const text = (atomLabel?.(node) ?? node.label).replaceAll(/\s+/g, " ").trim();
         g.node(node.id, {
           label: literal(wrap(text, { width: wrapCol, indent: "", trim: true })),
-          ...nodeColors(node.color(majorClaim, monochrome)),
+          ...nodeColors(node.color({ majorClaim, monochrome })),
           root: majorClaim,
         });
       } else if (schemeNodes) {
         const label = literal(schemeLabel?.(node) ?? node.label);
-        g.node(node.id, { label, ...nodeColors(node.color(false, monochrome)) });
+        g.node(node.id, { label, ...nodeColors(node.color({ monochrome })) });
       }
     }
 
@@ -108,7 +108,7 @@ export function graphviz<S extends UserdataSchema>(
       }
     } else {
       for (const { source, target, scheme } of graph.atomRelations()) {
-        g.edge([source.id, target.id], { color: scheme.color(false, monochrome).bg });
+        g.edge([source.id, target.id], { color: scheme.color({ monochrome }).bg });
       }
     }
   });

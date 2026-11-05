@@ -11,7 +11,7 @@ import {
   remove,
   touched,
 } from "#/model/graph/helpers.js";
-import type { AtomRelation } from "#/model/graph/queries.js";
+import type { AtomRelation, SiblingOptions } from "#/model/graph/queries.js";
 import { relocateReferences, type RelocateOptions } from "#/model/graph/references.js";
 import { removeBranches, removeElements, removeNode } from "#/model/graph/removal.js";
 import { validateAtom, validateEdge } from "#/model/graph/validation.js";
@@ -41,7 +41,7 @@ import {
 } from "#/model/userdata.js";
 
 export { type Annotation, GraphView } from "#/model/graph/view.js";
-export type { AtomRelation, RelocateOptions };
+export type { AtomRelation, RelocateOptions, SiblingOptions };
 
 /** Userdata factories of `GraphDraft.link`, required if the userdata of schemes or edges is customized. */
 export interface LinkUserdata<S extends UserdataSchema> {

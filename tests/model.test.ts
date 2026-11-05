@@ -145,8 +145,8 @@ test("node labels and colors", () => {
     new arguebuf.SchemeNode({ scheme: { case: "attack", value: arguebuf.Attack.DEFAULT } }).label,
   ).toBe("Attack");
   expect(new arguebuf.SchemeNode().label).toBe("Unknown");
-  expect(graph.nodes.s.color(false, false).bg).toBe("#4CAF50");
-  expect(graph.nodes.c.color(true, false).bg).toBe("#0D47A1");
+  expect(graph.nodes.s.color().bg).toBe("#4CAF50");
+  expect(graph.nodes.c.color({ majorClaim: true }).bg).toBe("#0D47A1");
 });
 
 test("metadata describes a single instant", () => {

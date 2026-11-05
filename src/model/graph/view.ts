@@ -6,6 +6,7 @@ import {
   type AtomRelation,
   atomRelations,
   neighborAtomNodes,
+  type SiblingOptions,
   siblingNodeDistances,
 } from "#/model/graph/queries.js";
 import type { Adjacency, GraphStore } from "#/model/graph/store.js";
@@ -172,18 +173,14 @@ export abstract class GraphView<S extends UserdataSchema = {}> {
    * Each ancestor is reached via its shortest path up (via outgoing edges) of length `n`.
    * The siblings at distance `n` are the nodes exactly `n` levels below it (via incoming edges).
    * Each sibling gets its minimal distance, the start node is excluded.
-   * Use `Infinity` for `maxLevels` to search the whole graph.
+   * Use `Infinity` for `options.maxLevels` to search the whole graph.
    */
-  siblingNodeDistances(
-    node: string | Node<S>,
-    maxLevels = 1,
-    nodeType?: Node["type"],
-  ): Map<string, number> {
-    return siblingNodeDistances(this, this.node(node), maxLevels, nodeType);
+  siblingNodeDistances(node: string | Node<S>, options?: SiblingOptions): Map<string, number> {
+    return siblingNodeDistances(this, this.node(node), options);
   }
 
-  siblingNodes(node: string | Node<S>, maxLevels = 1, nodeType?: Node["type"]): Node<S>[] {
-    const distances = this.siblingNodeDistances(node, maxLevels, nodeType);
+  siblingNodes(node: string | Node<S>, options?: SiblingOptions): Node<S>[] {
+    const distances = this.siblingNodeDistances(node, options);
 
     return Array.from(distances.keys(), (id) => this.store.nodes[id]);
   }

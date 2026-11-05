@@ -21,6 +21,14 @@ export interface Color {
   readonly border: HexColor;
 }
 
+/** Options of `Node.color`. */
+export interface ColorOptions {
+  /** Use the color of the major claim, only relevant for atom nodes. */
+  readonly majorClaim?: boolean;
+  /** Use black and white instead of the colors of the node type. */
+  readonly monochrome?: boolean;
+}
+
 function filledColor(bg: HexColor): Color {
   return { bg, fg: "#ffffff", border: bg };
 }
@@ -60,7 +68,7 @@ abstract class AbstractNode<U, K extends Node["type"]> {
   abstract get label(): string;
 
   /** Color used when rendering the node. */
-  abstract color(majorClaim: boolean, monochrome: boolean): Color;
+  abstract color(options?: ColorOptions): Color;
 }
 
 /** Fields of an atom node that `AtomNode.with` and `GraphDraft.updateAtom` change. */
@@ -105,7 +113,7 @@ export class AtomNode<U = JsonObject> extends AbstractNode<U, "atom"> {
     return this.text;
   }
 
-  color(majorClaim: boolean, monochrome: boolean): Color {
+  color({ majorClaim = false, monochrome = false }: ColorOptions = {}): Color {
     if (monochrome) {
       return COLOR_MONOCHROME_LIGHT;
     }
@@ -148,7 +156,7 @@ export class SchemeNode<U = JsonObject> extends AbstractNode<U, "scheme"> {
     return schemeLabel(this.scheme);
   }
 
-  color(_majorClaim: boolean, monochrome: boolean): Color {
+  color({ monochrome = false }: ColorOptions = {}): Color {
     if (monochrome) {
       return COLOR_MONOCHROME_DARK;
     }

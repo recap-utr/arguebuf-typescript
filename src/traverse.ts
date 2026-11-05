@@ -1,5 +1,19 @@
 import type { Entity } from "#/model/graph/helpers.js";
 
+/** Options of `dfs` and `bfs`. */
+export interface TraverseOptions {
+  /** Whether the result contains `start`, defaults to true. */
+  readonly includeStart?: boolean;
+}
+
+/** Options of `nodeDistance`. */
+export interface NodeDistanceOptions {
+  /** Only search for paths having at most this length, defaults to `Infinity`. */
+  readonly maxDistance?: number;
+  /** If false, also search for the direction `end` -> `start`, defaults to true. */
+  readonly directed?: boolean;
+}
+
 /** Neighbors of a node, e.g. `(node) => graph.outgoingNodes(node)`. */
 export type Connections<N extends Entity> = (node: N) => Iterable<N>;
 
@@ -35,7 +49,7 @@ function traverse<N extends Entity>(
 export function dfs<N extends Entity>(
   start: N,
   connections: Connections<N>,
-  includeStart = true,
+  { includeStart = true }: TraverseOptions = {},
 ): N[] {
   return traverse(start, connections, includeStart, (pending) => pending.pop());
 }
@@ -44,7 +58,7 @@ export function dfs<N extends Entity>(
 export function bfs<N extends Entity>(
   start: N,
   connections: Connections<N>,
-  includeStart = true,
+  { includeStart = true }: TraverseOptions = {},
 ): N[] {
   let index = 0;
 
@@ -86,15 +100,12 @@ function directedNodeDistance<N extends Entity>(
  * Get the number of steps between `start` and `end` or undefined if there is no path.
  *
  * @param connections Links between nodes, e.g. `(node) => graph.outgoingNodes(node)`.
- * @param maxDistance Only search for paths having at most this length.
- * @param directed If false, also search for the direction `end` -> `start`.
  */
 export function nodeDistance<N extends Entity>(
   start: N,
   end: N,
   connections: Connections<N>,
-  maxDistance = Infinity,
-  directed = true,
+  { maxDistance = Infinity, directed = true }: NodeDistanceOptions = {},
 ): number | undefined {
   if (start.id === end.id) {
     return 0;
