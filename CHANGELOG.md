@@ -1,11 +1,5 @@
 # Changelog
 
-## [3.0.1](https://github.com/recap-utr/arguebuf-typescript/compare/v3.0.0...v3.0.1) (2026-11-05)
-
-### Bug Fixes
-
-* **load:** add helpers for files and plain texts ([3a78ad8](https://github.com/recap-utr/arguebuf-typescript/commit/3a78ad86c9c8b441ea16bb9204d8bdb4411408ff))
-
 ## [3.0.0](https://github.com/recap-utr/arguebuf-typescript/compare/v2.0.2...v3.0.0) (2026-11-05)
 
 ### ⚠ BREAKING CHANGES
