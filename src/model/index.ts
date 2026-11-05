@@ -2,7 +2,21 @@ export * from "#/model/analyst.js";
 export * from "#/model/edge.js";
 export * from "#/model/graph.js";
 export * from "#/model/metadata.js";
-export * from "#/model/node.js";
+export {
+  type AtomChanges,
+  AtomNode,
+  type AtomNodeInit,
+  type AtomNodeOf,
+  type Color,
+  type ColorOptions,
+  type HexColor,
+  type Node,
+  type SchemeChanges,
+  SchemeNode,
+  type SchemeNodeInit,
+  type SchemeNodeOf,
+  schemeColors,
+} from "#/model/node.js";
 export * from "#/model/participant.js";
 export * from "#/model/reference.js";
 export * from "#/model/resource.js";
@@ -17,8 +31,8 @@ export {
   resolveAifScheme,
   resolveScheme,
   type Scheme,
-  scheme2aif,
-  scheme2aifDefault,
+  schemeAifTypes,
+  schemeAifDefaults,
   schemeLabel,
   type SchemeType,
   schemeTypeLabels,
