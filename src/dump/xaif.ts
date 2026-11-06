@@ -19,9 +19,10 @@ export function xaif<S extends UserdataSchema>(obj: model.GraphView<S>): xaifSch
       nodes: Object.values(obj.nodes).map((node) => nodeToAif(node, false)),
       edges: Object.values(obj.edges).map(edgeToAif),
       locutions: [],
+      participants: Object.values(obj.participants).map(participantToAif),
       schemefulfillments: [],
       descriptorfulfillments: [],
-      participants: Object.values(obj.participants).map(participantToAif),
+      cqdescriptorfulfillments: [],
     },
     text: Object.values(obj.resources)
       .map((resource) => escapeHtml(resource.text).replaceAll("\n", "<br>"))

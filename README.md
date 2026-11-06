@@ -206,7 +206,8 @@ const d2 = arguebuf.dump.d2(graph);
 ```
 
 The Graphviz and D2 dumpers return `undefined` for graphs with more than `maxNodes` nodes.
-AIF and xAIF exports are lossy, they do not contain locutions, participants of atom nodes, or userdata.
+AIF and xAIF exports are lossy, they do not contain locutions, participants of atom nodes, or userdata, and untyped scheme nodes become default inferences (RA) as in AIFdb.
+xAIF exports contain no OVA layout, so OVA3 should import AIF exports instead.
 
 ### Userdata
 

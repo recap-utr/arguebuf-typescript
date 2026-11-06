@@ -13,9 +13,10 @@ export function aif<S extends UserdataSchema>(obj: model.GraphView<S>): aifSchem
   };
 }
 
+// AIF has no untyped schemes, so they are exported as default inferences like in AIFdb
 function schemeText(scheme: model.Scheme): string {
   if (scheme.case === undefined) {
-    return model.noSchemeLabel;
+    return model.schemeAifDefaults.support;
   }
 
   return isDefaultScheme(scheme) ? model.schemeAifDefaults[scheme.case] : schemeValueLabel(scheme);
@@ -32,11 +33,11 @@ export function nodeToAif<S extends UserdataSchema>(
       : {
           nodeID: node.id,
           text: schemeText(node.scheme),
-          type: node.scheme.case === undefined ? "" : model.schemeAifTypes[node.scheme.case],
+          type: model.schemeAifTypes[node.scheme.case ?? "support"],
         };
 
   if (timestamp) {
-    result.timestamp = date.formatAif(node.metadata.updated);
+    result.timestamp = date.formatAif(node.metadata.created);
   }
 
   return result;
