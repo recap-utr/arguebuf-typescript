@@ -6,9 +6,8 @@ import {
   isObject,
   stringifyArgdownData,
 } from "@argdown/core";
-import type { JsonValue } from "@bufbuild/protobuf";
 import { argdown } from "#/load/argdown.js";
-import { isArgdown, type LoadArgs } from "#/load/helpers.js";
+import type { LoadArgs } from "#/load/helpers.js";
 import type { Graph } from "#/model/index.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 
@@ -42,19 +41,12 @@ export function loadArgdown<S extends UserdataSchema = {}>(
     relations,
     frontMatter,
   } = app.run({ ...settings, process: ["build-model"] }, response);
-  // Same serialization as the upstream JSON export, extended by the front matter object
-  const data: JsonValue = JSON.parse(
-    stringifyArgdownData({
-      statements,
-      arguments: argumentMap,
-      relations,
-      frontMatter: isObject(frontMatter) ? frontMatter : undefined,
-    }),
+  // Same serialization as the upstream JSON export, the front matter is not part of it
+  const data = stringifyArgdownData({ statements, arguments: argumentMap, relations });
+
+  // validated by the loader
+  return argdown<S>(
+    { ...JSON.parse(data), frontMatter: isObject(frontMatter) ? frontMatter : undefined },
+    ...args,
   );
-
-  if (typeof data !== "object" || data === null || !isArgdown(data)) {
-    throw new Error("The Argdown model lacks statements, arguments, or relations.");
-  }
-
-  return argdown<S>(data, ...args);
 }

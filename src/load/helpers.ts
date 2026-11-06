@@ -1,7 +1,9 @@
 // Shared helpers for loaders that repair or skip malformed data and report it.
 import type { JsonObject } from "@bufbuild/protobuf";
+import type { z } from "zod";
 import {
   catchGraphError,
+  fail,
   GraphError,
   type Issue,
   type IssueCode,
@@ -17,7 +19,6 @@ import {
   resolveCodecs,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import type * as argdownSchema from "#/schemas/argdown.js";
 
 /**
  * Options accepted by all loaders, together with the `codecs` of `CodecArgs`.
@@ -118,27 +119,11 @@ export function relocate<S extends UserdataSchema>(
   }
 }
 
-/**
- * Stringify an id of a JSON format, numbers must be safe integers to agree across languages.
- * Other values (e.g. booleans) are rejected.
- */
-export function stringId(id: string | number): string {
-  if (typeof id === "string") {
-    return id;
-  }
-
-  if (typeof id !== "number" || !Number.isSafeInteger(id)) {
-    throw new Error(`The id '${String(id)}' is neither a string nor a safe integer.`);
-  }
-
-  return String(id);
-}
-
 /** Create a participant named by joining the non-empty `names`. */
 export function newParticipant<S extends UserdataSchema>(
   codecs: ResolvedCodecs<S>,
   id: string,
-  ...names: (string | undefined)[]
+  ...names: (string | undefined | null)[]
 ): model.ParticipantOf<S> {
   return new model.Participant({
     id,
@@ -282,7 +267,24 @@ export function connect<S extends UserdataSchema>(
   link(schemeId, targetId);
 }
 
-/** Detect the Argdown JSON export, shared by `load.json` and the Argdown text loader. */
-export function isArgdown(obj: object): obj is argdownSchema.Graph {
-  return "statements" in obj && "arguments" in obj && "relations" in obj;
+/**
+ * Validate the input of a JSON format and return the parsed data.
+ * Throws an `invalid-input` error listing all problems, regardless of the `strict` option.
+ */
+export function parseInput<T extends z.ZodType>(
+  format: string,
+  schema: T,
+  obj: z.input<T>,
+): z.output<T> {
+  const result = schema.safeParse(obj);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  const problems = result.error.issues.map(({ path, message }) =>
+    path.length > 0 ? `${path.join(".")}: ${message}` : message,
+  );
+
+  return fail("invalid-input", `The ${format} input is invalid: ${problems.join("; ")}`);
 }

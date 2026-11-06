@@ -1,5 +1,5 @@
 import malformedJson from "#data/malformed.json" with { type: "json" };
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import * as z from "zod";
 import * as arguebuf from "#/index.js";
 
@@ -234,4 +234,81 @@ test("patch results keep element namespaces separate", () => {
   expect([cleared.issues, cleared.removed]).toEqual([[], ["a"]]);
   const unknown = arguebuf.applyPatch(added.graph, { clear: true, delete: ["x"] });
   expect(unknown.issues).toMatchObject([{ code: "unknown-element", path: ["delete"] }]);
+});
+
+test("structurally invalid input throws invalid-input", () => {
+  const invalid = (obj: string) =>
+    arguebuf.catchGraphError(() => arguebuf.load.json(JSON.parse(obj)));
+
+  expect(invalid('{"AIF": {"nodes": {}, "edges": []}}')).toMatchObject({
+    code: "invalid-input",
+    severity: "error",
+    message: "The xAIF input is invalid: AIF.nodes: Invalid input: expected array, received object",
+  });
+  expect(invalid('{"nodes": [{"nodeID": true, "text": "A", "type": "I"}], "edges": []}')).toMatchObject({
+    code: "invalid-input",
+    message: "The AIF input is invalid: nodes.0.nodeID: Invalid input",
+  });
+  expect(invalid("null")).toMatchObject({ code: "invalid-input", message: "The input is not a JSON object." });
+});
+
+test("unknown node types and missing participants are repaired", () => {
+  const warn = vi.fn<(issue: arguebuf.Issue) => void>();
+  const aif = arguebuf.load.json(
+    {
+      nodes: [{ nodeID: "a", text: "A", type: "I" }, { nodeID: "u", text: "U", type: "XX" }],
+      edges: [{ edgeID: "e", fromID: "u", toID: "a" }],
+    },
+    { onIssue: warn },
+  );
+  const ova = arguebuf.load.json(
+    {
+      nodes: [{ id: 1, text: "A", type: "I", descriptors: {}, participantID: "p" }],
+      edges: [],
+      participants: [],
+      analysis: {},
+    },
+    { onIssue: warn },
+  );
+
+  expect(Object.keys(aif.nodes)).toStrictEqual(["a"]);
+  expect(Object.keys(ova.nodes)).toStrictEqual(["1"]);
+  expect(warn).toHaveBeenCalledTimes(2);
+  expect(warn.mock.calls[0][0]).toMatchObject({
+    code: "unknown-element",
+    message: "Skipping node 'u' of unknown type 'XX'.",
+  });
+});
+
+test("null optional values are accepted", () => {
+  const sadface = arguebuf.load.json({
+    nodes: [{ id: "a", type: "atom", text: null, name: null, sources: null, metadata: null }],
+    edges: [],
+    resources: [{ id: "r", content: null, metadata: null }],
+    metadata: { core: { version: null, title: null } },
+  });
+  const ova = arguebuf.load.json({
+    nodes: [{ id: 1, text: "A", type: "I", descriptors: null, participantID: null }],
+    edges: [],
+    participants: [],
+    analysis: { txt: null },
+  });
+
+  expect(Object.keys(sadface.nodes)).toStrictEqual(["a"]);
+  expect(Object.keys(ova.nodes)).toStrictEqual(["1"]);
+});
+
+test("unknown argdown member types are skipped", () => {
+  const warn = vi.fn<(issue: arguebuf.Issue) => void>();
+  const graph = arguebuf.load.json(
+    {
+      statements: { A: { title: "A", members: [] }, B: { title: "B", members: [] } },
+      arguments: {},
+      relations: [{ relationType: "support", from: "A", fromType: "unknown", to: "B", toType: "equivalence-class" }],
+    },
+    { onIssue: warn },
+  );
+
+  expect(Object.keys(graph.schemeNodes)).toHaveLength(0);
+  expect(warn).toHaveBeenCalledWith(expect.objectContaining({ code: "unknown-element" }));
 });

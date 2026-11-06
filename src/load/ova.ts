@@ -2,7 +2,7 @@ import * as date from "#/date.js";
 import * as model from "#/model/index.js";
 import { isAifSchemeType } from "#/model/scheme.js";
 import { dialogTypes } from "#/schemas/aif.js";
-import type * as ovaSchema from "#/schemas/ova.js";
+import * as ovaSchema from "#/schemas/ova.js";
 import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
 import * as helpers from "#/load/helpers.js";
 import { parseHtml } from "#/load/html.js";
@@ -13,8 +13,11 @@ import { parseHtml } from "#/load/html.js";
  * The resource text is the plain text of the highlighted `txt` (see `parseHtml`),
  * falling back to `plain_txt`.
  * Spans with the id `node<atom id>` become references with offsets into it.
- * Dialog nodes (L, TA, YA) and their edges are skipped.
+ * Dialog nodes (L, TA, YA) are skipped silently, nodes of unknown types with a warning.
+ * Descriptor values are atom ids as in ReCAP-OVA exports, stock OVA2 files store node texts or "-" there.
+ * A `participantID` of 0 means no participant.
  * Numeric ids are stringified.
+ * Throws an `invalid-input` error for structurally invalid input.
  */
 export function ova<S extends UserdataSchema = {}>(
   obj: ovaSchema.Graph,
@@ -23,8 +26,9 @@ export function ova<S extends UserdataSchema = {}>(
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
   const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
-  const { analysis } = obj;
-  const [html, spans] = parseHtml(analysis.txt || "");
+  const input = helpers.parseInput("OVA", ovaSchema.Graph, obj);
+  const { analysis } = input;
+  const [html, spans] = parseHtml(analysis.txt);
   const text = html || analysis.plain_txt;
   let resource: model.ResourceOf<S> | undefined;
 
@@ -39,14 +43,9 @@ export function ova<S extends UserdataSchema = {}>(
     graph.addResource(resource);
   }
 
-  for (const participant of obj.participants) {
+  for (const participant of input.participants) {
     graph.addParticipant(
-      helpers.newParticipant(
-        codecs,
-        helpers.stringId(participant.id),
-        participant.firstname,
-        participant.surname,
-      ),
+      helpers.newParticipant(codecs, participant.id, participant.firstname, participant.surname),
     );
   }
 
@@ -59,16 +58,12 @@ export function ova<S extends UserdataSchema = {}>(
     );
   }
 
-  // edges of skipped dialog nodes are expected to be missing, unlike dangling ones
-  const dialog = new Set<string>();
+  // edges of skipped nodes are expected to be missing, unlike dangling ones
+  const skipped = new Set<string>();
 
-  for (const ovaNode of obj.nodes) {
-    if (dialogTypes.has(ovaNode.type)) {
-      dialog.add(helpers.stringId(ovaNode.id));
-    }
-
+  for (const ovaNode of input.nodes) {
     if (ovaNode.type === "I") {
-      const id = helpers.stringId(ovaNode.id);
+      const { id } = ovaNode;
       const span = spans.get(`node${id}`);
       const atom = atomFromOva(ovaNode, codecs, {
         participant: helpers.lookup(
@@ -94,14 +89,24 @@ export function ova<S extends UserdataSchema = {}>(
 
       if (scheme !== undefined) {
         helpers.addNode(graph, ctx, scheme);
+      } else {
+        skipped.add(ovaNode.id);
+
+        if (!dialogTypes.has(ovaNode.type)) {
+          ctx.report(
+            "unknown-element",
+            `Skipping node '${ovaNode.id}' of unknown type '${ovaNode.type}'.`,
+            [ovaNode.id],
+          );
+        }
       }
     }
   }
 
-  for (const ovaEdge of obj.edges) {
-    const source = helpers.stringId(ovaEdge.from.id);
-    const target = helpers.stringId(ovaEdge.to.id);
-    helpers.addEdge(graph, ctx, { source, target, metadata: metadataFromOva(ovaEdge) }, dialog);
+  for (const ovaEdge of input.edges) {
+    const source = ovaEdge.from.id;
+    const target = ovaEdge.to.id;
+    helpers.addEdge(graph, ctx, { source, target, metadata: metadataFromOva(ovaEdge) }, skipped);
   }
 
   helpers.relocate(graph, ctx);
@@ -114,7 +119,7 @@ function metadataFromOva(obj: { date?: string | null }): model.Metadata {
 }
 
 function schemeFromOva<S extends UserdataSchema>(
-  obj: ovaSchema.Node,
+  obj: ovaSchema.NodeOutput,
   codecs: ResolvedCodecs<S>,
 ): model.SchemeNodeOf<S> | undefined {
   if (!isAifSchemeType(obj.type)) {
@@ -122,11 +127,11 @@ function schemeFromOva<S extends UserdataSchema>(
   }
 
   return new model.SchemeNode({
-    id: helpers.stringId(obj.id),
+    id: obj.id,
     scheme: model.resolveAifScheme(obj.type, obj.text),
     // descriptors map roles to atom ids, the conclusion is not a premise
     premiseDescriptors: Object.entries(obj.descriptors).flatMap(([role, id]) =>
-      id === null || role.toLowerCase().startsWith("s_conclusion") ? [] : [helpers.stringId(id)],
+      id === null || role.toLowerCase().startsWith("s_conclusion") ? [] : [id],
     ),
     metadata: metadataFromOva(obj),
     userdata: codecs.scheme.decode({}),
@@ -134,13 +139,13 @@ function schemeFromOva<S extends UserdataSchema>(
 }
 
 function atomFromOva<S extends UserdataSchema>(
-  obj: ovaSchema.Node,
+  obj: ovaSchema.NodeOutput,
   codecs: ResolvedCodecs<S>,
   links: Pick<model.AtomNodeInit, "participant" | "reference">,
 ): model.AtomNodeOf<S> {
   return new model.AtomNode({
     ...links,
-    id: helpers.stringId(obj.id),
+    id: obj.id,
     text: obj.text,
     metadata: metadataFromOva(obj),
     userdata: codecs.atom.decode({}),

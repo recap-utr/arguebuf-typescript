@@ -172,7 +172,6 @@ test("resolve schemes", () => {
     case: "attack",
     value: arguebuf.Attack.DEFAULT,
   });
-  expect(arguebuf.resolveAifScheme("", "")).toStrictEqual({ case: undefined });
 });
 
 test("dates are parsed and formatted in UTC", () => {

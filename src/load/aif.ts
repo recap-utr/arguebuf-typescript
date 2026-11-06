@@ -8,36 +8,45 @@ import * as helpers from "#/load/helpers.js";
 /**
  * Load a graph from the AIF format.
  *
- * Dialog nodes (L, TA, YA) are skipped.
+ * Dialog nodes (L, TA, YA) are skipped silently, nodes of unknown types with a warning.
  * All listed participants and the speakers of locutions become participants.
  * An atom asserted by locutions gets their speaker as participant if they share exactly one,
  * and the locution text as reference if there is exactly one.
  * Numeric ids are stringified.
+ * Throws an `invalid-input` error for structurally invalid input.
  * See `AifOptions.reconstructDialog` to keep the atoms that dialog nodes connect.
  */
 export function aif<S extends UserdataSchema = {}>(
   obj: aifSchema.Graph,
   ...args: helpers.LoadArgs<S, helpers.AifOptions>
 ): model.Graph<S> {
+  return buildAif<S>(helpers.parseInput("AIF", aifSchema.Graph, obj), ...args);
+}
+
+/** Build a graph from AIF data that is already validated, e.g. the `AIF` object of xAIF. */
+export function buildAif<S extends UserdataSchema = {}>(
+  input: aifSchema.GraphOutput,
+  ...args: helpers.LoadArgs<S, helpers.AifOptions>
+): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
   const graph = new model.GraphDraft<S>({ name, userdata: codecs.graph.decode({}) });
-  const index = new Index(obj);
+  const index = new Index(input);
 
-  for (const participant of obj.participants ?? []) {
+  for (const participant of input.participants) {
     graph.addParticipant(
       helpers.newParticipant(
         codecs,
-        helpers.stringId(participant.participantID),
+        participant.participantID,
         participant.firstname,
         participant.surname,
       ),
     );
   }
 
-  const locutionSpeakers = (obj.locutions ?? []).map((locution) => ({
-    node: helpers.stringId(locution.nodeID),
-    person: helpers.stringId(locution.personID),
+  const locutionSpeakers = input.locutions.map((locution) => ({
+    node: locution.nodeID,
+    person: locution.personID,
   }));
 
   for (const { person } of locutionSpeakers) {
@@ -49,14 +58,22 @@ export function aif<S extends UserdataSchema = {}>(
   // a locution may have several speakers
   const speakers = Map.groupBy(locutionSpeakers, ({ node }) => node);
 
-  // edges of skipped dialog nodes are expected to be missing, unlike dangling ones
-  const dialog = new Set<string>();
+  // edges of skipped nodes are expected to be missing, unlike dangling ones
+  const skipped = new Set<string>();
 
-  for (const aifNode of obj.nodes) {
+  for (const aifNode of input.nodes) {
     let node = nodeFromAif(aifNode, codecs);
 
-    if (aifSchema.dialogTypes.has(aifNode.type)) {
-      dialog.add(helpers.stringId(aifNode.nodeID));
+    if (node === undefined) {
+      skipped.add(aifNode.nodeID);
+
+      if (!aifSchema.dialogTypes.has(aifNode.type)) {
+        ctx.report(
+          "unknown-element",
+          `Skipping node '${aifNode.nodeID}' of unknown type '${aifNode.type}'.`,
+          [aifNode.nodeID],
+        );
+      }
     }
 
     if (node?.type === "atom") {
@@ -83,7 +100,7 @@ export function aif<S extends UserdataSchema = {}>(
   }
 
   for (const [id, source, target] of index.edges) {
-    helpers.addEdge(graph, ctx, { id, source, target }, dialog);
+    helpers.addEdge(graph, ctx, { id, source, target }, skipped);
   }
 
   if (args[0]?.reconstructDialog) {
@@ -93,16 +110,16 @@ export function aif<S extends UserdataSchema = {}>(
   return graph.freeze();
 }
 
-/** Create an atom or scheme node from an AIF node, undefined for dialog nodes. */
+/** Create an atom or scheme node from an AIF node, undefined for dialog nodes and unknown types. */
 function nodeFromAif<S extends UserdataSchema>(
-  obj: aifSchema.Node,
+  obj: aifSchema.NodeOutput,
   codecs: ResolvedCodecs<S>,
 ): model.Node<S> | undefined {
   if (obj.type !== "I" && !isAifSchemeType(obj.type)) {
     return undefined;
   }
 
-  const id = helpers.stringId(obj.nodeID);
+  const id = obj.nodeID;
   const metadata = new model.Metadata({ created: date.parseAif(obj.timestamp) });
 
   if (obj.type === "I") {
@@ -128,24 +145,20 @@ type Edge = readonly [string, string, string];
 
 /** Nodes and edges of an AIF graph with string ids. */
 class Index {
-  readonly nodes: ReadonlyMap<string, aifSchema.Node>;
+  readonly nodes: ReadonlyMap<string, aifSchema.NodeOutput>;
   readonly edges: readonly Edge[];
   readonly successors: ReadonlyMap<string, readonly Edge[]>;
   readonly predecessors: ReadonlyMap<string, readonly Edge[]>;
 
-  constructor(obj: aifSchema.Graph) {
-    this.nodes = new Map(obj.nodes.map((node) => [helpers.stringId(node.nodeID), node]));
-    this.edges = obj.edges.map((edge): Edge => [
-      helpers.stringId(edge.edgeID),
-      helpers.stringId(edge.fromID),
-      helpers.stringId(edge.toID),
-    ]);
+  constructor(obj: aifSchema.GraphOutput) {
+    this.nodes = new Map(obj.nodes.map((node) => [node.nodeID, node]));
+    this.edges = obj.edges.map((edge): Edge => [edge.edgeID, edge.fromID, edge.toID]);
 
     this.successors = Map.groupBy(this.edges, ([, source]) => source);
     this.predecessors = Map.groupBy(this.edges, ([, , target]) => target);
   }
 
-  type(id: string): aifSchema.NodeType | undefined {
+  type(id: string): string | undefined {
     return this.nodes.get(id)?.type;
   }
 

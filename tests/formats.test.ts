@@ -2,8 +2,9 @@
 import { expect, test, vi } from "vitest";
 import { dumpGraphology } from "#/graphology.js";
 import * as arguebuf from "#/index.js";
-import { loadOptions, newReference, stringId } from "#/load/helpers.js";
+import { loadOptions, newReference } from "#/load/helpers.js";
 import { parseHtml } from "#/load/html.js";
+import { Id } from "#/schemas/common.js";
 
 const KIALO = `Discussion Title: Title
 
@@ -113,8 +114,8 @@ test("brat", () => {
 
 test("sadface", () => {
   const graph = arguebuf.load.json({
-    metadata: { core: { id: "g", version: "0.5" } },
-    resources: [{ id: "r", content: "Text A", type: "text" }],
+    metadata: { core: { version: "0.5" } },
+    resources: [{ id: "r", content: "Text A" }],
     nodes: [
       {
         id: "a",
@@ -148,15 +149,7 @@ test("ova", () => {
     type,
     text,
     descriptors: {},
-    x: 0,
-    y: 0,
-    w: 0,
-    h: 0,
-    color: "",
-    scheme: "",
-    cqdesc: {},
-    visible: true,
-    participantID: "",
+    participantID: "0",
     ...fields,
   });
   const claim = node(1, "I", "A & B", {
@@ -172,9 +165,9 @@ test("ova", () => {
   const obj: arguebuf.schemas.ova.Graph = {
     nodes: [claim, premise, scheme, locution],
     edges: [
-      { from: premise, to: scheme, visible: true },
-      { from: scheme, to: claim, visible: true },
-      { from: locution, to: premise, visible: true },
+      { from: premise, to: scheme },
+      { from: scheme, to: claim },
+      { from: locution, to: premise },
     ],
     participants: [{ id: 7, firstname: "Bob", surname: "Smith" }],
     analysis: {
@@ -202,6 +195,7 @@ test("ova", () => {
   // UTF-16 offset after two spaces and an emoji, Python counts 3 code points
   expect(graph.atomNodes["1"].reference).toMatchObject({ text: "A & B", offset: 4 });
   expect(graph.atomNodes["2"].participant).toBeUndefined();
+  expect(warn).not.toHaveBeenCalled();
   expect(graph.nodes["1"].metadata.created).toStrictEqual(
     Temporal.Instant.from("2019-03-23T15:57:30Z"),
   );
@@ -221,14 +215,12 @@ test("ova", () => {
 });
 
 test("numeric ids", () => {
-  for (const value of [Number.MIN_SAFE_INTEGER, 0, Number.MAX_SAFE_INTEGER]) {
-    expect(stringId(value)).toBe(String(value));
+  for (const value of [0, 2 ** 60, 1.5]) {
+    expect(Id.parse(value)).toBe(String(value));
   }
 
-  expect(stringId("9007199254740992")).toBe("9007199254740992");
-
-  for (const value of [Number.MIN_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER + 1, 1e21, 1.5]) {
-    expect(() => stringId(value)).toThrow("safe integer");
+  for (const value of [true, null, {}]) {
+    expect(() => Id.parse(value)).toThrow();
   }
 });
 
@@ -289,9 +281,6 @@ test("lenient json loaders", () => {
   expect(
     arguebuf.load.json({ ...aif, nodes: [{ ...aif.nodes[1], nodeID: 2.0 }] }).nodes,
   ).toHaveProperty("2");
-  expect(() => arguebuf.load.json({ ...aif, nodes: [{ ...aif.nodes[1], nodeID: 1.5 }] })).toThrow(
-    "neither a string nor a safe integer",
-  );
 
   for (const text of [undefined, null, { txt: null }]) {
     const graph = arguebuf.load.json({
@@ -303,7 +292,7 @@ test("lenient json loaders", () => {
   }
 
   const sadface = arguebuf.load.json({
-    metadata: { core: { id: "g", version: "0.5", edited: "2020-01-01T00:00:00" } },
+    metadata: { core: { version: "0.5", edited: "2020-01-01T00:00:00" } },
     nodes: [],
     edges: [],
   });

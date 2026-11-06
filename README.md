@@ -129,7 +129,9 @@ They repair what they can and skip the rest: an edge between two atoms gets an u
 References whose text is not found at their offset are moved to the most similar span of their resource (see `draft.relocateReferences`).
 Each repair is reported as a warning to the `onIssue` option, which defaults to `console.warn`, and the option `strict: true` throws a `GraphError` instead.
 Malformed values such as unparsable dates always throw an error.
-Loaders do not copy the objects they read, so the userdata of a graph shares the (then frozen) plain objects of the input.
+Loaders copy the format objects while validating them, but the userdata of a graph shares the (then frozen) plain objects of the input.
+Only the fields that loaders read are validated and unknown keys are stripped.
+Structurally invalid input, e.g. a missing list or an id of a wrong type, always throws an `invalid-input` error that lists all problems.
 
 ### Issues
 

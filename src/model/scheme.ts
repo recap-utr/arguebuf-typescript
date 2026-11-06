@@ -36,19 +36,18 @@ export const schemeTypeLabels: Readonly<Record<SchemeType, string>> = {
   preference: "Preference",
 };
 
-export const schemeAifTypes: Readonly<Record<SchemeType, Exclude<aif.SchemeType, "">>> = {
+export const schemeAifTypes: Readonly<Record<SchemeType, aif.SchemeType>> = {
   support: "RA",
   attack: "CA",
   rephrase: "MA",
   preference: "PA",
 };
 
-export const aifSchemeTypes: Readonly<Record<aif.SchemeType, SchemeType | undefined>> = {
+export const aifSchemeTypes: Readonly<Record<aif.SchemeType, SchemeType>> = {
   RA: "support",
   CA: "attack",
   MA: "rephrase",
   PA: "preference",
-  "": undefined,
 };
 
 export function isAifSchemeType(type: string): type is aif.SchemeType {
@@ -179,9 +178,7 @@ export function schemeValues(type: SchemeType): Scheme[] {
 
 /** Get the scheme of an AIF scheme node, refined by its text if possible. */
 export function resolveAifScheme(aifType: aif.SchemeType, text: string): Scheme {
-  const type = aifSchemeTypes[aifType];
-
-  return type === undefined ? { case: undefined } : resolveScheme(type, text);
+  return resolveScheme(aifSchemeTypes[aifType], text);
 }
 
 export function isDefaultScheme(scheme: Scheme): boolean {

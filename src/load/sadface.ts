@@ -1,7 +1,7 @@
 import * as date from "#/date.js";
 import * as model from "#/model/index.js";
 import { defaultScheme, normalizeSchemeLabel } from "#/model/scheme.js";
-import type * as sadfaceSchema from "#/schemas/sadface.js";
+import * as sadfaceSchema from "#/schemas/sadface.js";
 import type { ResolvedCodecs, UserdataSchema } from "#/model/userdata.js";
 import * as helpers from "#/load/helpers.js";
 
@@ -22,6 +22,7 @@ const name2schemeType: ReadonlyMap<string, model.SchemeType> = new Map([
  * The first source of an atom becomes its reference.
  * Nodes of unknown types are skipped with a warning.
  * Without a creation date, the edit date is used for both.
+ * Throws an `invalid-input` error for structurally invalid input.
  */
 export function sadface<S extends UserdataSchema = {}>(
   obj: sadfaceSchema.Graph,
@@ -29,7 +30,8 @@ export function sadface<S extends UserdataSchema = {}>(
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
-  const { core } = obj.metadata;
+  const input = helpers.parseInput("SADFace", sadfaceSchema.Graph, obj);
+  const { core } = input.metadata;
   const updated = date.parseIso(core.edited);
   const graph = new model.GraphDraft<S>({
     name,
@@ -54,17 +56,17 @@ export function sadface<S extends UserdataSchema = {}>(
     );
   }
 
-  for (const resource of obj.resources ?? []) {
+  for (const resource of input.resources) {
     graph.addResource(
       new model.Resource({
         id: resource.id,
         text: resource.content || "",
-        userdata: codecs.resource.decode(resource.metadata ?? {}),
+        userdata: codecs.resource.decode(resource.metadata),
       }),
     );
   }
 
-  for (const node of obj.nodes) {
+  for (const node of input.nodes) {
     switch (node.type) {
       case "atom":
         helpers.addNode(graph, ctx, atomFromSadface(node, graph.resources, ctx));
@@ -77,13 +79,13 @@ export function sadface<S extends UserdataSchema = {}>(
       default:
         ctx.report(
           "unknown-element",
-          `Skipping node '${node.id}' of unknown type '${String(node.type)}'.`,
+          `Skipping node '${node.id}' of unknown type '${node.type}'.`,
           [node.id],
         );
     }
   }
 
-  for (const edge of obj.edges) {
+  for (const edge of input.edges) {
     helpers.addEdge(graph, ctx, { id: edge.id, source: edge.source_id, target: edge.target_id });
   }
 
@@ -93,11 +95,11 @@ export function sadface<S extends UserdataSchema = {}>(
 }
 
 function atomFromSadface<S extends UserdataSchema>(
-  obj: sadfaceSchema.Node,
+  obj: sadfaceSchema.NodeOutput,
   resources: Readonly<Record<string, model.ResourceOf<S>>>,
   ctx: helpers.Context<S>,
 ): model.AtomNodeOf<S> {
-  const source = obj.sources?.[0];
+  const [source] = obj.sources;
   const owner = `atom node '${obj.id}'`;
 
   return new model.AtomNode({
@@ -106,7 +108,7 @@ function atomFromSadface<S extends UserdataSchema>(
     reference:
       source &&
       helpers.newReference(ctx, source.text, source.resource_id, source.offset, resources, owner),
-    userdata: ctx.codecs.atom.decode(obj.metadata ?? {}),
+    userdata: ctx.codecs.atom.decode(obj.metadata),
   });
 }
 
@@ -116,7 +118,7 @@ function atomFromSadface<S extends UserdataSchema>(
  * a missing name yields no scheme.
  */
 function schemeFromSadface<S extends UserdataSchema>(
-  obj: sadfaceSchema.Node,
+  obj: sadfaceSchema.NodeOutput,
   codecs: ResolvedCodecs<S>,
 ): model.SchemeNodeOf<S> {
   const name = obj.name || "";
@@ -136,6 +138,6 @@ function schemeFromSadface<S extends UserdataSchema>(
   return new model.SchemeNode({
     id: obj.id,
     scheme,
-    userdata: codecs.scheme.decode(obj.metadata ?? {}),
+    userdata: codecs.scheme.decode(obj.metadata),
   });
 }

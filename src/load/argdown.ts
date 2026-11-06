@@ -1,7 +1,7 @@
 import type { JsonObject, JsonValue } from "@bufbuild/protobuf";
 import * as model from "#/model/index.js";
 import { defaultScheme } from "#/model/scheme.js";
-import type * as schema from "#/schemas/argdown.js";
+import * as schema from "#/schemas/argdown.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 import * as helpers from "#/load/helpers.js";
 
@@ -20,15 +20,15 @@ function argdownUserdata(fields: Readonly<Record<string, JsonValue | undefined>>
 }
 
 /** Text of the last defining member, preferring members marked as canonical (upstream rule). */
-function canonicalText(members: readonly schema.Statement[]): string | undefined {
+function canonicalText(members: readonly schema.MemberOutput[]): string | undefined {
   const definitions = members.filter((member) => !member.isReference);
   const canonical =
-    definitions.findLast((member) => member.data?.isCanonical === true) ?? definitions.at(-1);
+    definitions.findLast((member) => member.data?.isCanonical) ?? definitions.at(-1);
 
   return canonical?.text?.trim();
 }
 
-function isConclusion(statement: schema.Statement): boolean {
+function isConclusion(statement: schema.StatementOutput): boolean {
   return (
     statement.inference !== undefined &&
     (statement.role === "intermediary-conclusion" || statement.role === "main-conclusion")
@@ -36,7 +36,7 @@ function isConclusion(statement: schema.Statement): boolean {
 }
 
 /** Premises of the conclusion at `index`, its `uses` or all statements back to the previous conclusion. */
-function premises(argument: schema.Argument, index: number): schema.Statement[] {
+function premises(argument: schema.ArgumentOutput, index: number): schema.StatementOutput[] {
   const { pcs } = argument;
   const conclusion = pcs[index];
   const uses = conclusion.inference?.data?.uses ?? conclusion.data?.uses;
@@ -65,16 +65,20 @@ function premises(argument: schema.Argument, index: number): schema.Statement[] 
   return uses.map((n) => pcs[n - 1]);
 }
 
-/** Load a graph from the Argdown JSON export, use `arguebuf/argdown` for Argdown source text. */
+/**
+ * Load a graph from the Argdown JSON export, use `arguebuf/argdown` for Argdown source text.
+ * Throws an `invalid-input` error for structurally invalid input.
+ */
 export function argdown<S extends UserdataSchema = {}>(
   obj: schema.Graph,
   ...args: helpers.LoadArgs<S>
 ): model.Graph<S> {
   const ctx = helpers.loadOptions<S>(...args);
   const { name, codecs } = ctx;
+  const input = helpers.parseInput("Argdown", schema.Graph, obj);
   const graph = new model.GraphDraft<S>({
     name,
-    userdata: codecs.graph.decode(obj.frontMatter ?? {}),
+    userdata: codecs.graph.decode(input.frontMatter),
   });
   // inference schemes by argument title and conclusion index
   const inferences = new Map<string, Map<number, model.SchemeNodeOf<S>>>();
@@ -86,7 +90,7 @@ export function argdown<S extends UserdataSchema = {}>(
   };
 
   const addAtom = (
-    element: schema.EquivalenceClass | schema.Argument,
+    element: schema.EquivalenceClassOutput | schema.ArgumentOutput,
     fields: Readonly<Record<string, JsonValue>> = {},
   ) => {
     const node = new model.AtomNode({
@@ -106,10 +110,10 @@ export function argdown<S extends UserdataSchema = {}>(
   };
 
   const statements = Object.fromEntries(
-    Object.entries(obj.statements).map(([title, ec]) => [title, addAtom(ec)]),
+    Object.entries(input.statements).map(([title, ec]) => [title, addAtom(ec)]),
   );
 
-  const addInferences = (title: string, argument: schema.Argument) => {
+  const addInferences = (title: string, argument: schema.ArgumentOutput) => {
     let main: model.SchemeNodeOf<S> | undefined;
     const owner = `argument '${title}'`;
     const conclusions = new Map<number, model.SchemeNodeOf<S>>();
@@ -162,25 +166,27 @@ export function argdown<S extends UserdataSchema = {}>(
 
   // Reconstructed arguments are represented by their main inference
   const argumentNodes = Object.fromEntries(
-    Object.entries(obj.arguments).map(([title, argument]) => [
+    Object.entries(input.arguments).map(([title, argument]) => [
       title,
       addInferences(title, argument) ?? addAtom(argument, { argument: true }),
     ]),
   );
 
-  const members: Partial<Record<schema.MemberType, Readonly<Record<string, model.Node<S>>>>> = {
+  const members: Readonly<Record<string, Readonly<Record<string, model.Node<S>>>>> = {
     "equivalence-class": statements,
     argument: argumentNodes,
   };
 
   const member = (
     title: string,
-    type: schema.MemberType,
+    type: string,
     index: number | undefined,
     owner: string,
   ): model.Node<S> | undefined => {
     if (type !== "inference") {
-      return helpers.lookup(ctx, members[type] ?? {}, title, type, owner);
+      const group = helpers.lookup(ctx, members, type, "member type", owner);
+
+      return group && helpers.lookup(ctx, group, title, type, owner);
     }
 
     const node = index === undefined ? undefined : inferences.get(title)?.get(index);
@@ -195,7 +201,7 @@ export function argdown<S extends UserdataSchema = {}>(
     return node;
   };
 
-  for (const relation of obj.relations) {
+  for (const relation of input.relations) {
     const owner = `${relation.relationType} relation`;
     const mapping = helpers.lookup(ctx, relations, relation.relationType, "relation type", owner);
 
