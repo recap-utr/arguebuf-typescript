@@ -88,7 +88,7 @@ export function removeElements<S extends UserdataSchema>(
   store: GraphStore<S>,
   ids: Iterable<string>,
 ): string[] {
-  const elements = [...ids];
+  const elements = new Set(ids);
   const kinds = [store.nodes, store.edges, store.resources, store.participants, store.analysts];
 
   for (const id of elements) {

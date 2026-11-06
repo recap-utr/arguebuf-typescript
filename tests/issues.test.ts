@@ -1,5 +1,6 @@
 import malformedJson from "#data/malformed.json" with { type: "json" };
 import { expect, test } from "vitest";
+import * as z from "zod";
 import * as arguebuf from "#/index.js";
 
 const malformed = malformedJson as arguebuf.schemas.aif.Graph;
@@ -107,6 +108,9 @@ test("check reports quality problems", () => {
   expect(arguebuf.check(new arguebuf.Graph())).toStrictEqual([]);
 });
 
+const issuePaths = (issues: readonly arguebuf.Issue[]) =>
+  issues.map(({ code, path }) => [code, path]);
+
 test("applyPatch applies patches all or nothing", () => {
   const empty = new arguebuf.Graph();
   const { graph, issues } = arguebuf.applyPatch(empty, {
@@ -126,7 +130,7 @@ test("applyPatch applies patches all or nothing", () => {
   });
 
   expect(Object.keys(empty.nodes)).toStrictEqual([]);
-  expect(issues.map(({ code, path }) => [code, path])).toStrictEqual([
+  expect(issuePaths(issues)).toStrictEqual([
     ["reference-mismatch", ["atoms", 1]],
     ["reference-unresolved", ["atoms", 2]],
   ]);
@@ -136,40 +140,40 @@ test("applyPatch applies patches all or nothing", () => {
   expect(arguebuf.check(graph)).toStrictEqual([]);
   expect(arguebuf.outline(graph).schemes).toStrictEqual([
     { id: "s", type: "support", scheme: "Expert Opinion", premises: ["p"], conclusion: "mc" },
-    { id: "x", type: "attack", scheme: undefined, premises: ["u"], conclusion: "s" },
-    { id: "y", type: "support", scheme: undefined, premises: ["c"], conclusion: "mc" },
+    { id: "x", type: "attack", scheme: null, premises: ["u"], conclusion: "s" },
+    { id: "y", type: "support", scheme: null, premises: ["c"], conclusion: "mc" },
   ]);
 
   const failed = arguebuf.applyPatch(graph, {
-    remove: ["c"],
-    atoms: [{ id: "s", text: "Wrong kind" }, { id: "n" }],
+    delete: ["c"],
+    atoms: [{ id: "s", text: "Wrong kind" }],
     schemes: [{ id: "z", type: "support", premises: ["missing"], conclusion: "mc" }],
   });
 
   expect(failed.graph).toBe(graph);
-  expect(failed.issues.map(({ code, path }) => [code, path])).toStrictEqual([
+  expect(issuePaths(failed.issues)).toStrictEqual([
     ["invalid-patch", ["atoms", 0]],
-    ["invalid-patch", ["atoms", 1]],
     ["unknown-element", ["schemes", 0]],
   ]);
 
   const edited = arguebuf.applyPatch(graph, {
     // the scheme of p is already removed together with p
-    remove: ["p", "s"],
+    delete: ["p", "s"],
     atoms: [{ id: "c", text: "They are clean" }],
-    schemes: [{ id: "y", type: "attack", scheme: "Unknown Label", premises: ["c", "u"] }],
-    majorClaim: null,
+    schemes: [
+      { id: "y", type: "attack", scheme: "Unknown Label", premises: ["c", "u"], conclusion: "mc" },
+    ],
   });
 
-  expect(edited.issues.map(({ code, path }) => [code, path])).toStrictEqual([
-    ["unknown-scheme", ["schemes", 0]],
-  ]);
+  // unknown scheme labels fall back to the default
+  expect(issuePaths(edited.issues)).toStrictEqual([["unknown-scheme", ["schemes", 0]]]);
   // the scheme without premise and its undercutter are removed
   expect(Object.keys(edited.graph.nodes)).toStrictEqual(["mc", "u", "c", "y"]);
   expect(arguebuf.outline(edited.graph).schemes).toStrictEqual([
-    { id: "y", type: "attack", scheme: undefined, premises: ["c", "u"], conclusion: "mc" },
+    { id: "y", type: "attack", scheme: null, premises: ["c", "u"], conclusion: "mc" },
   ]);
-  expect(edited.graph.majorClaim).toBeUndefined();
+  expect(edited.graph.atomNodes.c.reference?.text).toBe("they are clean");
+  expect(edited.graph.majorClaim).toBe("mc");
   expect(graph.nodes.p).toBeDefined();
   expect([edited.created, edited.updated, edited.removed]).toStrictEqual([
     [],
@@ -178,45 +182,24 @@ test("applyPatch applies patches all or nothing", () => {
   ]);
 });
 
-test("parsePatch reports every problem of untrusted input", () => {
-  expect(arguebuf.parsePatch([]).issues).toMatchObject([{ code: "invalid-patch", path: [] }]);
-  const parsed = arguebuf.parsePatch({
-    atoms: [{ id: "a", text: 1 }, { text: "b" }],
-    schemes: [{ id: "s", type: "rebut", premises: [] }],
-    majorClaim: null,
-    extra: true,
-  });
-
-  expect(parsed.patch).toBeUndefined();
-  expect(parsed.issues).toHaveLength(5);
-  expect(parsed.issues).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({ code: "invalid-patch", path: ["atoms", 0, "text"] }),
-      expect.objectContaining({ code: "invalid-patch", path: ["atoms", 1] }),
-      expect.objectContaining({ code: "invalid-patch", path: ["schemes", 0, "type"] }),
-      expect.objectContaining({ code: "invalid-patch", path: ["schemes", 0, "premises"] }),
-      expect.objectContaining({ code: "invalid-patch", path: [] }),
-    ]),
+test("patches are validated against their schema", () => {
+  const invalid: arguebuf.Patch = JSON.parse(
+    '{"atoms": [{"id": "a"}], "schemes": [{"id": "s", "type": "rebut", "premises": [], "conclusion": "a"}], "extra": true}',
   );
-  expect(arguebuf.parsePatch({ remove: ["a"], majorClaim: null })).toStrictEqual({
-    patch: { remove: ["a"], majorClaim: null },
-    issues: [],
-  });
-  const schema: arguebuf.JsonSchema = {
-    ...arguebuf.patchSchema,
-    properties: {
-      ...arguebuf.patchSchema.properties,
-      confidence: { type: "number", minimum: 0, maximum: 1 },
-      explanations: { type: "object", additionalProperties: { type: "string" } },
-    },
-  };
+  const { graph, issues } = arguebuf.applyPatch(new arguebuf.Graph(), invalid);
 
-  expect(arguebuf.parsePatch({ confidence: 2 }, schema).patch).toBeUndefined();
-  expect(arguebuf.parsePatch({ confidence: 0.5 }, schema).patch).toEqual({ confidence: 0.5 });
-  expect(arguebuf.parsePatch({ explanations: { "0/~": 1 } }, schema).issues[0].path).toEqual([
-    "explanations",
-    "0/~",
+  expect(Object.keys(graph.nodes)).toStrictEqual([]);
+  expect(issuePaths(issues)).toStrictEqual([
+    ["invalid-patch", ["atoms", 0, "text"]],
+    ["invalid-patch", ["schemes", 0, "type"]],
+    ["invalid-patch", ["schemes", 0, "premises"]],
+    ["invalid-patch", []],
   ]);
+
+  const schema = z.toJSONSchema(arguebuf.patchSchema, { io: "input" });
+
+  expect(schema.required).toBeUndefined();
+  expect(schema.properties?.atoms).toMatchObject({ items: { required: ["id", "text"] } });
 });
 
 test("updating a resource text re-anchors its references", () => {
@@ -247,4 +230,8 @@ test("patch results keep element namespaces separate", () => {
   expect([edited.created, edited.updated, edited.removed]).toEqual([[], ["a"], []]);
   const removed = arguebuf.applyPatch(added.graph, { clear: true });
   expect([removed.created, removed.updated, removed.removed]).toEqual([[], [], ["a"]]);
+  const cleared = arguebuf.applyPatch(added.graph, { clear: true, delete: ["a"] });
+  expect([cleared.issues, cleared.removed]).toEqual([[], ["a"]]);
+  const unknown = arguebuf.applyPatch(added.graph, { clear: true, delete: ["x"] });
+  expect(unknown.issues).toMatchObject([{ code: "unknown-element", path: ["delete"] }]);
 });

@@ -38,12 +38,12 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2",
-    "ajv": "^8",
     "approx-string-match": "^2",
     "arg-services": "^4",
     "parse5": "^8",
     "ts-graphviz": "^3",
-    "word-wrap": "^1"
+    "word-wrap": "^1",
+    "zod": "^4"
   },
   "devDependencies": {
     "@argdown/core": "^2",
@@ -51,8 +51,7 @@
     "temporal-polyfill": "^1",
     "typescript": "^7",
     "vite": "^8",
-    "vitest": "^5",
-    "zod": "^4"
+    "vitest": "^5"
   },
   "peerDependencies": {
     "@argdown/core": "^2",

@@ -11,7 +11,6 @@ import {
   type SchemeType,
 } from "#/model/scheme.js";
 import type { UserdataSchema } from "#/model/userdata.js";
-import type { SchemePatch } from "#/patch/schema.js";
 
 // Fields of patch items resolved to the values of the model, with a warning about the result.
 
@@ -29,19 +28,15 @@ export interface ResolvedScheme {
 
 /**
  * Link the text of the atom `id` to the most similar span of the resource or,
- * by default, of all resources. `null` removes the reference.
+ * by default, of all resources.
  */
 export function linkText<S extends UserdataSchema>(
   resources: Readonly<Record<string, ResourceOf<S>>>,
   id: string,
   text: string,
-  resource: string | null | undefined,
+  resource: string | undefined,
   options: ThresholdOptions,
 ): Link {
-  if (resource === null) {
-    return {};
-  }
-
   if (resource !== undefined && !Object.hasOwn(resources, resource)) {
     fail("unknown-element", `Resource '${resource}' does not exist.`, [resource]);
   }
@@ -88,30 +83,25 @@ export function linkText<S extends UserdataSchema>(
     : { reference };
 }
 
-/** The scheme of the item, keeping the `current` type unless the item changes it. */
+/** The scheme of the type with the label of the scheme `id`, the default without a label. */
 export function resolveSchemeOf(
-  item: SchemePatch,
-  current: SchemeType | undefined,
+  id: string,
+  type: SchemeType,
+  label: string | undefined,
 ): ResolvedScheme {
-  const type = item.type ?? current;
-
-  if (type === undefined) {
-    fail("invalid-patch", `Scheme '${item.id}' needs a type.`, [item.id]);
-  }
-
-  if (item.scheme === undefined) {
+  if (label === undefined) {
     return { scheme: defaultScheme(type) };
   }
 
-  const scheme = resolveScheme(type, item.scheme);
+  const scheme = resolveScheme(type, label);
 
-  return isDefaultScheme(scheme) && normalizeSchemeLabel(item.scheme) !== "default"
+  return isDefaultScheme(scheme) && normalizeSchemeLabel(label) !== "default"
     ? {
         scheme,
         warning: issue(
           "unknown-scheme",
-          `The ${type} scheme '${item.scheme}' of '${item.id}' is unknown, the default is used.`,
-          [item.id],
+          `The ${type} scheme '${label}' of '${id}' is unknown, the default is used.`,
+          [id],
         ),
       }
     : { scheme };

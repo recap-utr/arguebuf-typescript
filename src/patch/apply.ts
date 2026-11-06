@@ -1,26 +1,23 @@
-import { catchGraphError, fail, hasErrors, type Issue } from "#/issue.js";
+import type { z } from "zod";
+import { catchGraphError, fail, hasErrors, type Issue, issue } from "#/issue.js";
 import type { ThresholdOptions } from "#/locate.js";
-import { Edge } from "#/model/edge.js";
 import type { Graph, GraphDraft } from "#/model/graph.js";
 import { AtomNode, isType, type Node, SchemeNode, typeArticles } from "#/model/node.js";
 import { Participant } from "#/model/participant.js";
-import type { Reference } from "#/model/reference.js";
+import { Edge } from "#/model/edge.js";
 import { Resource } from "#/model/resource.js";
-import type { Scheme, SchemeType } from "#/model/scheme.js";
 import {
   type CodecArgs,
   type ResolvedCodecs,
   resolveCodecs,
   type UserdataSchema,
 } from "#/model/userdata.js";
-import { elementIds, premiseIds } from "#/patch/ids.js";
 import { linkText, resolveSchemeOf } from "#/patch/resolve.js";
 import {
   type AtomPatch,
   type ParticipantPatch,
   type Patch,
-  type Path,
-  participantFields,
+  patchSchema,
   type ResourcePatch,
   type SchemePatch,
 } from "#/patch/schema.js";
@@ -31,70 +28,62 @@ export interface PatchResult<S extends UserdataSchema> {
   readonly issues: readonly Issue[];
   /** Ids of the nodes, resources, and participants that the patch created. */
   readonly created: readonly string[];
-  /** Ids of the existing elements that items of the patch changed. */
+  /** Ids of the existing elements that the patch replaced. */
   readonly updated: readonly string[];
   /** Ids of the elements that were removed, including dangling schemes. */
   readonly removed: readonly string[];
 }
 
-/** The patched value of an optional field, `undefined` keeps it and `null` clears it. */
-function patched(
-  value: string | null | undefined,
-  current: string | undefined,
-): string | undefined {
-  return value === undefined ? current : (value ?? undefined);
-}
+type Path = NonNullable<Issue["path"]>;
 
 class Editor<S extends UserdataSchema> {
   readonly issues: Issue[] = [];
-  // removals cascade, so ids of the input may already be gone when they are removed
-  private readonly initial: ReadonlySet<string>;
 
   constructor(
     private readonly graph: GraphDraft<S>,
     private readonly codecs: ResolvedCodecs<S>,
     private readonly options: ThresholdOptions,
-  ) {
-    this.initial = new Set(elementIds(graph));
-  }
+  ) {}
 
-  apply(patch: Patch): void {
+  apply(patch: z.output<typeof patchSchema>): void {
     const { graph } = this;
 
-    if (patch.clear) {
-      graph.removeElements(Object.keys(graph.nodes));
-    }
+    const cleared = patch.clear ? Object.keys(graph.nodes) : [];
 
-    if (patch.remove !== undefined) {
-      this.remove(patch.remove);
-    }
-
-    patch.resources?.forEach((item, index) =>
-      this.attempt(["resources", index], () => this.resource(item)),
-    );
-    patch.participants?.forEach((item, index) =>
-      this.attempt(["participants", index], () => this.participant(item)),
-    );
-    patch.atoms?.forEach((item, index) =>
-      this.attempt(["atoms", index], () => this.atom(item, ["atoms", index])),
-    );
+    // removals cascade, so ids that a cascade already removed are skipped
+    this.attempt(["delete"], () => graph.removeElements([...cleared, ...patch.delete]));
+    this.each("resources", patch.resources, (item) => this.resource(item));
+    this.each("participants", patch.participants, (item) => this.participant(item));
+    this.each("atoms", patch.atoms, (item, path) => this.atom(item, path));
 
     // all schemes exist before they are wired, so that schemes can target schemes
-    const schemes = patch.schemes ?? [];
-    const created = schemes.map((item, index) =>
-      this.attempt(["schemes", index], () => this.scheme(item, ["schemes", index])),
-    );
-    schemes.forEach((item, index) => {
-      if (created[index]) {
+    const added = this.each("schemes", patch.schemes, (item, path) => this.scheme(item, path));
+    patch.schemes.forEach((item, index) => {
+      if (added[index]) {
         this.attempt(["schemes", index], () => this.wire(item));
       }
     });
 
-    if (patch.majorClaim !== undefined) {
+    const { majorClaim } = patch;
+
+    if (majorClaim !== null) {
       this.attempt(["majorClaim"], () => {
-        graph.majorClaim = patch.majorClaim ?? undefined;
+        graph.majorClaim = majorClaim;
       });
     }
+  }
+
+  /** Apply the action to each item, returns whether each one succeeded. */
+  private each<T>(
+    key: string,
+    items: readonly T[],
+    action: (item: T, path: Path) => void,
+  ): boolean[] {
+    return items.map((item, index) => {
+      const path = [key, index];
+
+      return this.attempt(path, () => action(item, path));
+    });
   }
 
   /** Run the action and record its `GraphError`, returns whether it succeeded. */
@@ -136,178 +125,92 @@ class Editor<S extends UserdataSchema> {
     return node;
   }
 
-  /** Remove the elements at once, ids of the input that a cascade already removed are skipped. */
-  private remove(ids: readonly string[]): void {
-    const current = new Set(elementIds(this.graph));
-    const unknown = ids.filter((id, index) => {
-      const missing = !current.has(id) && !this.initial.has(id);
-
-      if (missing) {
-        this.attempt(["remove", index], () =>
-          fail("unknown-element", `Element '${id}' does not exist.`, [id]),
-        );
-      }
-
-      return missing;
-    });
-
-    if (unknown.length === 0) {
-      this.attempt(["remove"], () =>
-        this.graph.removeElements(ids.filter((id) => current.has(id))),
-      );
-    }
-  }
-
   private resource(item: ResourcePatch): void {
-    const { graph, codecs } = this;
+    const { graph } = this;
+    const fields = {
+      text: item.text,
+      title: item.title ?? undefined,
+      source: item.source ?? undefined,
+    };
 
-    if (!Object.hasOwn(graph.resources, item.id)) {
-      if (item.text === undefined) {
-        fail("invalid-patch", `The new resource '${item.id}' needs a text.`, [item.id]);
-      }
-
+    if (Object.hasOwn(graph.resources, item.id)) {
+      this.issues.push(...graph.updateResource(item.id, fields, this.options));
+    } else {
       graph.addResource(
-        new Resource({
-          id: item.id,
-          text: item.text,
-          title: item.title ?? undefined,
-          source: item.source ?? undefined,
-          userdata: codecs.resource.decode({}),
-        }),
+        new Resource({ ...fields, id: item.id, userdata: this.codecs.resource.decode({}) }),
       );
-
-      return;
     }
-
-    const resource = graph.resources[item.id];
-    this.issues.push(
-      ...graph.updateResource(
-        resource,
-        {
-          text: item.text ?? resource.text,
-          title: patched(item.title, resource.title),
-          source: patched(item.source, resource.source),
-        },
-        this.options,
-      ),
-    );
   }
 
   private participant(item: ParticipantPatch): void {
-    const { graph, codecs } = this;
-    const current = Object.hasOwn(graph.participants, item.id)
-      ? graph.participants[item.id]
-      : undefined;
-    const fields = Object.fromEntries(
-      participantFields.map((key) => [key, patched(item[key], current?.[key])]),
-    );
+    const { graph } = this;
 
-    if (current === undefined) {
+    if (!Object.hasOwn(graph.participants, item.id)) {
       graph.addParticipant(
-        new Participant({ ...fields, id: item.id, userdata: codecs.participant.decode({}) }),
+        new Participant({ id: item.id, userdata: this.codecs.participant.decode({}) }),
       );
-    } else {
-      graph.updateParticipant(current, fields);
-    }
-  }
-
-  private atom(item: AtomPatch, path: Path): void {
-    const { graph, codecs } = this;
-    const { id, participant } = item;
-    const atom = this.node(id, "atom");
-
-    if (atom === undefined) {
-      if (item.text === undefined) {
-        fail("invalid-patch", `The new atom '${id}' needs a text.`, [id]);
-      }
-
-      graph.addNode(
-        new AtomNode({
-          id,
-          text: item.text,
-          participant: participant ?? undefined,
-          reference: this.reference(path, id, item.text, item.resource),
-          userdata: codecs.atom.decode({}),
-        }),
-      );
-
-      return;
     }
 
-    const text = item.text ?? atom.text;
-    graph.updateAtom(atom, {
-      text,
-      participant: patched(participant, atom.participant),
-      reference:
-        item.text === undefined && item.resource === undefined
-          ? atom.reference
-          : this.reference(
-              path,
-              id,
-              text,
-              item.resource === undefined ? atom.reference?.resource : item.resource,
-            ),
+    graph.updateParticipant(item.id, {
+      name: item.name ?? undefined,
+      username: item.username ?? undefined,
+      email: item.email ?? undefined,
+      url: item.url ?? undefined,
+      location: item.location ?? undefined,
+      description: item.description ?? undefined,
     });
   }
 
-  /** Link the text, reporting why it is not linked or only to a similar span. */
-  private reference(
-    path: Path,
-    id: string,
-    text: string,
-    resource: string | null | undefined,
-  ): Reference | undefined {
-    const { reference, warning } = linkText(this.graph.resources, id, text, resource, this.options);
-    this.warn(path, warning);
+  private atom(item: AtomPatch, path: Path): void {
+    const { id, text } = item;
+    const atom = this.node(id, "atom");
+    const resource = item.resource ?? undefined;
+    let reference = atom?.reference;
 
-    return reference;
+    // an unchanged atom keeps its reference, which may have been chosen by hand
+    if (
+      atom === undefined ||
+      atom.text !== text ||
+      (resource !== undefined && resource !== atom.reference?.resource)
+    ) {
+      const link = linkText(this.graph.resources, id, text, resource, this.options);
+      this.warn(path, link.warning);
+      reference = link.reference;
+    }
+
+    const fields = { text, reference, participant: item.participant ?? undefined };
+
+    if (atom === undefined) {
+      this.graph.addNode(new AtomNode({ ...fields, id, userdata: this.codecs.atom.decode({}) }));
+    } else {
+      this.graph.updateAtom(atom, fields);
+    }
   }
 
-  private schemeOf(item: SchemePatch, current: SchemeType | undefined, path: Path): Scheme {
-    const { scheme, warning } = resolveSchemeOf(item, current);
-    this.warn(path, warning);
-
-    return scheme;
-  }
-
-  /** Create or retype the scheme node, it is wired afterwards. */
+  /** Create or replace the scheme node, it is wired afterwards. */
   private scheme(item: SchemePatch, path: Path): void {
-    const { graph, codecs } = this;
     const { id } = item;
-    const scheme = this.node(id, "scheme");
+    const { scheme, warning } = resolveSchemeOf(id, item.type, item.scheme ?? undefined);
+    this.warn(path, warning);
+    const node = this.node(id, "scheme");
 
-    if (scheme === undefined) {
-      if (item.premises === undefined || item.conclusion === undefined) {
-        fail("invalid-patch", `The new scheme '${id}' needs premises and a conclusion.`, [id]);
-      }
-
-      graph.addNode(
-        new SchemeNode({
-          id,
-          scheme: this.schemeOf(item, undefined, path),
-          userdata: codecs.scheme.decode({}),
-        }),
-      );
-    } else if (item.type !== undefined || item.scheme !== undefined) {
-      graph.updateScheme(scheme, { scheme: this.schemeOf(item, scheme.scheme.case, path) });
+    if (node === undefined) {
+      this.graph.addNode(new SchemeNode({ id, scheme, userdata: this.codecs.scheme.decode({}) }));
+    } else {
+      this.graph.updateScheme(node, { scheme });
     }
   }
 
   /**
-   * Replace the premises and the conclusion that the item specifies.
+   * Replace the premises and the conclusion.
    * Premises are atoms, schemes targeting this scheme (e.g. undercutters) are kept.
    */
   private wire({ id, premises, conclusion }: SchemePatch): void {
     const { graph, codecs } = this;
     const link = (source: string, target: string) =>
       graph.addEdge(new Edge({ source, target, userdata: codecs.edge.decode({}) }));
-    const sources = premises ?? premiseIds(graph, id);
 
-    if (premises?.length === 0) {
-      fail("invalid-patch", `Scheme '${id}' needs at least one premise.`, [id]);
-    }
-
-    for (const premise of premises ?? []) {
+    for (const premise of premises) {
       if (this.node(premise, "atom") === undefined) {
         fail("unknown-element", `Premise '${premise}' of scheme '${id}' does not exist.`, [
           id,
@@ -316,38 +219,34 @@ class Editor<S extends UserdataSchema> {
       }
     }
 
-    if (conclusion !== undefined && !Object.hasOwn(graph.nodes, conclusion)) {
+    if (!Object.hasOwn(graph.nodes, conclusion)) {
       fail("unknown-element", `Conclusion '${conclusion}' of scheme '${id}' does not exist.`, [
         id,
         conclusion,
       ]);
     }
 
-    if (conclusion !== undefined && sources.includes(conclusion)) {
+    if (premises.includes(conclusion)) {
       fail("invalid-patch", `Scheme '${id}' uses its conclusion '${conclusion}' as premise.`, [
         id,
         conclusion,
       ]);
     }
 
-    if (premises !== undefined) {
-      graph
-        .incomingEdges(id)
-        .filter((edge) => graph.nodes[edge.source].type === "atom")
-        .forEach((edge) => graph.removeEdge(edge));
-      premises.forEach((premise) => link(premise, id));
-    }
-
-    if (conclusion !== undefined) {
-      graph.outgoingEdges(id).forEach((edge) => graph.removeEdge(edge));
-      link(id, conclusion);
-    }
+    graph
+      .incomingEdges(id)
+      .filter((edge) => graph.nodes[edge.source].type === "atom")
+      .forEach((edge) => graph.removeEdge(edge));
+    graph.outgoingEdges(id).forEach((edge) => graph.removeEdge(edge));
+    premises.forEach((premise) => link(premise, id));
+    link(id, conclusion);
   }
 }
 
 /**
  * Apply a patch to a graph, all or nothing.
  *
+ * The patch is validated against `patchSchema`, problems are `invalid-patch` errors.
  * Returns the changed graph, which shares unchanged elements with the input.
  * If an issue is an error, the input graph is returned together with all issues.
  * Texts of atoms are linked to the most similar spans of the resources.
@@ -357,15 +256,35 @@ export function applyPatch<S extends UserdataSchema>(
   patch: Patch,
   ...[options]: CodecArgs<S, ThresholdOptions>
 ): PatchResult<S> {
+  const failed = (issues: readonly Issue[]): PatchResult<S> => ({
+    graph,
+    issues,
+    created: [],
+    updated: [],
+    removed: [],
+  });
+  const validation = patchSchema.safeParse(patch);
+
+  if (!validation.success) {
+    return failed(
+      validation.error.issues.map(({ message, path }) => ({
+        ...issue("invalid-patch", message),
+        path: path.map((key) => (typeof key === "number" ? key : String(key))),
+      })),
+    );
+  }
+
+  const parsed = validation.data;
+
   const draft = graph.draft();
   const editor = new Editor<S>(draft, resolveCodecs(options?.codecs), {
     threshold: options?.threshold,
   });
-  editor.apply(patch);
+  editor.apply(parsed);
   const { issues } = editor;
 
   if (hasErrors(issues)) {
-    return { graph, issues, created: [], updated: [], removed: [] };
+    return failed(issues);
   }
 
   const result = draft.freeze();
@@ -374,12 +293,12 @@ export function applyPatch<S extends UserdataSchema>(
   const removed: string[] = [];
 
   for (const [before, after, items] of [
-    [graph.atomNodes, result.atomNodes, patch.atoms],
-    [graph.schemeNodes, result.schemeNodes, patch.schemes],
-    [graph.resources, result.resources, patch.resources],
-    [graph.participants, result.participants, patch.participants],
+    [graph.atomNodes, result.atomNodes, parsed.atoms],
+    [graph.schemeNodes, result.schemeNodes, parsed.schemes],
+    [graph.resources, result.resources, parsed.resources],
+    [graph.participants, result.participants, parsed.participants],
   ] as const) {
-    const submitted = new Set(items?.map(({ id }) => id));
+    const submitted = new Set(items.map(({ id }) => id));
 
     for (const id of Object.keys(after)) {
       if (!Object.hasOwn(before, id)) {
@@ -396,11 +315,5 @@ export function applyPatch<S extends UserdataSchema>(
     }
   }
 
-  return {
-    graph: result,
-    issues,
-    created,
-    updated,
-    removed,
-  };
+  return { graph: result, issues, created, updated, removed };
 }

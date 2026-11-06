@@ -23,20 +23,6 @@ export {
   type ThresholdOptions,
 } from "#/locate.js";
 export * from "#/model/index.js";
-export {
-  type AtomPatch,
-  applyPatch,
-  type PatchResult,
-  type JsonSchema,
-  type Outline,
-  outline,
-  type ParsedPatch,
-  parsePatch,
-  type ParticipantPatch,
-  type Patch,
-  patchSchema,
-  type ResourcePatch,
-  type SchemePatch,
-} from "#/patch.js";
+export * from "#/patch.js";
 export * as schemas from "#/schemas/index.js";
 export * as traverse from "#/traverse.js";

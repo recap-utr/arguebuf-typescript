@@ -19,7 +19,12 @@ export { Attack, Preference, Rephrase, Support };
 export type Scheme = Readonly<ProtobufScheme["type"]>;
 export type SchemeType = Exclude<Scheme["case"], undefined>;
 
-export const schemeTypes: readonly SchemeType[] = ["support", "attack", "rephrase", "preference"];
+export const schemeTypes = [
+  "support",
+  "attack",
+  "rephrase",
+  "preference",
+] as const satisfies readonly SchemeType[];
 
 export const noSchemeLabel = "Unknown";
 
