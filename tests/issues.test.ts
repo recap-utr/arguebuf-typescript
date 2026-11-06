@@ -245,18 +245,27 @@ test("structurally invalid input throws invalid-input", () => {
     severity: "error",
     message: "The xAIF input is invalid: AIF.nodes: Invalid input: expected array, received object",
   });
-  expect(invalid('{"nodes": [{"nodeID": true, "text": "A", "type": "I"}], "edges": []}')).toMatchObject({
+  expect(
+    invalid('{"nodes": [{"nodeID": true, "text": "A", "type": "I"}], "edges": []}'),
+  ).toMatchObject({
     code: "invalid-input",
-    message: "The AIF input is invalid: nodes.0.nodeID: Invalid input",
+    message:
+      "The AIF input is invalid: nodes.0.nodeID: Invalid input",
   });
-  expect(invalid("null")).toMatchObject({ code: "invalid-input", message: "The input is not a JSON object." });
+  expect(invalid("null")).toMatchObject({
+    code: "invalid-input",
+    message: "The input is not a JSON object.",
+  });
 });
 
 test("unknown node types and missing participants are repaired", () => {
   const warn = vi.fn<(issue: arguebuf.Issue) => void>();
   const aif = arguebuf.load.json(
     {
-      nodes: [{ nodeID: "a", text: "A", type: "I" }, { nodeID: "u", text: "U", type: "XX" }],
+      nodes: [
+        { nodeID: "a", text: "A", type: "I" },
+        { nodeID: "u", text: "U", type: "XX" },
+      ],
       edges: [{ edgeID: "e", fromID: "u", toID: "a" }],
     },
     { onIssue: warn },
@@ -304,7 +313,15 @@ test("unknown argdown member types are skipped", () => {
     {
       statements: { A: { title: "A", members: [] }, B: { title: "B", members: [] } },
       arguments: {},
-      relations: [{ relationType: "support", from: "A", fromType: "unknown", to: "B", toType: "equivalence-class" }],
+      relations: [
+        {
+          relationType: "support",
+          from: "A",
+          fromType: "unknown",
+          to: "B",
+          toType: "equivalence-class",
+        },
+      ],
     },
     { onIssue: warn },
   );
