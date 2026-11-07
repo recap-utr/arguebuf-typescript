@@ -1,5 +1,6 @@
 // Regression tests for the format loaders and dumpers, mirroring tests/test_formats.py of arguebuf-python.
 import { expect, test, vi } from "vitest";
+import * as z from "zod";
 import { dumpGraphology } from "#/graphology.js";
 import * as arguebuf from "#/index.js";
 import { loadOptions, newReference } from "#/load/helpers.js";
@@ -220,7 +221,7 @@ test("numeric ids", () => {
   }
 
   for (const value of [true, null, {}]) {
-    expect(() => Id.parse(value)).toThrow();
+    expect(() => Id.parse(value)).toThrow(z.ZodError);
   }
 });
 
