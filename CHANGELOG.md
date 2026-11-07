@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.1.0](https://github.com/recap-utr/arguebuf-typescript/compare/v3.0.1...v3.1.0) (2026-11-07)
+
+### Features
+
+* **load:** validate json import formats with zod schemas ([3bf843a](https://github.com/recap-utr/arguebuf-typescript/commit/3bf843a9704a7ea76a943c564fbd0352728e9944))
+* **patch:** rewrite agent patches as zod schema ([ba00f96](https://github.com/recap-utr/arguebuf-typescript/commit/ba00f96c6eda30b421020112aa42e4b4a6005383))
+
+### Bug Fixes
+
+* **dump:** align aif and xaif exports with aifdb and ova3 ([a2aef09](https://github.com/recap-utr/arguebuf-typescript/commit/a2aef09fc2d5a5d247455257168d0d649c4ee418))
+
 ## [3.0.1](https://github.com/recap-utr/arguebuf-typescript/compare/v3.0.0...v3.0.1) (2026-11-05)
 
 ### Bug Fixes
