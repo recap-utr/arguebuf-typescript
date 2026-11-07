@@ -36,8 +36,8 @@ const schemePatch = z.strictObject({
   id,
   type: z.enum(schemeTypes),
   scheme: optional(z.string()).describe("Argumentation scheme of the type, e.g. Expert Opinion."),
-  premises: z.array(id).min(1).describe("Ids of atoms."),
-  conclusion: id.describe("Id of an atom or of a scheme to undercut."),
+  premises: z.array(id).min(1).describe("Ids of atoms, only supports take several."),
+  conclusion: id.describe("Id of an atom or of a scheme."),
 });
 
 export const patchSchema = z

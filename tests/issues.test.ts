@@ -153,13 +153,17 @@ test("applyPatch applies patches all or nothing", () => {
   const failed = arguebuf.applyPatch(graph, {
     delete: ["c"],
     atoms: [{ id: "s", text: "Wrong kind" }],
-    schemes: [{ id: "z", type: "support", premises: ["missing"], conclusion: "mc" }],
+    schemes: [
+      { id: "z", type: "support", premises: ["missing"], conclusion: "mc" },
+      { id: "w", type: "attack", premises: ["p", "u"], conclusion: "mc" },
+    ],
   });
 
   expect(failed.graph).toBe(graph);
   expect(issuePaths(failed.issues)).toStrictEqual([
     ["invalid-patch", ["atoms", 0]],
     ["unknown-element", ["schemes", 0]],
+    ["invalid-patch", ["schemes", 1]],
   ]);
 
   const edited = arguebuf.applyPatch(graph, {
@@ -167,7 +171,7 @@ test("applyPatch applies patches all or nothing", () => {
     delete: ["p", "s"],
     atoms: [{ id: "c", text: "They are clean" }],
     schemes: [
-      { id: "y", type: "attack", scheme: "Unknown Label", premises: ["c", "u"], conclusion: "mc" },
+      { id: "y", type: "support", scheme: "Unknown Label", premises: ["c", "u"], conclusion: "mc" },
     ],
   });
 
@@ -176,7 +180,7 @@ test("applyPatch applies patches all or nothing", () => {
   // the scheme without premise and its undercutter are removed
   expect(Object.keys(edited.graph.nodes)).toStrictEqual(["mc", "u", "c", "y"]);
   expect(arguebuf.outline(edited.graph).schemes).toStrictEqual([
-    { id: "y", type: "attack", scheme: null, premises: ["c", "u"], conclusion: "mc" },
+    { id: "y", type: "support", scheme: null, premises: ["c", "u"], conclusion: "mc" },
   ]);
   expect(edited.graph.atomNodes.c.reference?.text).toBe("they are clean");
   expect(edited.graph.majorClaim).toBe("mc");

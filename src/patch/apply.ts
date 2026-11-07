@@ -12,6 +12,7 @@ import {
   resolveCodecs,
   type UserdataSchema,
 } from "#/model/userdata.js";
+import { allowsMultiplePremises } from "#/model/scheme.js";
 import { linkText, resolveSchemeOf } from "#/patch/resolve.js";
 import {
   type AtomPatch,
@@ -205,7 +206,7 @@ class Editor<S extends UserdataSchema> {
    * Replace the premises and the conclusion.
    * Premises are atoms, schemes targeting this scheme (e.g. undercutters) are kept.
    */
-  private wire({ id, premises, conclusion }: SchemePatch): void {
+  private wire({ id, type, premises, conclusion }: SchemePatch): void {
     const { graph, codecs } = this;
     const link = (source: string, target: string) =>
       graph.addEdge(new Edge({ source, target, userdata: codecs.edge.decode({}) }));
@@ -231,6 +232,14 @@ class Editor<S extends UserdataSchema> {
         id,
         conclusion,
       ]);
+    }
+
+    if (premises.length > 1 && !allowsMultiplePremises(type)) {
+      fail(
+        "invalid-patch",
+        `Scheme '${id}' has ${premises.length} premises, only supports take several.`,
+        [id, ...premises],
+      );
     }
 
     graph
