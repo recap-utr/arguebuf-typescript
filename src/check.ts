@@ -2,6 +2,7 @@ import { type Issue, type IssueCode, issue, unresolvedReference } from "#/issue.
 import { isAnchored } from "#/locate.js";
 import type { GraphView } from "#/model/graph.js";
 import type { Node } from "#/model/node.js";
+import { allowsMultiplePremises } from "#/model/scheme.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 import { dfs } from "#/traverse.js";
 
@@ -13,6 +14,8 @@ export interface CheckOptions {
 /**
  * Find the problems of a graph that the strict model cannot prevent,
  * i.e. untyped schemes, references that do not match their resource, and quality problems of the argument.
+ * Following AIF, every scheme needs a premise and a conclusion,
+ * only supports may have several premises, and no premise may be the conclusion.
  */
 export function check<S extends UserdataSchema>(
   graph: GraphView<S>,
@@ -28,30 +31,55 @@ export function check<S extends UserdataSchema>(
 
   for (const node of nodes) {
     if (node.type === "scheme") {
-      const conclusions = graph.outgoingEdges(node).length;
+      const premises = graph.premiseNodes(node);
+      const conclusions = graph.outgoingNodes(node);
 
       if (node.scheme.case === undefined) {
         issues.push(issue("untyped-scheme", `Scheme '${node.id}' has no type.`, [node.id]));
       }
 
-      if (graph.premiseNodes(node).length === 0) {
+      if (premises.length === 0) {
         issues.push(
           issue("scheme-without-premise", `Scheme '${node.id}' has no premise.`, [node.id]),
         );
-      }
-
-      if (conclusions === 0) {
-        issues.push(
-          issue("scheme-without-conclusion", `Scheme '${node.id}' has no conclusion.`, [node.id]),
-        );
-      } else if (conclusions > 1) {
+      } else if (
+        premises.length > 1 &&
+        node.scheme.case !== undefined &&
+        !allowsMultiplePremises(node.scheme.case)
+      ) {
         issues.push(
           issue(
-            "scheme-multiple-conclusions",
-            `Scheme '${node.id}' has ${conclusions} conclusions.`,
+            "scheme-multiple-premises",
+            `Scheme '${node.id}' has ${premises.length} premises.`,
             [node.id],
           ),
         );
+      }
+
+      if (conclusions.length === 0) {
+        issues.push(
+          issue("scheme-without-conclusion", `Scheme '${node.id}' has no conclusion.`, [node.id]),
+        );
+      } else if (conclusions.length > 1) {
+        issues.push(
+          issue(
+            "scheme-multiple-conclusions",
+            `Scheme '${node.id}' has ${conclusions.length} conclusions.`,
+            [node.id],
+          ),
+        );
+      }
+
+      for (const premise of premises) {
+        if (conclusions.includes(premise)) {
+          issues.push(
+            issue(
+              "circular-scheme",
+              `Scheme '${node.id}' uses '${premise.id}' as premise and conclusion.`,
+              [node.id, premise.id],
+            ),
+          );
+        }
       }
 
       continue;

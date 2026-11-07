@@ -181,6 +181,11 @@ export function resolveAifScheme(aifType: aif.SchemeType, text: string): Scheme 
   return resolveScheme(aifSchemeTypes[aifType], text);
 }
 
+/** Whether schemes of the type may have several premises, only supports may as in AIF. */
+export function allowsMultiplePremises(type: SchemeType): boolean {
+  return type === "support";
+}
+
 export function isDefaultScheme(scheme: Scheme): boolean {
   switch (scheme.case) {
     case "support":

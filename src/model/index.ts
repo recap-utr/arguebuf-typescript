@@ -22,6 +22,7 @@ export * from "#/model/reference.js";
 export * from "#/model/resource.js";
 export {
   aifSchemeTypes,
+  allowsMultiplePremises,
   Attack,
   defaultScheme,
   isDefaultScheme,
