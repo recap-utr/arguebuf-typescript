@@ -249,8 +249,7 @@ test("structurally invalid input throws invalid-input", () => {
     invalid('{"nodes": [{"nodeID": true, "text": "A", "type": "I"}], "edges": []}'),
   ).toMatchObject({
     code: "invalid-input",
-    message:
-      "The AIF input is invalid: nodes.0.nodeID: Invalid input",
+    message: "The AIF input is invalid: nodes.0.nodeID: Invalid input",
   });
   expect(invalid("null")).toMatchObject({
     code: "invalid-input",
