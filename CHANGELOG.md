@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/recap-utr/arguebuf-typescript/compare/v3.1.0...v3.1.1) (2026-11-08)
+
+### Bug Fixes
+
+* **check:** report schemes with several premises or circular relations ([add877d](https://github.com/recap-utr/arguebuf-typescript/commit/add877db661c4b902f0863e847ba2591cb220e25))
+* **patch:** reject several premises for schemes other than supports ([67f22f1](https://github.com/recap-utr/arguebuf-typescript/commit/67f22f192378431599e0b284472fdcc9f7f67c6e))
+
 ## [3.1.0](https://github.com/recap-utr/arguebuf-typescript/compare/v3.0.1...v3.1.0) (2026-11-07)
 
 ### Features
