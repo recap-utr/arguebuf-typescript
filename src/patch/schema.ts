@@ -62,7 +62,7 @@ export const patchSchema = z
     "Changes to an argument graph, applied all or nothing in the order of the fields. An item with a new id of your choice creates the element, an item with an existing id replaces it with all given fields.",
   );
 
-/** Patch as written by agents or programs, omitted fields take their defaults. */
+/** Patch that changes a graph, omitted fields take their defaults. */
 export type Patch = z.input<typeof patchSchema>;
 export type ResourcePatch = z.output<typeof resourcePatch>;
 export type ParticipantPatch = z.output<typeof participantPatch>;

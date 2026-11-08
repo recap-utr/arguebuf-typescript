@@ -1,4 +1,4 @@
-// Patches written by agents or programs, see `applyPatch`.
+// Patches that change graphs by referencing their elements by id, see `applyPatch`.
 export { applyPatch, type PatchResult } from "#/patch/apply.js";
 export { outline } from "#/patch/outline.js";
 export {

@@ -42,7 +42,7 @@ export interface Issue {
   readonly severity: Severity;
   /** Complete sentence naming the affected elements. */
   readonly message: string;
-  /** Imperative remediation for humans and agents. */
+  /** Imperative remediation. */
   readonly hint?: string;
   /** Ids of the affected elements. */
   readonly elements: readonly string[];

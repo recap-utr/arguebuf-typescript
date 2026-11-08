@@ -3,7 +3,7 @@ import { isDefaultScheme, schemeValueLabel } from "#/model/scheme.js";
 import type { UserdataSchema } from "#/model/userdata.js";
 import type { Outline } from "#/patch/schema.js";
 
-/** The graph in the shape of the created elements of a patch, e.g. to show it to an agent. */
+/** The graph in the shape of the created elements of a patch. */
 export function outline<S extends UserdataSchema>(graph: GraphView<S>): Outline {
   const nodes = Object.values(graph.nodes);
 

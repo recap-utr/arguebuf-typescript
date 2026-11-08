@@ -161,14 +161,14 @@ const match = arguebuf.locate(
 // { offset: 24, text: "They are independent", similarity: 0.95 }
 ```
 
-### Patches for Agents
+### Patches
 
-`applyPatch` applies a `Patch` to a graph, which references all elements by id and is meant to be written by agents.
+`applyPatch` applies a `Patch` to a graph, which references all elements by id.
 An item with a new id creates an element and an item with an existing id replaces it, so all its fields are given again, `delete` and `clear` remove elements.
 Texts of atoms are linked to the most similar spans of the resources, an atom keeps its link if its text and resource are unchanged.
 The patch is validated against the Zod schema `patchSchema` and applied all or nothing, so the result contains the input graph if there is an error.
 Otherwise, the result lists the ids of the `created`, `updated`, and `removed` elements, removed elements include the dangling schemes of removed nodes.
-Every issue points to the item that caused it via its `path`, so that an agent can correct it.
+Every issue points to the item that caused it via its `path`.
 Scheme labels that are unknown for their type fall back to the default scheme with an `unknown-scheme` warning.
 
 ```ts
@@ -182,9 +182,9 @@ const { graph: next, issues } = arguebuf.applyPatch(graph, {
 });
 ```
 
-`outline` returns the elements of a graph in the shape of a patch, e.g. to show them to an agent.
-Optional fields may be omitted or null, and `patchSchema` can be passed as is to tools of agents, e.g. as the input schema of an AI SDK tool.
-Hosts with fields of their own, e.g. explanations of an agent, use `patchSchema.extend({ ... })` and remove their fields before calling `applyPatch`.
+`outline` returns the elements of a graph in the shape of a patch.
+Optional fields may be omitted or null, and `patchSchema` can be used as is, e.g. as a JSON schema.
+Hosts with fields of their own use `patchSchema.extend({ ... })` and remove their fields before calling `applyPatch`.
 A scheme can be the conclusion of another scheme, e.g. to undercut it.
 
 ### Exporting a Graph
