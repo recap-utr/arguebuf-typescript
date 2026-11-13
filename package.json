@@ -1,6 +1,6 @@
 {
   "name": "arguebuf",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "repository": "github:recap-utr/arguebuf-typescript",
   "files": [
     "dist"

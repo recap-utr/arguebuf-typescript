@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.1.2](https://github.com/recap-utr/arguebuf-typescript/compare/v3.1.1...v3.1.2) (2026-11-13)
+
+### Bug Fixes
+
+* **issue:** include hints in graph error messages ([0ef633b](https://github.com/recap-utr/arguebuf-typescript/commit/0ef633b3e9d0414bc56fe3d84608737f1f5afaec))
+
 ## [3.1.1](https://github.com/recap-utr/arguebuf-typescript/compare/v3.1.0...v3.1.1) (2026-11-08)
 
 ### Bug Fixes
