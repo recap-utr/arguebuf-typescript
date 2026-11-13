@@ -267,6 +267,12 @@ test("structurally invalid input throws invalid-input", () => {
   });
 });
 
+test("graph errors include the hint in their message", () => {
+  expect(() => arguebuf.load.json(JSON.parse("null"))).toThrow(
+    "The input is not a JSON object. Check the input against the specification of its format.",
+  );
+});
+
 test("unknown node types and missing participants are repaired", () => {
   const warn = vi.fn<(issue: arguebuf.Issue) => void>();
   const aif = arguebuf.load.json(

@@ -103,16 +103,21 @@ export function issue(
     : { code, severity, message, hint, elements };
 }
 
+/** Message of the issue followed by its hint, e.g. to show it to users. */
+export function describeIssue({ message, hint }: Issue): string {
+  return hint === undefined ? message : `${message} ${hint}`;
+}
+
 export function hasErrors(issues: readonly Issue[]): boolean {
   return issues.some((item) => item.severity === "error");
 }
 
-/** Error thrown by the strict model, its `issue` describes the cause. */
+/** Error thrown by the strict model, its `issue` describes the cause and its message includes the hint. */
 export class GraphError extends Error {
   readonly issue: Issue;
 
   constructor(issue: Issue) {
-    super(issue.message);
+    super(describeIssue(issue));
     this.name = "GraphError";
     this.issue = issue;
   }
@@ -148,5 +153,5 @@ export function fail(code: IssueCode, message: string, elements: readonly string
 
 /** Default reporter of loaders. */
 export function warn(item: Issue): void {
-  console.warn(`arguebuf: ${item.message}`);
+  console.warn(`arguebuf: ${describeIssue(item)}`);
 }
